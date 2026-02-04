@@ -1,59 +1,250 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+🎮 GameMGT – Laravel + SQL Server Setup Guide
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+This project is built using Laravel with Microsoft SQL Server as the database and runs locally using XAMPP (Apache + PHP).
 
-## About Laravel
+🧰 Tech Stack
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+PHP 8.3 (XAMPP)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Laravel 10+
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Microsoft SQL Server 2022
 
-## Learning Laravel
+SQL Server Management Studio (SSMS)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+Composer
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Apache (XAMPP)
 
-## Laravel Sponsors
+📋 Prerequisites
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Make sure the following are installed before proceeding:
 
-### Premium Partners
+XAMPP (PHP 8.3, Thread Safe)
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Composer (latest)
 
-## Contributing
+Microsoft SQL Server (2019/2022 – Developer Edition)
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+SQL Server Management Studio (SSMS)
 
-## Code of Conduct
+VC++ Redistributable (x64)
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+🚀 Installation Steps
+1️⃣ Clone the Repository
+git clone <your-repo-url>
+cd gamemgt
 
-## Security Vulnerabilities
+2️⃣ Install PHP Dependencies
+composer install
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+3️⃣ Environment Configuration
 
-## License
+Copy the example environment file:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+copy .env.example .env
+
+
+Generate the application key:
+
+php artisan key:generate
+
+4️⃣ Create Database in SQL Server (SSMS)
+
+Navigation:
+
+SSMS
+ → Connect to Server
+ → Object Explorer
+ → Right-click Databases
+ → New Database…
+
+
+Database name:
+
+gamemgt
+
+
+Click OK.
+
+5️⃣ Create SQL Login for Laravel (IMPORTANT)
+
+Laravel must use SQL authentication, not Windows authentication.
+
+Navigation:
+
+Server
+ → Security
+ → Logins
+ → Right-click → New Login
+
+
+Details:
+
+Login name: laravel_user
+
+Authentication: SQL Server Authentication
+
+Password: StrongPassword@123
+
+Default database: gamemgt
+
+Uncheck: Enforce password policy
+
+User Mapping tab:
+
+Check gamemgt
+
+Role: db_owner
+
+6️⃣ Configure .env for SQL Server
+
+Update your .env file:
+
+DB_CONNECTION=sqlsrv
+DB_HOST=127.0.0.1
+DB_PORT=1433
+DB_DATABASE=gamemgt
+DB_USERNAME=laravel_user
+DB_PASSWORD=StrongPassword@123
+
+
+⚠️ Do not use localhost
+⚠️ Do not use Windows Authentication
+
+7️⃣ Enable SQL Server TCP/IP
+
+Navigation:
+
+SQL Server Configuration Manager
+ → SQL Server Network Configuration
+ → Protocols for MSSQLSERVER
+
+
+Enable TCP/IP
+
+Open TCP/IP → Properties → IP Addresses
+
+Under IPAll:
+
+TCP Dynamic Ports: (empty)
+
+TCP Port: 1433
+
+Restart:
+
+SQL Server (MSSQLSERVER)
+
+8️⃣ Install SQL Server PHP Drivers
+
+Download from Microsoft:
+
+php_sqlsrv_83_ts_x64.dll
+
+php_pdo_sqlsrv_83_ts_x64.dll
+
+Place them in:
+
+C:\xampp\php\ext
+
+
+Edit php.ini:
+
+extension=php_sqlsrv_83_ts_x64
+extension=php_pdo_sqlsrv_83_ts_x64
+
+
+Restart Apache.
+
+9️⃣ Verify Driver Installation
+php -m | findstr sqlsrv
+
+
+Expected output:
+
+sqlsrv
+pdo_sqlsrv
+
+🔟 Run Migrations
+
+Clear config cache:
+
+php artisan config:clear
+php artisan cache:clear
+
+
+Run migrations:
+
+php artisan migrate
+
+✅ Application Ready
+
+Start the server:
+
+php artisan serve
+
+
+Open:
+
+http://127.0.0.1:8000
+
+🛠 Common Errors & Fixes
+❌ Error: Unable to load dynamic library 'sqlsrv'
+
+Cause:
+
+Wrong DLL (NTS instead of TS)
+
+Missing VC++ runtime
+
+Fix:
+
+Use TS x64 DLLs only
+
+Install VC++ Redistributable (x64)
+
+Restart Apache
+
+❌ Error: No connection could be made because the target machine actively refused it
+
+Cause:
+
+TCP/IP disabled in SQL Server
+
+Fix:
+
+Enable TCP/IP
+
+Set port 1433
+
+Restart SQL Server
+
+❌ Error: Login failed. The login is from an untrusted domain
+
+Cause:
+
+Windows Authentication used in Laravel
+
+Fix:
+
+Create SQL login
+
+Use username/password in .env
+
+❌ Error: SQLSTATE[08001] [Microsoft][ODBC Driver 18]
+
+Cause:
+
+Wrong host or encryption mismatch
+
+Fix:
+
+DB_HOST=127.0.0.1
+
+📌 Notes
+
+SQL Server + Laravel works best with SQL Authentication
+
+Always clear config cache after .env changes
+
+Apache (XAMPP) must be restarted after PHP config changes
