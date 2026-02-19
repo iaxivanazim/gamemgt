@@ -21,8 +21,13 @@ class PermissionSeeder extends Seeder
 
             ['name' => 'view-roles', 'slug' => 'view-roles', 'module' => 'roles'],
             ['name' => 'create-roles', 'slug' => 'create-roles', 'module' => 'roles'],
+            ['name' => 'edit-roles', 'slug' => 'edit-roles', 'module' => 'roles'],
+            ['name' => 'delete-roles', 'slug' => 'delete-roles', 'module' => 'roles'],
 
             ['name' => 'assign-permissions', 'slug' => 'assign-permissions', 'module' => 'roles'],
+
+            ['name' => 'game-day-start', 'slug' => 'game-day-start', 'module' => 'game-day'],
+            ['name' => 'game-day-close', 'slug' => 'game-day-close', 'module' => 'game-day'],
         ]);
     }
 }

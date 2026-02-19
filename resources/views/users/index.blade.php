@@ -58,10 +58,10 @@
                             @if($user->status)
                             <form method="POST"
                                 action="{{ route('users.deactivate', $user) }}"
-                                class="d-inline">
+                                class="d-inline deactivate-form">
                                 @csrf
                                 @method('PATCH')
-                                <button class="btn btn-sm btn-danger">
+                                <button type="button" class="btn btn-sm btn-danger btn-deactivate">
                                     Deactivate
                                 </button>
                             </form>
