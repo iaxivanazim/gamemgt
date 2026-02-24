@@ -1,37 +1,37 @@
 <script>
-        document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function() {
 
-            // SUCCESS MESSAGE
-            @if(session('success'))
-            Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text: "{{ session('success') }}",
-                timer: 2000,
-                showConfirmButton: false
-            });
-            @endif
-
-            // ERROR MESSAGE
-            @if(session('error'))
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: "{{ session('error') }}"
-            });
-            @endif
-
-            // VALIDATION ERRORS
-            @if($errors->any())
-            Swal.fire({
-                icon: 'error',
-                title: 'Validation Error',
-                html: `{!! implode('<br>', $errors->all()) !!}`
-            });
-            @endif
-
+        // SUCCESS MESSAGE
+        @if(session('success'))
+        Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: "{{ session('success') }}",
+            timer: 2000,
+            showConfirmButton: false
         });
-    </script>
+        @endif
+
+        // ERROR MESSAGE
+        @if(session('error'))
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: "{{ session('error') }}"
+        });
+        @endif
+
+        // VALIDATION ERRORS
+        @if($errors -> any())
+        Swal.fire({
+            icon: 'error',
+            title: 'Validation Error',
+            html: `{!! implode('<br>', $errors->all()) !!}`
+        });
+        @endif
+
+    });
+</script>
 
 @if($currentGameDay)
 <script>
@@ -89,6 +89,74 @@
                     .catch(error => {
                         Swal.fire('Error!', error.response.data.message ?? 'Something went wrong.', 'error');
                     });
+            }
+        });
+    }
+</script>
+
+<script>
+    function deleteTable(id) {
+        Swal.fire({
+            title: 'Are you sure?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                axios.delete(`/game-tables/${id}`)
+                    .then(() => {
+                        Swal.fire('Deleted!', '', 'success')
+                            .then(() => location.reload());
+                    });
+            }
+        });
+    }
+</script>
+
+<script>
+    function deleteTheme(id) {
+        Swal.fire({
+            title: 'Are you sure?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                axios.delete(`/themes/${id}`)
+                    .then(() => {
+                        Swal.fire('Deleted!', '', 'success')
+                            .then(() => location.reload());
+                    });
+            }
+        });
+    }
+</script>
+
+<script>
+    function deleteType(id) {
+        Swal.fire({
+            title: 'Delete Game Type?',
+            icon: 'warning',
+            showCancelButton: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                axios.delete(`/game-types/${id}`)
+                    .then(() => location.reload());
+            }
+        });
+    }
+</script>
+
+<script>
+    function deleteTheme(id) {
+        Swal.fire({
+            title: 'Delete Theme?',
+            icon: 'warning',
+            showCancelButton: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                axios.delete(`/themes/${id}`)
+                    .then(() => location.reload());
             }
         });
     }

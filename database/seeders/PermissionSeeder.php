@@ -28,6 +28,20 @@ class PermissionSeeder extends Seeder
 
             ['name' => 'game-day-start', 'slug' => 'game-day-start', 'module' => 'game-day'],
             ['name' => 'game-day-close', 'slug' => 'game-day-close', 'module' => 'game-day'],
+
+            ['name' => 'view-game_tables', 'slug' => 'view-game_tables', 'module' => 'game_tables'],
+            ['name' => 'create-game_tables', 'slug' => 'create-game_tables', 'module' => 'game_tables'],
+            ['name' => 'edit-game_tables', 'slug' => 'edit-game_tables', 'module' => 'game_tables'],
+            ['name' => 'delete-game_tables', 'slug' => 'delete-game_tables', 'module' => 'game_tables'],
+
+            ['name' => 'view-game_types', 'slug' => 'view-game_types', 'module' => 'game_types'],
+            ['name' => 'create-game_types', 'slug' => 'create-game_types', 'module' => 'game_types'],
+            ['name' => 'edit-game_types', 'slug' => 'edit-game_types', 'module' => 'game_types'],
+            ['name' => 'delete-game_types', 'slug' => 'delete-game_types', 'module' => 'game_types'],
+
+            ['name' => 'view-themes', 'slug' => 'view-themes', 'module' => 'themes'],
+            ['name' => 'create-themes', 'slug' => 'create-themes', 'module' => 'themes'],
+            ['name' => 'delete-themes', 'slug' => 'delete-themes', 'module' => 'themes'],
         ]);
     }
 }

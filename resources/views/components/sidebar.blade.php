@@ -28,6 +28,13 @@
         </li>
 
         <li class="nav-item">
+            <a href="/game_tables" class="nav-link">
+                <i class="bi bi-dice-3"></i>
+                <span class="link-text">Game Tables</span>
+            </a>
+        </li>
+
+        <li class="nav-item">
             <a href="/reports" class="nav-link">
                 <i class="bi bi-bar-chart"></i>
                 <span class="link-text">Reports</span>

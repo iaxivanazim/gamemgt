@@ -4,6 +4,9 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\GameDayController;
+use App\Http\Controllers\GameTableController;
+use App\Http\Controllers\GameTypeController;
+use App\Http\Controllers\ThemeController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -42,7 +45,28 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/game-day/start', [GameDayController::class, 'start'])->name('game-day.start')->middleware('permission:game-day-start');
     Route::post('/game-day/{id}/close', [GameDayController::class, 'close'])->name('game-day.close')->middleware('permission:game-day-close');
-});
+
+
+    Route::get('/game_tables', [GameTableController::class, 'index'])->name('game_tables.index')->middleware('permission:view-game_tables');
+    Route::get('/game_tables/create', [GameTableController::class, 'create'])->name('game_tables.create')->middleware('permission:create-game_tables');
+    Route::post('/game_tables', [GameTableController::class, 'store'])->name('game_tables.store')->middleware('permission:create-game_tables');
+    Route::get('/game_tables/{table}/edit', [GameTableController::class, 'edit'])->name('game_tables.edit')->middleware('permission:edit-game_tables');
+    Route::put('/game_tables/{table}', [GameTableController::class, 'update'])->name('game_tables.update')->middleware('permission:edit-game_tables');
+    Route::delete('/game_tables/{table}', [GameTableController::class, 'destroy'])->name('game_tables.destroy')->middleware('permission:delete-game_tables');
+    
+    Route::get('/game_types', [GameTypeController::class, 'index'])->name('game_types.index')->middleware('permission:view-game_types');
+    Route::get('/game_types/create', [GameTypeController::class, 'create'])->name('game_types.create')->middleware('permission:create-game_types');
+    Route::post('/game_types', [GameTypeController::class, 'store'])->name('game_types.store')->middleware('permission:create-game_types');
+    Route::get('/game_types/{type}/edit', [GameTypeController::class, 'edit'])->name('game_types.edit')->middleware('permission:edit-game_types');
+    Route::put('/game_types/{type}', [GameTypeController::class, 'update'])->name('game_types.update')->middleware('permission:edit-game_types');
+    Route::delete('/game_types/{type}', [GameTypeController::class, 'destroy'])->name('game_types.destroy')->middleware('permission:delete-game-types');
+    
+    Route::get('/themes', [ThemeController::class, 'index'])->name('themes.index')->middleware('permission:view-themes');
+    Route::post('/themes', [ThemeController::class, 'store'])->name('themes.store')->middleware('permission:create-themes');
+    Route::delete('/themes/{theme}', [ThemeController::class, 'destroy'])->name('themes.destroy')->middleware('permission:delete-themes');
+
+
+    });
 
 
 require __DIR__ . '/auth.php';
