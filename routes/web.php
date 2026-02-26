@@ -7,6 +7,7 @@ use App\Http\Controllers\GameDayController;
 use App\Http\Controllers\GameTableController;
 use App\Http\Controllers\GameTypeController;
 use App\Http\Controllers\ThemeController;
+use App\Http\Controllers\PayoutRuleController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -64,6 +65,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/themes', [ThemeController::class, 'index'])->name('themes.index')->middleware('permission:view-themes');
     Route::post('/themes', [ThemeController::class, 'store'])->name('themes.store')->middleware('permission:create-themes');
     Route::delete('/themes/{theme}', [ThemeController::class, 'destroy'])->name('themes.destroy')->middleware('permission:delete-themes');
+
+    Route::get('/payout_rules',[PayoutRuleController::class,'index'])->name('payout_rules.index')->middleware('permission:view-payout_rules');
+    Route::get('/payout_rules/fetch/{id}',[PayoutRuleController::class,'fetchByGameType'])->name('payout_rules.fetch')->middleware('permission:view-payout_rules');
+    Route::post('/payout_rules/store',[PayoutRuleController::class,'store'])->name('payout_rules.store')->middleware('permission:create-payout_rules');
+    Route::post('/payout_rules/update/{id}',[PayoutRuleController::class,'update'])->name('payout_rules.update')->middleware('permission:edit-payout_rules');
+    Route::delete('/payout_rules/delete/{id}',[PayoutRuleController::class,'destroy'])->name('payout_rules.delete')->middleware('permission:delete-payout_rules');
 
 
     });

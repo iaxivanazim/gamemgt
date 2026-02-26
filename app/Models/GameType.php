@@ -21,4 +21,9 @@ class GameType extends Model
     {
         return $this->hasMany(GameTable::class);
     }
+
+    public function payoutRules()
+    {
+        return $this->hasMany(PayoutRule::class, 'game_type_id');
+    }
 }

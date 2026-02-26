@@ -1,3 +1,4 @@
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
 
@@ -159,5 +160,218 @@
                     .then(() => location.reload());
             }
         });
+    }
+</script>
+
+<!-- payout rules -->
+<script>
+    let gameTypeID = null;
+
+
+    
+
+    $('.gameTypeBtn').click(function(){
+
+    $('.gameTypeBtn').removeClass('active bg-warning text-dark');
+
+    $(this).addClass('active bg-warning text-dark');
+
+    gameTypeID = $(this).data('id');
+
+    loadRules();
+
+});
+
+
+
+    function loadRules() {
+
+        $.get('/payout_rules/fetch/' + gameTypeID, function(data) {
+
+            let html = '';
+
+            data.forEach(r => {
+
+                html += `
+
+<tr>
+
+<td>
+
+<input class="form-control"
+value="${r.bet_name}"
+onchange="updateRule(${r.payout_id},this.value,'bet_name')">
+
+</td>
+
+
+<td>
+
+<input class="form-control"
+value="${r.bet_position}"
+onchange="updateRule(${r.payout_id},this.value,'bet_position')">
+
+</td>
+
+
+<td>
+
+<input class="form-control"
+value="${r.payout_multiplier}"
+onchange="updateRule(${r.payout_id},this.value,'payout_multiplier')">
+
+</td>
+
+
+<td>
+
+<select
+onchange="updateRule(${r.payout_id},this.value,'is_active')"
+class="form-control">
+
+<option value="1"
+${r.is_active==1?'selected':''}>
+Active
+</option>
+
+<option value="0"
+${r.is_active==0?'selected':''}>
+Inactive
+</option>
+
+</select>
+
+</td>
+
+
+<td>
+
+<button
+class="btn btn-danger btn-sm"
+onclick="deleteRule(${r.payout_id})">
+Delete
+</button>
+
+</td>
+
+</tr>
+
+`;
+
+            });
+
+            $('#rulesTable').html(html);
+
+        });
+
+    }
+
+
+
+    $('#addRuleBtn').click(function() {
+
+        if (!gameTypeID) {
+            Swal.fire('Select Game Type First');
+            return;
+        }
+
+        Swal.fire({
+
+            title: 'Add Payout Rule',
+
+            html: `
+
+<input id="bet_name"
+class="swal2-input"
+placeholder="Bet Name">
+
+<input id="bet_position"
+class="swal2-input"
+placeholder="Position">
+
+<input id="multiplier"
+class="swal2-input"
+placeholder="Multiplier">
+
+`,
+
+            preConfirm: () => {
+
+                $.post('/payout_rules/store', {
+
+                    game_type_id: gameTypeID,
+
+                    bet_name: $('#bet_name').val(),
+
+                    bet_position: $('#bet_position').val(),
+
+                    payout_multiplier: $('#multiplier').val(),
+
+                    is_active: 1,
+
+                    _token: '{{csrf_token()}}'
+
+                }, function() {
+
+                    loadRules();
+
+                });
+
+            }
+
+        });
+
+    });
+
+
+
+    function updateRule(id, value, column) {
+
+        $.post('/payout_rules/update/' + id, {
+
+            [column]: value,
+
+            _token: '{{csrf_token()}}'
+
+        });
+
+    }
+
+
+
+    function deleteRule(id) {
+
+        Swal.fire({
+
+            title: 'Delete?',
+
+            showCancelButton: true
+
+        }).then(res => {
+
+            if (res.isConfirmed) {
+
+                $.ajax({
+
+                    url: '/payout_rules/delete/' + id,
+
+                    type: 'DELETE',
+
+                    data: {
+                        _token: '{{csrf_token()}}'
+                    },
+
+                    success: function() {
+
+                        loadRules();
+
+                    }
+
+                });
+
+            }
+
+        });
+
     }
 </script>

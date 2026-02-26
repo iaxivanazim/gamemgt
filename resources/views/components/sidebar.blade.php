@@ -35,6 +35,13 @@
         </li>
 
         <li class="nav-item">
+            <a href="/payout_rules" class="nav-link">
+                <i class="bi bi-currency-dollar"></i>
+                <span class="link-text">Payout Rules</span>
+            </a>
+        </li>
+
+        <li class="nav-item">
             <a href="/reports" class="nav-link">
                 <i class="bi bi-bar-chart"></i>
                 <span class="link-text">Reports</span>

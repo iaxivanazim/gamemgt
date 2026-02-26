@@ -42,7 +42,6 @@
 
     @include('components.appjs')
 
-
     
 </body>
 

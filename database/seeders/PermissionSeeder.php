@@ -42,6 +42,11 @@ class PermissionSeeder extends Seeder
             ['name' => 'view-themes', 'slug' => 'view-themes', 'module' => 'themes'],
             ['name' => 'create-themes', 'slug' => 'create-themes', 'module' => 'themes'],
             ['name' => 'delete-themes', 'slug' => 'delete-themes', 'module' => 'themes'],
+
+            ['name' => 'view-payout_rules', 'slug' => 'view-payout_rules', 'module' => 'payout_rules'],
+            ['name' => 'create-payout_rules', 'slug' => 'create-payout_rules', 'module' => 'payout_rules'],
+            ['name' => 'edit-payout_rules', 'slug' => 'edit-payout_rules', 'module' => 'payout_rules'],
+            ['name' => 'delete-payout_rules', 'slug' => 'delete-payout_rules', 'module' => 'payout_rules'],
         ]);
     }
 }
