@@ -14,18 +14,18 @@
                 @endif
 
                 {{-- Add Game Type --}}
-                @if(auth()->user()->hasPermission('create-game_types'))
+                <!-- @if(auth()->user()->hasPermission('create-game_types'))
                 <a href="{{ route('game_types.index') }}" class="btn btn-success">
                     <i class="bi bi-controller"></i> Add Game Type
                 </a>
-                @endif
+                @endif -->
 
                 {{-- Add Theme --}}
-                @if(auth()->user()->hasPermission('create-themes'))
+                <!-- @if(auth()->user()->hasPermission('create-themes'))
                 <a href="{{ route('themes.index') }}" class="btn btn-info text-white">
                     <i class="bi bi-palette"></i> Add Theme
                 </a>
-                @endif
+                @endif -->
 
             </div>
         </div>
@@ -38,7 +38,7 @@
                     <th>Game Type</th>
                     <th>MAC Address</th>
                     <th>Float</th>
-                    <th>Theme</th>
+                    <th>Felt Color</th>
                     <th>Status</th>
                     <th width="150">Action</th>
                 </tr>
@@ -50,7 +50,7 @@
                     <td>{{ $table->gameType->name ?? '-' }}</td>
                     <td>{{ $table->active_mac }}</td>
                     <td>{{ number_format($table->float, 2) }}</td>
-                    <td>{{ $table->theme->name ?? '-' }}</td>
+                    <td>{{ $table->felt_color ?? '-' }} <span class="badge" style="background-color: {{ $table->felt_color ?? '#000000' }};">felt</span></td>
                     <td>
                         @if($table->status)
                         <span class="badge bg-success">Active</span>
@@ -75,6 +75,11 @@
                 @endforeach
             </tbody>
         </table>
-
+    {{-- Pagination --}}
+        @if($tables->hasPages())
+            <div class="d-flex justify-content-center mt-3">
+                {{ $tables->links() }}
+            </div>
+        @endif
     </div>
 </x-app-layout>

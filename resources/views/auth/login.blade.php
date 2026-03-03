@@ -7,7 +7,12 @@
     <div class="card bg-black text-white border-warning shadow-lg" style="width: 400px;">
         <div class="card-body p-4">
 
-            <h3 class="text-center text-warning mb-4">🎰 GameMGT Login</h3>
+            <div class="text-center">
+                <img src="{{ asset('images/logo.png') }}"
+                    alt="GameMGT Logo"
+                    style="max-width:180px;">
+            </div>
+            <h3 class="text-warning mb-4">Login</h3>
 
             {{-- Session Status --}}
             @if (session('status'))

@@ -44,16 +44,9 @@
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Theme</label>
-                            <select name="theme_id" class="form-control">
-                                <option value="">Select Theme</option>
-                                @foreach($themes as $theme)
-                                <option value="{{ $theme->id }}"
-                                    {{ $table->theme_id == $theme->id ? 'selected' : '' }}>
-                                    {{ $theme->name }}
-                                </option>
-                                @endforeach
-                            </select>
+                            <label class="form-label">Felt Color</label>
+                            <input type="color" name="felt_color" class="form-control"
+                                value="{{ $table->felt_color }}">
                         </div>
 
                         <div class="col-md-6 mb-3">

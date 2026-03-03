@@ -168,19 +168,19 @@
     let gameTypeID = null;
 
 
-    
 
-    $('.gameTypeBtn').click(function(){
 
-    $('.gameTypeBtn').removeClass('active bg-warning text-dark');
+    $('.gameTypeBtn').click(function() {
 
-    $(this).addClass('active bg-warning text-dark');
+        $('.gameTypeBtn').removeClass('active bg-warning text-dark');
 
-    gameTypeID = $(this).data('id');
+        $(this).addClass('active bg-warning text-dark');
 
-    loadRules();
+        gameTypeID = $(this).data('id');
 
-});
+        loadRules();
+
+    });
 
 
 
@@ -373,5 +373,99 @@ placeholder="Multiplier">
 
         });
 
+    }
+</script>
+
+<!-- Chips JS -->
+<script>
+    // Show new preset card
+    function newPreset() {
+        const card = document.getElementById('newPresetCard');
+        card.style.setProperty('display', 'block', 'important');
+        card.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+        });
+    }
+
+    // Hide new preset card
+    function cancelNew() {
+        document.getElementById('newPresetCard').style.setProperty('display', 'none', 'important');
+    }
+
+    // Handle all forms (new + existing presets)
+    $(document).on('submit', '.chipForm', function(e) {
+        e.preventDefault();
+
+        const form = $(this);
+        const id = form.data('id');
+        const token = form.find('input[name="_token"]').val();
+
+        const data = {
+            chip_1_value: form.find('[name="chip1"]').val(),
+            chip_2_value: form.find('[name="chip2"]').val(),
+            chip_3_value: form.find('[name="chip3"]').val(),
+            chip_4_value: form.find('[name="chip4"]').val(),
+            chip_5_value: form.find('[name="chip5"]').val(),
+            base_value: form.find('[name="base_value"]').val(),
+            _token: token
+        };
+
+        const url = id ? '/chips/' + id : '/chips';
+
+        $.post(url, data, function(res) {
+            Swal.fire({
+                icon: 'success',
+                title: res.message
+            }).then(() => location.reload());
+        });
+    });
+
+    // Delete a preset (soft delete → status 0)
+    function deletePreset(id) {
+        if (!id) return;
+        Swal.fire({
+            title: 'Delete preset?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545'
+        }).then((r) => {
+            if (r.isConfirmed) {
+                $.post('/chips/delete/' + id, {
+                    _token: '{{ csrf_token() }}'
+                }, function(res) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: res.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => location.reload());
+                });
+            }
+        });
+    }
+
+    // Restore a preset (status → 1)
+    function restorePreset(id) {
+        if (!id) return;
+        Swal.fire({
+            title: 'Restore preset?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#198754'
+        }).then((r) => {
+            if (r.isConfirmed) {
+                $.post('/chips/restore/' + id, {
+                    _token: '{{ csrf_token() }}'
+                }, function(res) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: res.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => location.reload());
+                });
+            }
+        });
     }
 </script>

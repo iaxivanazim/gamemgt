@@ -4,7 +4,7 @@
             <i class="bi bi-list"></i>
         </button>
 
-        <div class="d-flex align-items-center flex-grow-1">
+        <!-- <div class="d-flex align-items-center flex-grow-1">
             <ul class="navbar-nav d-flex flex-row align-items-center gap-3 mb-0">
                 <li class="nav-item d-flex align-items-center">
                     @if($currentGameDay)
@@ -40,7 +40,7 @@
                 </li>
                 @endif
             </ul>
-        </div>
+        </div> -->
 
         <div class="d-flex align-items-center">
             <div class="btn-group" role="group">

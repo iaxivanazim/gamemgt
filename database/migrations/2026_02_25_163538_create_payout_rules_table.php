@@ -17,9 +17,9 @@ return new class extends Migration
             $table->unsignedBigInteger('game_type_id');
 
             $table->string('bet_name');        // Example: Red, Black, Straight 1
-            $table->string('bet_position');    // Example: A1, B5, R12 (UI mapping)
+            $table->string('bet_position')->nullable();    // Example: A1, B5, R12 (UI mapping)
 
-            $table->decimal('payout_multiplier', 8, 2); // Example: 35.00
+            $table->decimal('payout_multiplier', 8, 3)->nullable(); // Example: 35.00
 
             $table->boolean('is_active')->default(1);
 

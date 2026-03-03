@@ -18,7 +18,8 @@ return new class extends Migration
             $table->string('active_mac')->unique();
             $table->decimal('float', 19, 4);
             $table->boolean('status')->default(true);
-            $table->foreignId('theme_id')->nullable()->constrained('themes')->nullOnDelete();
+            $table->string('felt_color')->nullable();
+            // $table->foreignId('theme_id')->nullable()->constrained('themes')->nullOnDelete();
             $table->timestamps();
         });
     }

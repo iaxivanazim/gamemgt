@@ -69,3 +69,76 @@ footer {
     text-align: center;
 }
 
+/* chips css */
+.casino-chip {
+
+    width: 100px;
+    height: 100px;
+
+    border-radius: 50%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin: auto;
+
+    box-shadow:
+
+        0 0 15px rgba(255, 215, 0, 0.5),
+        inset 0 0 10px rgba(255, 255, 255, 0.3);
+
+    border: 4px dashed white;
+
+    position: relative;
+
+}
+
+
+.chip-input {
+
+    width: 70px;
+
+    text-align: center;
+
+    border: none;
+
+    background: transparent;
+
+    color: white;
+
+    font-size: 20px;
+    font-weight: bold;
+
+}
+
+
+.chip-input:focus {
+
+    outline: none;
+
+}
+
+
+
+/* Chip Colors */
+
+.chip-red {
+    background: #b30000;
+}
+
+.chip-blue {
+    background: #0047ab;
+}
+
+.chip-green {
+    background: #006400;
+}
+
+.chip-purple {
+    background: #5a007a;
+}
+
+.chip-gold {
+    background: #c9a227;
+}

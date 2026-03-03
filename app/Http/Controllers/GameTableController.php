@@ -12,7 +12,7 @@ class GameTableController extends Controller
 {
     public function index()
     {
-        $tables = GameTable::with(['gameType', 'theme'])->latest()->get();
+        $tables = GameTable::with(['gameType'])->latest()->paginate(10);
         return view('game_tables.index', compact('tables'));
     }
 
@@ -21,7 +21,7 @@ class GameTableController extends Controller
         $gameTypes = GameType::where('status', true)->get();
         $themes = Theme::where('status', true)->get();
 
-        return view('game_tables.create', compact('gameTypes', 'themes'));
+        return view('game_tables.create', compact('gameTypes'));
     }
 
     public function store(Request $request)
@@ -31,7 +31,7 @@ class GameTableController extends Controller
             'game_type_id' => 'required|exists:game_types,id',
             'active_mac' => 'required|unique:game_tables,active_mac',
             'float' => 'required|numeric|min:0',
-            'theme_id' => 'nullable|exists:themes,id',
+            'felt_color' => 'nullable|string|max:255',
         ]);
 
         GameTable::create($request->all());
@@ -48,7 +48,7 @@ class GameTableController extends Controller
         $gameTypes = GameType::where('status', true)->get();
         $themes = Theme::where('status', true)->get();
 
-        return view('game_tables.edit', compact('table', 'gameTypes', 'themes'));
+        return view('game_tables.edit', compact('table', 'gameTypes'));
     }
 
 
@@ -61,7 +61,7 @@ class GameTableController extends Controller
             'game_type_id' => 'required|exists:game_types,id',
             'active_mac' => 'required|unique:game_tables,active_mac,' . $id,
             'float' => 'required|numeric|min:0',
-            'theme_id' => 'nullable|exists:themes,id',
+            'felt_color' => 'nullable|string|max:255',
         ]);
 
         $table->update($request->all());
@@ -86,7 +86,7 @@ class GameTableController extends Controller
 
     public function apiIndex()
     {
-        $tables = GameTable::with(['gameType', 'theme'])
+        $tables = GameTable::with(['gameType'])
             ->where('status', 1)
             ->get();
 
@@ -99,7 +99,7 @@ class GameTableController extends Controller
 
     public function apiShow($id)
     {
-        $table = GameTable::with(['gameType', 'theme'])
+        $table = GameTable::with(['gameType'])
             ->where('status', 1)
             ->find($id);
 
@@ -118,7 +118,7 @@ class GameTableController extends Controller
 
     public function apiActive()
     {
-        $tables = GameTable::with(['gameType', 'theme'])
+        $tables = GameTable::with(['gameType'])
             ->where('status', 1)
             ->get();
 
@@ -131,7 +131,7 @@ class GameTableController extends Controller
 
     public function apiByMac($mac)
     {
-        $table = GameTable::with(['gameType', 'theme'])
+        $table = GameTable::with(['gameType'])
             ->where('active_mac', $mac)
             ->where('status', 1)
             ->first();
@@ -151,7 +151,7 @@ class GameTableController extends Controller
 
     public function apiConfiguration($id)
     {
-        $table = GameTable::with(['gameType', 'theme'])
+        $table = GameTable::with(['gameType'])
             ->where('status', 1)
             ->find($id);
 
@@ -169,10 +169,7 @@ class GameTableController extends Controller
                 'id'   => $table->gameType->id ?? null,
                 'name' => $table->gameType->name ?? null,
             ],
-            'theme'         => [
-                'id'   => $table->theme->id ?? null,
-                'name' => $table->theme->name ?? null,
-            ],
+            'felt_color'    => $table->felt_color ?? null,
             'mac_address'   => $table->active_mac,
             'status'        => $table->status,
         ];

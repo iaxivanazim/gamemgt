@@ -12,7 +12,7 @@ class GameTable extends Model
         'active_mac',
         'float',
         'status',
-        'theme_id',
+        'felt_color',
     ];
 
     protected $casts = [
@@ -24,8 +24,8 @@ class GameTable extends Model
         return $this->belongsTo(GameType::class);
     }
 
-    public function theme()
-    {
-        return $this->belongsTo(Theme::class);
-    }
+    // public function theme()
+    // {
+    //     return $this->belongsTo(Theme::class);
+    // }
 }
