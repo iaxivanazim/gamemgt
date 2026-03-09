@@ -1,71 +1,296 @@
 <x-app-layout>
-    <div class="container">
+    <div class="content-wrapper p-4">
 
-        <div class="card shadow-sm">
-            <div class="card-header">
-                <h5>Create Game Table</h5>
-            </div>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="text-warning mb-0">Create Game Table</h5>
+            <a href="{{ route('game_tables.index') }}" class="btn btn-outline-warning btn-sm">← Back</a>
+        </div>
 
-            <div class="card-body">
-                <form action="{{ route('game_tables.store') }}" method="POST">
-                    @csrf
+        <form method="POST" action="{{ route('game_tables.store') }}" id="masterForm">
+            @csrf
 
-                    <div class="row">
-
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Table Name</label>
-                            <input type="text" name="table_name" class="form-control" required>
+            {{-- ═══════════════════════════════════════ --}}
+            {{-- SECTION 1: GAME TABLE                   --}}
+            {{-- ═══════════════════════════════════════ --}}
+            <div class="card bg-black border-warning mb-4">
+                <div class="card-body">
+                    <h6 class="text-warning mb-3">① Table Details</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="text-light small">Table Name</label>
+                            <input type="text" name="table_name" class="form-control bg-black text-white border-secondary" value="{{ old('table_name') }}" required>
                         </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Game Type</label>
-                            <select name="game_type_id" class="form-control" required>
-                                <option value="">Select Game Type</option>
+                        <div class="col-md-4">
+                            <label class="text-light small">Game Type</label>
+                            <select name="game_type_id" id="gameTypeSelect" class="form-select bg-black text-white border-secondary" required>
+                                <option value="">-- Select Game --</option>
                                 @foreach($gameTypes as $type)
-                                <option value="{{ $type->id }}">
+                                <option value="{{ $type->id }}" data-code="{{ $type->code }}" {{ old('game_type_id') == $type->id ? 'selected' : '' }}>
                                     {{ $type->name }}
                                 </option>
                                 @endforeach
                             </select>
                         </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Active MAC Address</label>
-                            <input type="text" name="active_mac" class="form-control" required>
+                        <div class="col-md-4">
+                            <label class="text-light small">Active MAC Address</label>
+                            <input type="text" name="active_mac" class="form-control bg-black text-white border-secondary" value="{{ old('active_mac') }}">
                         </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Float</label>
-                            <input type="number" name="float" step="0.01" class="form-control" required>
+                        <div class="col-md-4">
+                            <label class="text-light small">Float Amount</label>
+                            <input type="number" step="0.01" name="float" class="form-control bg-black text-white border-secondary" value="{{ old('float') }}">
                         </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Felt Color</label>
-                            <input type="color" name="felt_color" class="form-control">
+                        <div class="col-md-4">
+                            <label class="text-light small">Felt Color</label>
+                            <div class="d-flex gap-2 align-items-center mt-1">
+                                <input type="color" name="felt_color" id="feltColor" class="form-control form-control-color border-secondary" value="{{ old('felt_color', '#006400') }}" style="width:50px; height:38px; background:transparent;">
+                                <span id="feltColorLabel" class="text-light small">{{ old('felt_color', '#006400') }}</span>
+                            </div>
                         </div>
+                    </div>
+                </div>
+            </div>
 
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Status</label>
-                            <select name="status" class="form-control">
-                                <option value="1">Active</option>
-                                <option value="0">Inactive</option>
+            {{-- ═══════════════════════════════════════ --}}
+            {{-- SECTION 2: CHIP PRESET                  --}}
+            {{-- ═══════════════════════════════════════ --}}
+            <div class="card bg-black border-warning mb-4">
+                <div class="card-body">
+                    <h6 class="text-warning mb-3">② Chip Preset</h6>
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-4">
+                            <label class="text-light small">Select Chip Preset</label>
+                            <select name="chip_preset_id" id="chipPresetSelect" class="form-select bg-black text-white border-secondary" required>
+                                <option value="">-- Select Preset --</option>
+                                @foreach($chipPresets as $chip)
+                                <option value="{{ $chip->id }}" data-chips="{{ json_encode([$chip->chip_1_value, $chip->chip_2_value, $chip->chip_3_value, $chip->chip_4_value, $chip->chip_5_value]) }}" data-base="{{ $chip->base_value }}" {{ old('chip_preset_id') == $chip->id ? 'selected' : '' }}>
+                                    Preset #{{ $chip->id }}
+                                </option>
+                                @endforeach
                             </select>
                         </div>
 
+                        {{-- Live chip preview --}}
+                        <div class="col-md-8">
+                            <div class="row text-center align-items-center" id="chipPreview">
+                                @php $colors = ['red','blue','green','purple','gold']; @endphp
+                                @for($i = 0; $i < 5; $i++) <div class="col-auto">
+                                    <div class="casino-chip chip-{{ $colors[$i] }}" style="width:60px; height:60px;">
+                                        <span class="chip-preview-val text-white fw-bold" style="font-size:14px;">—</span>
+                                    </div>
+                            </div>
+                            @endfor
+                            <div class="col-auto px-2">
+                                <div style="width:1px; height:60px; background: linear-gradient(to bottom, transparent, #ffc107, transparent);"></div>
+                            </div>
+                            <div class="col-auto text-center">
+                                <label class="text-warning small d-block" style="letter-spacing:0.05em;">BASE</label>
+                                <span id="basePreview" class="text-white fw-bold">—</span>
+                            </div>
+                        </div>
                     </div>
+                </div>
+            </div>
+    </div>
 
-                    <div class="text-end">
-                        <a href="{{ route('game_tables.index') }}" class="btn btn-secondary">
-                            Cancel
-                        </a>
-                        <button type="submit" class="btn btn-primary">
-                            Save Table
-                        </button>
+    {{-- ═══════════════════════════════════════ --}}
+    {{-- SECTION 3: GAME CONFIG (DYNAMIC)        --}}
+    {{-- ═══════════════════════════════════════ --}}
+    <div class="card bg-black border-warning mb-4" id="gameConfigSection" style="display:none;">
+        <div class="card-body">
+            <h6 class="text-warning mb-3">③ Game Configuration</h6>
+
+            {{-- Preset Name (common) --}}
+            <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                    <label class="text-light small">Config Preset Name</label>
+                    <input type="text" name="config[name]" class="form-control bg-black text-white border-secondary" placeholder="e.g. High Roller Baccarat" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="text-light small">Min Bet</label>
+                    <input type="number" step="0.01" name="config[min_bet]" class="form-control bg-black text-white border-secondary" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="text-light small">Max Bet</label>
+                    <input type="number" step="0.01" name="config[max_bet]" class="form-control bg-black text-white border-secondary" required>
+                </div>
+            </div>
+
+            {{-- ── BACCARAT ── --}}
+            <div class="game-fields" id="fields-BAC" style="display:none;">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="text-light small">Side Min Bet</label>
+                        <input type="number" step="0.01" name="config[side_min_bet]" class="form-control bg-black text-white border-secondary">
                     </div>
+                    <div class="col-md-3">
+                        <label class="text-light small">Side Max Bet</label>
+                        <input type="number" step="0.01" name="config[side_max_bet]" class="form-control bg-black text-white border-secondary">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="text-light small">Commission (%)</label>
+                        <input type="number" step="0.01" name="config[commission]" class="form-control bg-black text-white border-secondary" value="5">
+                    </div>
+                    <div class="col-md-3 d-flex flex-column justify-content-center gap-2 mt-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="config[enable_pairbets]" value="1" id="enablePairbets">
+                            <label class="form-check-label text-light" for="enablePairbets">Pair Bets</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="config[enable_lucky6]" value="1" id="enableLucky6">
+                            <label class="form-check-label text-light" for="enableLucky6">Lucky 6</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                </form>
+            {{-- ── ANDAR BAHAR ── --}}
+            <div class="game-fields" id="fields-AB" style="display:none;">
+                <div class="row g-3">
+                    <div class="col-md-6 d-flex flex-column justify-content-center gap-2 mt-2">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="config[enable_super_andar]" value="1" id="enableSuperAndar">
+                            <label class="form-check-label text-light" for="enableSuperAndar">Super Andar</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="config[enable_super_bahar]" value="1" id="enableSuperBahar">
+                            <label class="form-check-label text-light" for="enableSuperBahar">Super Bahar</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- ── DRAGON TIGER ── --}}
+            <div class="game-fields" id="fields-DT" style="display:none;">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="text-light small">Tie Min</label>
+                        <input type="number" step="0.01" name="config[tie_min]" class="form-control bg-black text-white border-secondary">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="text-light small">Tie Max</label>
+                        <input type="number" step="0.01" name="config[tie_max]" class="form-control bg-black text-white border-secondary">
+                    </div>
+                </div>
+            </div>
+
+            {{-- ── THREE CARD POKER ── --}}
+            <div class="game-fields" id="fields-3CP" style="display:none;">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="text-light small">Side Min</label>
+                        <input type="number" step="0.01" name="config[side_min]" class="form-control bg-black text-white border-secondary">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="text-light small">Side Max</label>
+                        <input type="number" step="0.01" name="config[side_max]" class="form-control bg-black text-white border-secondary">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="text-light small">Six Card Bonus</label>
+                        <input type="number" step="0.01" name="config[six_card_bonus]" class="form-control bg-black text-white border-secondary">
+                    </div>
+                </div>
+            </div>
+
+            {{-- ── BLACKJACK ── --}}
+            <div class="game-fields" id="fields-BJ" style="display:none;">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="text-light small">Pair Min</label>
+                        <input type="number" step="0.01" name="config[pair_min]" class="form-control bg-black text-white border-secondary">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="text-light small">Pair Max</label>
+                        <input type="number" step="0.01" name="config[pair_max]" class="form-control bg-black text-white border-secondary">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="text-light small">Split Type</label>
+                        <select name="config[split_type]" class="form-select bg-black text-white border-secondary">
+                            <option value="">-- Select --</option>
+                            <option value="resplit">Resplit</option>
+                            <option value="no_resplit">No Resplit</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="text-light small">Rule Type</label>
+                        <select name="config[rule_type]" class="form-select bg-black text-white border-secondary">
+                            <option value="">-- Select --</option>
+                            <option value="s17">S17</option>
+                            <option value="h17">H17</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 mt-2">
+                        <div class="form-check form-switch mt-3">
+                            <input class="form-check-input" type="checkbox" name="config[enable_777_charlie]" value="1" id="enable777">
+                            <label class="form-check-label text-light" for="enable777">777 Charlie Rule</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- ── MINI FLUSH ── --}}
+            <div class="game-fields" id="fields-MF" style="display:none;">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="text-light small">H/L Min</label>
+                        <input type="number" step="0.01" name="config[hl_min]" class="form-control bg-black text-white border-secondary">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="text-light small">H/L Max</label>
+                        <input type="number" step="0.01" name="config[hl_max]" class="form-control bg-black text-white border-secondary">
+                    </div>
+                </div>
+            </div>
+
+            {{-- ── CASINO WAR ── --}}
+            <div class="game-fields" id="fields-CW" style="display:none;">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="text-light small">Tie Min</label>
+                        <input type="number" step="0.01" name="config[tie_min]" class="form-control bg-black text-white border-secondary">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="text-light small">Tie Max</label>
+                        <input type="number" step="0.01" name="config[tie_max]" class="form-control bg-black text-white border-secondary">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    {{-- ═══════════════════════════════════════ --}}
+    {{-- SECTION 4: PAYOUT RULES (DYNAMIC)       --}}
+    {{-- ═══════════════════════════════════════ --}}
+    <div class="card bg-black border-warning mb-4" id="payoutSection" style="display:none;">
+        <div class="card-body">
+            <h6 class="text-warning mb-3">④ Payout Rules</h6>
+            <div class="table-responsive">
+                <table class="table table-dark table-bordered text-center align-middle">
+                    <thead>
+                        <tr class="text-warning">
+                            <th>Bet Name</th>
+                            <th>Position</th>
+                            <th>Payout Multiplier</th>
+                            <th>Active</th>
+                        </tr>
+                    </thead>
+                    <tbody id="payoutRulesBody">
+                        <tr>
+                            <td colspan="4" class="text-muted">Select a game type to load payout rules</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
-
     </div>
+
+    {{-- SUBMIT --}}
+    <div class="text-center mt-2 mb-5">
+        <button type="submit" class="btn btn-warning px-5">Create Table</button>
+        <a href="{{ route('game_tables.index') }}" class="btn btn-outline-secondary px-4 ms-2">Cancel</a>
+    </div>
+
+    </form>
+    </div>
+
 </x-app-layout>

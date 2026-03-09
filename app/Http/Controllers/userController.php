@@ -13,7 +13,10 @@ class userController extends Controller
      */
     public function index(Request $request)
     {
-        $query = User::with('roles.permissions');
+        $status = $request->input('status', 1); // default to Active
+
+        $query = User::with('roles.permissions')
+            ->where('status', $status);
 
         if ($request->search) {
             $query->where(function ($q) use ($request) {
@@ -22,9 +25,9 @@ class userController extends Controller
             });
         }
 
-        $users = $query->paginate(10);
+        $users = $query->paginate(10)->appends($request->only(['status', 'search']));
 
-        return view('users.index', compact('users'));
+        return view('users.index', compact('users', 'status'));
     }
 
 
@@ -130,7 +133,14 @@ class userController extends Controller
     public function deactivate(User $user)
     {
         $user->update(['status' => 0]);
+        return redirect()->route('users.index', ['status' => 1])
+            ->with('success', 'User deactivated successfully.');
+    }
 
-        return back()->with('success', 'User deactivated successfully.');
+    public function restore(User $user)
+    {
+        $user->update(['status' => 1]);
+        return redirect()->route('users.index', ['status' => 1])
+            ->with('success', 'User restored successfully.');
     }
 }

@@ -28,4 +28,21 @@ class GameTable extends Model
     // {
     //     return $this->belongsTo(Theme::class);
     // }
+
+    public function config()
+    {
+        return $this->hasOne(GameTableConfig::class, 'table_id')->with('preset');
+    }
+
+    public function payoutRules()
+    {
+        return $this->hasMany(GameTablePayoutRule::class, 'table_id');
+    }
+
+    public function activePayoutRules()
+    {
+        return $this->hasMany(GameTablePayoutRule::class, 'table_id')
+            ->where('is_active', 1)
+            ->with('payoutRule');
+    }
 }

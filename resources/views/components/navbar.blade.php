@@ -4,43 +4,7 @@
             <i class="bi bi-list"></i>
         </button>
 
-        <!-- <div class="d-flex align-items-center flex-grow-1">
-            <ul class="navbar-nav d-flex flex-row align-items-center gap-3 mb-0">
-                <li class="nav-item d-flex align-items-center">
-                    @if($currentGameDay)
-                    <span >
-                       <strong>Game Day: {{ $currentGameDay->gaming_date }}</strong>
-                    </span>
-                    @else
-                    <span >
-                        No Active Game Day
-                    </span>
-                    @endif
-                </li>
-
-                @if(auth()->user()->hasPermission('game-day-start') && !$currentGameDay)
-                <li class="nav-item">
-                    <button class="btn btn-sm btn-success px-2 py-1" onclick="startGameDay()">
-                        Start Game Day
-                    </button>
-                </li>
-                @endif
-
-                @if(auth()->user()->hasPermission('game-day-close') && $currentGameDay)
-                <li class="nav-item">
-                    <button class="btn btn-sm btn-danger px-2 py-1" onclick="closeGameDay({{ $currentGameDay->id }})">
-                        Close Game Day
-                    </button>
-                </li>
-                @endif
-
-                @if($currentGameDay)
-                <li class="nav-item">
-                    <span id="gameDayTimer" class="text-light small ms-2"></span>
-                </li>
-                @endif
-            </ul>
-        </div> -->
+        <!--  -->
 
         <div class="d-flex align-items-center">
             <div class="btn-group" role="group">

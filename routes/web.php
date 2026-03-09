@@ -35,6 +35,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit')->middleware('permission:edit-users');
     Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update')->middleware('permission:edit-users');
     Route::patch('/users/{user}/deactivate', [UserController::class, 'deactivate'])->name('users.deactivate')->middleware('permission:deactivate-users');
+    Route::patch('/users/{user}/restore', [UserController::class, 'restore'])->name('users.restore')->middleware('permission:deactivate-users');
 
 
     Route::get('/roles', [RoleController::class, 'index'])->name('roles.index')->middleware('permission:view-roles');
@@ -49,12 +50,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/game-day/{id}/close', [GameDayController::class, 'close'])->name('game-day.close')->middleware('permission:game-day-close');
 
 
-    Route::get('/game_tables', [GameTableController::class, 'index'])->name('game_tables.index')->middleware('permission:view-game_tables');
-    Route::get('/game_tables/create', [GameTableController::class, 'create'])->name('game_tables.create')->middleware('permission:create-game_tables');
-    Route::post('/game_tables', [GameTableController::class, 'store'])->name('game_tables.store')->middleware('permission:create-game_tables');
-    Route::get('/game_tables/{table}/edit', [GameTableController::class, 'edit'])->name('game_tables.edit')->middleware('permission:edit-game_tables');
-    Route::put('/game_tables/{table}', [GameTableController::class, 'update'])->name('game_tables.update')->middleware('permission:edit-game_tables');
-    Route::delete('/game_tables/{table}', [GameTableController::class, 'destroy'])->name('game_tables.destroy')->middleware('permission:delete-game_tables');
+    Route::resource('/game_tables', GameTableController::class)->middleware('permission:create-game_tables');
+    Route::post('/game_tables/{gameTable}/deactivate', [GameTableController::class, 'deactivate'])->name('game_tables.deactivate');
+    Route::post('/game_tables/{gameTable}/restore',    [GameTableController::class, 'restore'])->name('game_tables.restore');
+    // Route::get('/game_tables/create', [GameTableController::class, 'create'])->name('game_tables.create')->middleware('permission:create-game_tables');
+    // Route::post('/game_tables', [GameTableController::class, 'store'])->name('game_tables.store')->middleware('permission:create-game_tables');
+    // Route::get('/game_tables/{table}/edit', [GameTableController::class, 'edit'])->name('game_tables.edit')->middleware('permission:edit-game_tables');
+    // Route::put('/game_tables/{table}', [GameTableController::class, 'update'])->name('game_tables.update')->middleware('permission:edit-game_tables');
+    // Route::delete('/game_tables/{table}', [GameTableController::class, 'destroy'])->name('game_tables.destroy')->middleware('permission:delete-game_tables');
 
     Route::get('/game_types', [GameTypeController::class, 'index'])->name('game_types.index')->middleware('permission:view-game_types');
     Route::get('/game_types/create', [GameTypeController::class, 'create'])->name('game_types.create')->middleware('permission:create-game_types');
@@ -73,13 +76,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/payout_rules/update/{id}', [PayoutRuleController::class, 'update'])->name('payout_rules.update')->middleware('permission:edit-payout_rules');
     Route::delete('/payout_rules/delete/{id}', [PayoutRuleController::class, 'destroy'])->name('payout_rules.delete')->middleware('permission:delete-payout_rules');
 
-    Route::get('/chips',[ChipController::class,'index'])->name('chips.index')->middleware('permission:view-chips');
-    Route::post('/chips',[ChipController::class,'store'])->name('chips.store')->middleware('permission:create-chips');
-    Route::post('/chips/{id}',[ChipController::class,'update'])->name('chips.update')->middleware('permission:edit-chips');
-    Route::post('/chips/delete/{id}',[ChipController::class,'destroy'])->name('chips.destroy')->middleware('permission:delete-chips');
-    Route::get('/chips/{id}',[ChipController::class,'show'])->name('chips.show')->middleware('permission:view-chips');
+    Route::get('/chips', [ChipController::class, 'index'])->name('chips.index')->middleware('permission:view-chips');
+    Route::post('/chips', [ChipController::class, 'store'])->name('chips.store')->middleware('permission:create-chips');
+    Route::post('/chips/{id}', [ChipController::class, 'update'])->name('chips.update')->middleware('permission:edit-chips');
+    Route::post('/chips/delete/{id}', [ChipController::class, 'destroy'])->name('chips.destroy')->middleware('permission:delete-chips');
+    Route::get('/chips/{id}', [ChipController::class, 'show'])->name('chips.show')->middleware('permission:view-chips');
     Route::post('/chips/restore/{id}', [ChipController::class, 'restore'])->name('chips.restore')->middleware('permission:edit-chips');
-
 });
 
 

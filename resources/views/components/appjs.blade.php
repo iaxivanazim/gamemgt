@@ -5,103 +5,45 @@
         // SUCCESS MESSAGE
         @if(session('success'))
         Swal.fire({
-            icon: 'success',
-            title: 'Success',
-            text: "{{ session('success') }}",
-            timer: 2000,
-            showConfirmButton: false
+            icon: 'success'
+            , title: 'Success'
+            , text: "{{ session('success') }}"
+            , timer: 2000
+            , showConfirmButton: false
         });
         @endif
 
         // ERROR MESSAGE
         @if(session('error'))
         Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: "{{ session('error') }}"
+            icon: 'error'
+            , title: 'Error'
+            , text: "{{ session('error') }}"
         });
         @endif
 
         // VALIDATION ERRORS
         @if($errors -> any())
         Swal.fire({
-            icon: 'error',
-            title: 'Validation Error',
-            html: `{!! implode('<br>', $errors->all()) !!}`
+            icon: 'error'
+            , title: 'Validation Error'
+            , html: `{!! implode('<br>', $errors->all()) !!}`
         });
         @endif
 
     });
+
 </script>
 
-@if($currentGameDay)
-<script>
-    let startTime = new Date("{{ $currentGameDay->started_at }}");
 
-    setInterval(() => {
-        let now = new Date();
-        let diff = Math.floor((now - startTime) / 1000);
-
-        let hours = Math.floor(diff / 3600);
-        let minutes = Math.floor((diff % 3600) / 60);
-
-        document.getElementById('gameDayTimer').innerHTML =
-            `Running: ${hours}h ${minutes}m`;
-    }, 60000);
-</script>
-@endif
-
-<script>
-    function startGameDay() {
-        Swal.fire({
-            title: 'Start Game Day?',
-            text: "This will begin a new gaming cycle.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, Start',
-        }).then((result) => {
-            if (result.isConfirmed) {
-                axios.post("{{ route('game-day.start') }}")
-                    .then(response => {
-                        Swal.fire('Started!', response.data.message, 'success')
-                            .then(() => location.reload());
-                    })
-                    .catch(error => {
-                        Swal.fire('Error!', error.response.data.message ?? 'Something went wrong.', 'error');
-                    });
-            }
-        });
-    }
-
-    function closeGameDay(id) {
-        Swal.fire({
-            title: 'Close Game Day?',
-            text: "Ensure all tables are reconciled before closing.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, Close',
-        }).then((result) => {
-            if (result.isConfirmed) {
-                axios.post(`/game-day/${id}/close`)
-                    .then(response => {
-                        Swal.fire('Closed!', response.data.message, 'success')
-                            .then(() => location.reload());
-                    })
-                    .catch(error => {
-                        Swal.fire('Error!', error.response.data.message ?? 'Something went wrong.', 'error');
-                    });
-            }
-        });
-    }
-</script>
 
 <script>
     function deleteTable(id) {
         Swal.fire({
-            title: 'Are you sure?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, delete it!'
+            title: 'Are you sure?'
+            , icon: 'warning'
+            , showCancelButton: true
+            , confirmButtonText: 'Yes, delete it!'
         }).then((result) => {
             if (result.isConfirmed) {
                 axios.delete(`/game-tables/${id}`)
@@ -112,15 +54,16 @@
             }
         });
     }
+
 </script>
 
 <script>
     function deleteTheme(id) {
         Swal.fire({
-            title: 'Are you sure?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, delete it!'
+            title: 'Are you sure?'
+            , icon: 'warning'
+            , showCancelButton: true
+            , confirmButtonText: 'Yes, delete it!'
         }).then((result) => {
             if (result.isConfirmed) {
                 axios.delete(`/themes/${id}`)
@@ -131,14 +74,15 @@
             }
         });
     }
+
 </script>
 
 <script>
     function deleteType(id) {
         Swal.fire({
-            title: 'Delete Game Type?',
-            icon: 'warning',
-            showCancelButton: true
+            title: 'Delete Game Type?'
+            , icon: 'warning'
+            , showCancelButton: true
         }).then((result) => {
             if (result.isConfirmed) {
                 axios.delete(`/game-types/${id}`)
@@ -146,14 +90,15 @@
             }
         });
     }
+
 </script>
 
 <script>
     function deleteTheme(id) {
         Swal.fire({
-            title: 'Delete Theme?',
-            icon: 'warning',
-            showCancelButton: true
+            title: 'Delete Theme?'
+            , icon: 'warning'
+            , showCancelButton: true
         }).then((result) => {
             if (result.isConfirmed) {
                 axios.delete(`/themes/${id}`)
@@ -161,6 +106,7 @@
             }
         });
     }
+
 </script>
 
 <!-- payout rules -->
@@ -374,6 +320,7 @@ placeholder="Multiplier">
         });
 
     }
+
 </script>
 
 <!-- Chips JS -->
@@ -383,8 +330,8 @@ placeholder="Multiplier">
         const card = document.getElementById('newPresetCard');
         card.style.setProperty('display', 'block', 'important');
         card.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start'
+            behavior: 'smooth'
+            , block: 'start'
         });
     }
 
@@ -402,21 +349,21 @@ placeholder="Multiplier">
         const token = form.find('input[name="_token"]').val();
 
         const data = {
-            chip_1_value: form.find('[name="chip1"]').val(),
-            chip_2_value: form.find('[name="chip2"]').val(),
-            chip_3_value: form.find('[name="chip3"]').val(),
-            chip_4_value: form.find('[name="chip4"]').val(),
-            chip_5_value: form.find('[name="chip5"]').val(),
-            base_value: form.find('[name="base_value"]').val(),
-            _token: token
+            chip_1_value: form.find('[name="chip1"]').val()
+            , chip_2_value: form.find('[name="chip2"]').val()
+            , chip_3_value: form.find('[name="chip3"]').val()
+            , chip_4_value: form.find('[name="chip4"]').val()
+            , chip_5_value: form.find('[name="chip5"]').val()
+            , base_value: form.find('[name="base_value"]').val()
+            , _token: token
         };
 
         const url = id ? '/chips/' + id : '/chips';
 
         $.post(url, data, function(res) {
             Swal.fire({
-                icon: 'success',
-                title: res.message
+                icon: 'success'
+                , title: res.message
             }).then(() => location.reload());
         });
     });
@@ -425,20 +372,20 @@ placeholder="Multiplier">
     function deletePreset(id) {
         if (!id) return;
         Swal.fire({
-            title: 'Delete preset?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#dc3545'
+            title: 'Delete preset?'
+            , icon: 'warning'
+            , showCancelButton: true
+            , confirmButtonColor: '#dc3545'
         }).then((r) => {
             if (r.isConfirmed) {
                 $.post('/chips/delete/' + id, {
                     _token: '{{ csrf_token() }}'
                 }, function(res) {
                     Swal.fire({
-                        icon: 'success',
-                        title: res.message,
-                        timer: 1500,
-                        showConfirmButton: false
+                        icon: 'success'
+                        , title: res.message
+                        , timer: 1500
+                        , showConfirmButton: false
                     }).then(() => location.reload());
                 });
             }
@@ -449,23 +396,107 @@ placeholder="Multiplier">
     function restorePreset(id) {
         if (!id) return;
         Swal.fire({
-            title: 'Restore preset?',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#198754'
+            title: 'Restore preset?'
+            , icon: 'question'
+            , showCancelButton: true
+            , confirmButtonColor: '#198754'
         }).then((r) => {
             if (r.isConfirmed) {
                 $.post('/chips/restore/' + id, {
                     _token: '{{ csrf_token() }}'
                 }, function(res) {
                     Swal.fire({
-                        icon: 'success',
-                        title: res.message,
-                        timer: 1500,
-                        showConfirmButton: false
+                        icon: 'success'
+                        , title: res.message
+                        , timer: 1500
+                        , showConfirmButton: false
                     }).then(() => location.reload());
                 });
             }
         });
     }
+
+</script>
+
+<script>
+    const gameTypeSelect = document.getElementById('gameTypeSelect');
+    const chipPresetSelect = document.getElementById('chipPresetSelect');
+
+    // ── Game type change ──────────────────────────────────────────────────
+    gameTypeSelect.addEventListener('change', function() {
+        const code = this.options[this.selectedIndex] ? this.options[this.selectedIndex].dataset.code : null;
+console.log('Selected game type code:', code);
+        // hide all game field panels
+        document.querySelectorAll('.game-fields').forEach(el => el.style.display = 'none');
+
+        if (code) {
+            document.getElementById('gameConfigSection').style.display = 'block';
+            document.getElementById('payoutSection').style.display = 'block';
+
+            const panel = document.getElementById('fields-' + code);
+            if (panel) panel.style.display = 'block';
+
+            // load payout rules
+            console.log('Loading payout rules for game type ID:', this.value);
+            loadPayoutRules(this.value);
+        } else {
+            document.getElementById('gameConfigSection').style.display = 'none';
+            document.getElementById('payoutSection').style.display = 'none';
+        }
+    });
+
+    // ── Chip preset preview ───────────────────────────────────────────────
+    chipPresetSelect.addEventListener('change', function() {
+        const opt = this.options[this.selectedIndex];
+        const chips = JSON.parse(opt.dataset.chips || '[]');
+        const base = opt.dataset.base || '—';
+
+        document.querySelectorAll('.chip-preview-val').forEach((el, i) => {
+            el.textContent = chips[i] !== undefined ? chips[i] : '—';
+        });
+        document.getElementById('basePreview').textContent = base;
+    });
+
+    // ── Felt color label ──────────────────────────────────────────────────
+    document.getElementById('feltColor').addEventListener('input', function() {
+        document.getElementById('feltColorLabel').textContent = this.value;
+    });
+
+    // ── Load payout rules via AJAX ────────────────────────────────────────
+    function loadPayoutRules(gameTypeId) {
+    $.get('/api/v1/payout-rules/' + gameTypeId, function (rules) {
+        const tbody = document.getElementById('payoutRulesBody');
+
+        if (!rules || !rules.length) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="text-muted">
+                        No payout rules defined for this game.
+                    </td>
+                </tr>`;
+            return;
+        }
+
+        tbody.innerHTML = rules.map(rule => `
+            <tr>
+                <td class="text-light">${rule.bet_name}</td>
+                <td class="text-light">${rule.bet_position ?? '—'}</td>
+                <td class="text-warning fw-bold">${rule.payout_multiplier}x</td>
+                <td>
+                    <div class="form-check form-switch d-flex justify-content-center">
+                        <input class="form-check-input" type="checkbox"
+                               name="payout_overrides[${rule.payout_id}]" value="1"
+                               ${rule.is_active ? 'checked' : ''}>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }).fail(function () {
+        document.getElementById('payoutRulesBody').innerHTML = `
+            <tr>
+                <td colspan="4" class="text-danger">Failed to load payout rules.</td>
+            </tr>`;
+    });
+}
+
 </script>

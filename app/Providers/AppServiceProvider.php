@@ -19,10 +19,10 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot(): void
-    {
-        View::composer('*', function ($view) {
-            $view->with('currentGameDay', GameDay::current());
-        });
-    }
+    // public function boot(): void
+    // {
+    //     View::composer('*', function ($view) {
+    //         $view->with('currentGameDay', GameDay::current());
+    //     });
+    // }
 }
