@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class DragonTigerPreset extends Model
 {
+    protected $table = 'dragontiger_presets';
     protected $fillable = [
         'name',
         'min_bet',

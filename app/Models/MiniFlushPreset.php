@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class MiniFlushPreset extends Model
 {
+    protected $table = 'miniflush_presets';
     protected $fillable = [
         'name',
         'min_bet',

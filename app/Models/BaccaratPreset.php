@@ -13,8 +13,8 @@ class BaccaratPreset extends Model
         'side_min_bet',
         'side_max_bet',
         'commission',
-        'enable_pairbets',
-        'enable_lucky6',
+        // 'enable_pairbets',
+        // 'enable_lucky6',
         'chip_preset_id',
         'status'
     ];

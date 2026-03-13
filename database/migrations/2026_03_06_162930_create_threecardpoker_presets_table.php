@@ -18,7 +18,7 @@ return new class extends Migration
             $table->decimal('max_bet', 10, 2);
             $table->decimal('side_min', 10, 2)->nullable();
             $table->decimal('side_max', 10, 2)->nullable();
-            $table->decimal('six_card_bonus', 10, 2)->nullable();
+            // $table->decimal('six_card_bonus', 10, 2)->nullable();
             $table->foreignId('chip_preset_id')->constrained('chips')->cascadeOnDelete();
             $table->tinyInteger('status')->default(1);
             $table->timestamps();

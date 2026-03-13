@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string('name');
             $table->decimal('min_bet', 10, 2);
             $table->decimal('max_bet', 10, 2);
-            $table->boolean('enable_super_andar')->default(0);
-            $table->boolean('enable_super_bahar')->default(0);
+            // $table->boolean('enable_super_andar')->default(0);
+            // $table->boolean('enable_super_bahar')->default(0);
             $table->foreignId('chip_preset_id')->constrained('chips')->cascadeOnDelete();
             $table->tinyInteger('status')->default(1);
             $table->timestamps();

@@ -110,15 +110,15 @@ class GameTableController extends Controller
 
             $overrides = $request->input('payout_overrides', []); // checked = active
 
-            $payoutData = $allRules->mapWithKeys(function ($payoutId) use ($overrides, $table) {
-                return [[
+            $payoutData = $allRules->map(function ($payoutId) use ($overrides, $table) {
+                return [
                     'table_id'   => $table->id,
                     'payout_id'  => $payoutId,
                     'is_active'  => isset($overrides[$payoutId]) ? 1 : 0,
                     'created_at' => now(),
                     'updated_at' => now(),
-                ]];
-            })->values()->all();
+                ];
+            })->all();
 
             GameTablePayoutRule::insert($payoutData);
         });
@@ -194,6 +194,24 @@ class GameTableController extends Controller
 
         return redirect()->route('game_tables.index')
             ->with('success', 'Configuration updated successfully.');
+    }
+
+    public function deactivate(GameTable $gameTable)
+    {
+        $gameTable->update(['status' => 0]);
+
+        return redirect()
+            ->route('game_tables.index', ['status' => 1])
+            ->with('success', "Table '{$gameTable->table_name}' deactivated successfully.");
+    }
+
+    public function restore(GameTable $gameTable)
+    {
+        $gameTable->update(['status' => 1]);
+
+        return redirect()
+            ->route('game_tables.index', ['status' => 1])
+            ->with('success', "Table '{$gameTable->table_name}' restored successfully.");
     }
 
     // ══════════════════════════════════════════════════════
@@ -335,12 +353,12 @@ class GameTableController extends Controller
                 'side_min_bet'     => (float) $preset->side_min_bet,
                 'side_max_bet'     => (float) $preset->side_max_bet,
                 'commission'       => (float) $preset->commission,
-                'enable_pairbets'  => (bool)  $preset->enable_pairbets,
-                'enable_lucky6'    => (bool)  $preset->enable_lucky6,
+                // 'enable_pairbets'  => (bool)  $preset->enable_pairbets,
+                // 'enable_lucky6'    => (bool)  $preset->enable_lucky6,
             ],
             'andarbahar' => [
-                'enable_super_andar' => (bool) $preset->enable_super_andar,
-                'enable_super_bahar' => (bool) $preset->enable_super_bahar,
+                // 'enable_super_andar' => (bool) $preset->enable_super_andar,
+                // 'enable_super_bahar' => (bool) $preset->enable_super_bahar,
             ],
             'dragontiger' => [
                 'tie_min' => (float) $preset->tie_min,
@@ -349,14 +367,14 @@ class GameTableController extends Controller
             'threecardpoker' => [
                 'side_min'       => (float) $preset->side_min,
                 'side_max'       => (float) $preset->side_max,
-                'six_card_bonus' => (float) $preset->six_card_bonus,
+                // 'six_card_bonus' => (float) $preset->six_card_bonus,
             ],
             'blackjack' => [
                 'pair_min'           => (float) $preset->pair_min,
                 'pair_max'           => (float) $preset->pair_max,
-                'split_type'         => $preset->split_type,
-                'rule_type'          => $preset->rule_type,
-                'enable_777_charlie' => (bool) $preset->enable_777_charlie,
+                // 'split_type'         => $preset->split_type,
+                // 'rule_type'          => $preset->rule_type,
+                // 'enable_777_charlie' => (bool) $preset->enable_777_charlie,
             ],
             'miniflush' => [
                 'hl_min' => (float) $preset->hl_min,

@@ -136,7 +136,7 @@
                         </div>
 
                         {{-- Toggle Badges --}}
-                        <div class="d-flex flex-wrap gap-2 mt-2">
+                        {{-- <div class="d-flex flex-wrap gap-2 mt-2">
                             @foreach([
                             'enable_pairbets' => 'Pair Bets',
                             'enable_lucky6' => 'Lucky 6',
@@ -153,7 +153,7 @@
                             </span>
                             @endif
                             @endforeach
-                        </div>
+                        </div> --}}
                         @else
                         <div class="text-muted small mt-2 fst-italic">No configuration assigned</div>
                         @endif

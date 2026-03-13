@@ -19,8 +19,8 @@ return new class extends Migration
             $table->decimal('side_min_bet', 10, 2)->nullable();
             $table->decimal('side_max_bet', 10, 2)->nullable();
             $table->decimal('commission', 5, 2)->default(5.00);
-            $table->boolean('enable_pairbets')->default(0);
-            $table->boolean('enable_lucky6')->default(0);
+            // $table->boolean('enable_pairbets')->default(0);
+            // $table->boolean('enable_lucky6')->default(0);
             $table->foreignId('chip_preset_id')->constrained('chips')->cascadeOnDelete();
             $table->tinyInteger('status')->default(1);
             $table->timestamps();

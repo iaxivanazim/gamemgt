@@ -18,9 +18,9 @@ return new class extends Migration
             $table->decimal('max_bet', 10, 2);
             $table->decimal('pair_min', 10, 2)->nullable();
             $table->decimal('pair_max', 10, 2)->nullable();
-            $table->string('split_type')->nullable();
-            $table->string('rule_type')->nullable();
-            $table->boolean('enable_777_charlie')->default(0);
+            // $table->string('split_type')->nullable();
+            // $table->string('rule_type')->nullable();
+            // $table->boolean('enable_777_charlie')->default(0);
             $table->foreignId('chip_preset_id')->constrained('chips')->cascadeOnDelete();
             $table->tinyInteger('status')->default(1);
             $table->timestamps();

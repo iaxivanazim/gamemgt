@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class AndarBaharPreset extends Model
 {
+    protected $table = 'andarbahar_presets';
     protected $fillable = [
         'name',
         'min_bet',

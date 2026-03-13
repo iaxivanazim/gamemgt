@@ -18,7 +18,7 @@
                     <div class="row g-3">
                         <div class="col-md-4">
                             <label class="text-light small">Table Name</label>
-                            <input type="text" name="table_name" class="form-control bg-black text-white border-secondary" value="{{ old('table_name') }}" required>
+                            <input type="text" name="table_name" id="tableName" class="form-control bg-black text-white border-secondary" value="{{ old('table_name') }}" required>
                         </div>
                         <div class="col-md-4">
                             <label class="text-light small">Game Type</label>
@@ -60,7 +60,7 @@
                         <div class="col-md-4">
                             <label class="text-light small">Select Chip Preset</label>
                             <select name="chip_preset_id" id="chipPresetSelect" class="form-select bg-black text-white border-secondary" required>
-                                <option value="">-- Select Preset --</option>
+                                <option value=""><a href="{{ route('chips.index') }}">-- Select Preset --</a></option>
                                 @foreach($chipPresets as $chip)
                                 <option value="{{ $chip->id }}" data-chips="{{ json_encode([$chip->chip_1_value, $chip->chip_2_value, $chip->chip_3_value, $chip->chip_4_value, $chip->chip_5_value]) }}" data-base="{{ $chip->base_value }}" {{ old('chip_preset_id') == $chip->id ? 'selected' : '' }}>
                                     Preset #{{ $chip->id }}
@@ -103,34 +103,34 @@
             <div class="row g-3 mb-3">
                 <div class="col-md-4">
                     <label class="text-light small">Config Preset Name</label>
-                    <input type="text" name="config[name]" class="form-control bg-black text-white border-secondary" placeholder="e.g. High Roller Baccarat" required>
+                    <input type="text" name="config[name]" id="configName" class="form-control bg-black text-white border-secondary" placeholder="e.g. High Roller Baccarat" required>
                 </div>
                 <div class="col-md-4">
                     <label class="text-light small">Min Bet</label>
-                    <input type="number" step="0.01" name="config[min_bet]" class="form-control bg-black text-white border-secondary" required>
+                    <input type="number" step="0.01" name="config[min_bet]" id="minBet" class="form-control bg-black text-white border-secondary" required>
                 </div>
                 <div class="col-md-4">
                     <label class="text-light small">Max Bet</label>
-                    <input type="number" step="0.01" name="config[max_bet]" class="form-control bg-black text-white border-secondary" required>
+                    <input type="number" step="0.01" name="config[max_bet]" id="maxBet" class="form-control bg-black text-white border-secondary" required>
                 </div>
             </div>
 
             {{-- ── BACCARAT ── --}}
             <div class="game-fields" id="fields-BAC" style="display:none;">
                 <div class="row g-3">
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <label class="text-light small">Side Min Bet</label>
-                        <input type="number" step="0.01" name="config[side_min_bet]" class="form-control bg-black text-white border-secondary">
+                        <input type="number" step="0.01" name="config[side_min_bet]" id="sideMinBet" class="form-control bg-black text-white border-secondary">
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <label class="text-light small">Side Max Bet</label>
-                        <input type="number" step="0.01" name="config[side_max_bet]" class="form-control bg-black text-white border-secondary">
+                        <input type="number" step="0.01" name="config[side_max_bet]" id="sideMaxBet" class="form-control bg-black text-white border-secondary">
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <label class="text-light small">Commission (%)</label>
                         <input type="number" step="0.01" name="config[commission]" class="form-control bg-black text-white border-secondary" value="5">
                     </div>
-                    <div class="col-md-3 d-flex flex-column justify-content-center gap-2 mt-3">
+                    {{-- <div class="col-md-3 d-flex flex-column justify-content-center gap-2 mt-3">
                         <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" name="config[enable_pairbets]" value="1" id="enablePairbets">
                             <label class="form-check-label text-light" for="enablePairbets">Pair Bets</label>
@@ -139,12 +139,12 @@
                             <input class="form-check-input" type="checkbox" name="config[enable_lucky6]" value="1" id="enableLucky6">
                             <label class="form-check-label text-light" for="enableLucky6">Lucky 6</label>
                         </div>
-                    </div>
+                    </div> --}}
                 </div>
             </div>
 
             {{-- ── ANDAR BAHAR ── --}}
-            <div class="game-fields" id="fields-AB" style="display:none;">
+            {{-- <div class="game-fields" id="fields-AB" style="display:none;">
                 <div class="row g-3">
                     <div class="col-md-6 d-flex flex-column justify-content-center gap-2 mt-2">
                         <div class="form-check form-switch">
@@ -157,18 +157,18 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> --}}
 
             {{-- ── DRAGON TIGER ── --}}
             <div class="game-fields" id="fields-DT" style="display:none;">
                 <div class="row g-3">
                     <div class="col-md-3">
                         <label class="text-light small">Tie Min</label>
-                        <input type="number" step="0.01" name="config[tie_min]" class="form-control bg-black text-white border-secondary">
+                        <input type="number" step="0.01" name="config[tie_min]" id="tieMin" class="form-control bg-black text-white border-secondary">
                     </div>
                     <div class="col-md-3">
                         <label class="text-light small">Tie Max</label>
-                        <input type="number" step="0.01" name="config[tie_max]" class="form-control bg-black text-white border-secondary">
+                        <input type="number" step="0.01" name="config[tie_max]" id="tieMax" class="form-control bg-black text-white border-secondary">
                     </div>
                 </div>
             </div>
@@ -178,16 +178,16 @@
                 <div class="row g-3">
                     <div class="col-md-3">
                         <label class="text-light small">Side Min</label>
-                        <input type="number" step="0.01" name="config[side_min]" class="form-control bg-black text-white border-secondary">
+                        <input type="number" step="0.01" name="config[side_min]" id="sideMin" class="form-control bg-black text-white border-secondary">
                     </div>
                     <div class="col-md-3">
                         <label class="text-light small">Side Max</label>
-                        <input type="number" step="0.01" name="config[side_max]" class="form-control bg-black text-white border-secondary">
+                        <input type="number" step="0.01" name="config[side_max]" id="sideMax" class="form-control bg-black text-white border-secondary">
                     </div>
-                    <div class="col-md-3">
+                    {{-- <div class="col-md-3">
                         <label class="text-light small">Six Card Bonus</label>
                         <input type="number" step="0.01" name="config[six_card_bonus]" class="form-control bg-black text-white border-secondary">
-                    </div>
+                    </div> --}}
                 </div>
             </div>
 
@@ -196,13 +196,13 @@
                 <div class="row g-3">
                     <div class="col-md-3">
                         <label class="text-light small">Pair Min</label>
-                        <input type="number" step="0.01" name="config[pair_min]" class="form-control bg-black text-white border-secondary">
+                        <input type="number" step="0.01" name="config[pair_min]" id="pairMin" class="form-control bg-black text-white border-secondary">
                     </div>
                     <div class="col-md-3">
                         <label class="text-light small">Pair Max</label>
-                        <input type="number" step="0.01" name="config[pair_max]" class="form-control bg-black text-white border-secondary">
+                        <input type="number" step="0.01" name="config[pair_max]" id="pairMax" class="form-control bg-black text-white border-secondary">
                     </div>
-                    <div class="col-md-3">
+                    {{-- <div class="col-md-3">
                         <label class="text-light small">Split Type</label>
                         <select name="config[split_type]" class="form-select bg-black text-white border-secondary">
                             <option value="">-- Select --</option>
@@ -223,7 +223,7 @@
                             <input class="form-check-input" type="checkbox" name="config[enable_777_charlie]" value="1" id="enable777">
                             <label class="form-check-label text-light" for="enable777">777 Charlie Rule</label>
                         </div>
-                    </div>
+                    </div> --}}
                 </div>
             </div>
 
@@ -232,11 +232,11 @@
                 <div class="row g-3">
                     <div class="col-md-3">
                         <label class="text-light small">H/L Min</label>
-                        <input type="number" step="0.01" name="config[hl_min]" class="form-control bg-black text-white border-secondary">
+                        <input type="number" step="0.01" name="config[hl_min]" id="hlMin" class="form-control bg-black text-white border-secondary">
                     </div>
                     <div class="col-md-3">
                         <label class="text-light small">H/L Max</label>
-                        <input type="number" step="0.01" name="config[hl_max]" class="form-control bg-black text-white border-secondary">
+                        <input type="number" step="0.01" name="config[hl_max]" id="hlMax" class="form-control bg-black text-white border-secondary">
                     </div>
                 </div>
             </div>
@@ -246,11 +246,11 @@
                 <div class="row g-3">
                     <div class="col-md-3">
                         <label class="text-light small">Tie Min</label>
-                        <input type="number" step="0.01" name="config[tie_min]" class="form-control bg-black text-white border-secondary">
+                        <input type="number" step="0.01" name="config[tie_min]" id="tieMin" class="form-control bg-black text-white border-secondary">
                     </div>
                     <div class="col-md-3">
                         <label class="text-light small">Tie Max</label>
-                        <input type="number" step="0.01" name="config[tie_max]" class="form-control bg-black text-white border-secondary">
+                        <input type="number" step="0.01" name="config[tie_max]" id="tieMax" class="form-control bg-black text-white border-secondary">
                     </div>
                 </div>
             </div>

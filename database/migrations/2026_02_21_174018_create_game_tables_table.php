@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('game_tables', function (Blueprint $table) {
             $table->id();
-            $table->string('table_name');
+            $table->string('table_name')->unique();
             $table->foreignId('game_type_id')->constrained('game_types')->cascadeOnDelete();
             $table->string('active_mac')->unique();
             $table->decimal('float', 19, 4);

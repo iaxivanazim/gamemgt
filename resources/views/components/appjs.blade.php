@@ -499,4 +499,123 @@ console.log('Selected game type code:', code);
     });
 }
 
+document.getElementById('tableName').addEventListener('input', function () {
+    document.getElementById('configName').value = this.value;
+});
+
+// ── Min/Max pairs to validate ─────────────────────────────────────────
+const minMaxPairs = [
+    { min: 'minBet',    max: 'maxBet',    label: 'Bet'        },
+    { min: 'sideMinBet',max: 'sideMaxBet',label: 'Side Bet'   },
+    { min: 'tieMin',    max: 'tieMax',    label: 'Tie'        },
+    { min: 'sideMin',   max: 'sideMax',   label: 'Side'       },
+    { min: 'pairMin',   max: 'pairMax',   label: 'Pair'       },
+    { min: 'hlMin',     max: 'hlMax',     label: 'H/L'        },
+];
+
+// ── Attach live validation on each field ─────────────────────────────
+minMaxPairs.forEach(({ min, max, label }) => {
+    const minEl = document.getElementById(min);
+    const maxEl = document.getElementById(max);
+    if (!minEl || !maxEl) return;
+
+    const validate = () => {
+        const minVal = parseFloat(minEl.value);
+        const maxVal = parseFloat(maxEl.value);
+
+        if (minEl.value === '' || maxEl.value === '') {
+            clearError(minEl);
+            clearError(maxEl);
+            return true;
+        }
+
+        if (minVal <= 0) {
+            setError(minEl, `${label} min must be greater than 0`);
+        } else {
+            clearError(minEl);
+        }
+
+        if (maxVal <= 0) {
+            setError(maxEl, `${label} max must be greater than 0`);
+        } else if (maxVal <= minVal) {
+            setError(maxEl, `${label} max must be greater than min`);
+        } else {
+            clearError(maxEl);
+        }
+    };
+
+    minEl.addEventListener('input', validate);
+    maxEl.addEventListener('input', validate);
+});
+
+// ── Helpers ───────────────────────────────────────────────────────────
+function setError(el, message) {
+    el.classList.add('is-invalid');
+    el.classList.remove('is-valid');
+
+    // create feedback div if it doesn't exist
+    let feedback = el.nextElementSibling;
+    if (!feedback || !feedback.classList.contains('invalid-feedback')) {
+        feedback = document.createElement('div');
+        feedback.classList.add('invalid-feedback');
+        el.parentNode.insertBefore(feedback, el.nextSibling);
+    }
+    feedback.textContent = message;
+}
+
+function clearError(el) {
+    el.classList.remove('is-invalid');
+    el.classList.add('is-valid');
+
+    const feedback = el.nextElementSibling;
+    if (feedback && feedback.classList.contains('invalid-feedback')) {
+        feedback.textContent = '';
+    }
+}
+
+// ── Block form submit if any pair is invalid ──────────────────────────
+document.getElementById('masterForm').addEventListener('submit', function (e) {
+    let hasError = false;
+
+    minMaxPairs.forEach(({ min, max, label }) => {
+        const minEl = document.getElementById(min);
+        const maxEl = document.getElementById(max);
+        if (!minEl || !maxEl) return;
+        if (minEl.value === '' && maxEl.value === '') return; // skip empty optional pairs
+
+        const minVal = parseFloat(minEl.value);
+        const maxVal = parseFloat(maxEl.value);
+
+        if (minVal <= 0) {
+            setError(minEl, `${label} min must be greater than 0`);
+            hasError = true;
+        }
+        if (maxVal <= 0) {
+            setError(maxEl, `${label} max must be greater than 0`);
+            hasError = true;
+        } else if (maxVal <= minVal) {
+            setError(maxEl, `${label} max must be greater than min (${minVal})`);
+            hasError = true;
+        }
+    });
+
+    if (hasError) {
+        e.preventDefault();
+
+        // scroll to first error
+        const firstError = document.querySelector('.is-invalid');
+        if (firstError) {
+            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            firstError.focus();
+        }
+
+        Swal.fire({
+            icon : 'error',
+            title: 'Validation Error',
+            text : 'Please fix the min/max fields before submitting.',
+            confirmButtonColor: '#ffc107'
+        });
+    }
+});
+
 </script>

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class CasinoWarPreset extends Model
 {
+    protected $table = 'casinowar_presets';
     protected $fillable = [
         'name',
         'min_bet',

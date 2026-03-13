@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GameDayController;
 use App\Http\Controllers\GameTableController;
 use App\Http\Controllers\PayoutRuleController;
+use App\Http\Controllers\GameTypeController;
+use App\Http\Controllers\TableFloatController;
 use App\Models\GameType;
 use App\Models\PayoutRule;
 
@@ -37,6 +39,13 @@ Route::prefix('v1')->group(function () {
     Route::get('/game-types/{id}', function ($id) {
         return GameType::findOrFail($id);
     });
+
+    Route::get('/game-types', [GameTypeController::class, 'apiIndex']);
+
+    Route::post('/tables/{id}/open',  [TableFloatController::class, 'open']);
+    Route::post('/tables/{id}/close', [TableFloatController::class, 'close']);
+    Route::get('/tables/{id}/session',[TableFloatController::class, 'currentSession']);
+    Route::get('/tables/{id}/history',[TableFloatController::class, 'history']);
 });
 
 // https://documenter.getpostman.com/view/31035377/2sBXcEmMLA

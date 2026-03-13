@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ThreeCardPokerPreset extends Model
 {
+    protected $table = 'threecardpoker_presets';
     protected $fillable = [
         'name',
         'min_bet',

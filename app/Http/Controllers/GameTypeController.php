@@ -72,4 +72,15 @@ class GameTypeController extends Controller
             'message' => 'Game Type deleted successfully.'
         ]);
     }
+
+    public function apiIndex()
+    {
+        $gameTypes = GameType::where('status', 1)->get();
+
+        return response()->json([
+            'success' => true,
+            'count'   => $gameTypes->count(),
+            'data'    => $gameTypes
+        ]);
+    }
 }
