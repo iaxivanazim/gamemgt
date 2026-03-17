@@ -36,7 +36,7 @@ class TableFloatController extends Controller
                 ->where('gameday', $request->gameday)
                 ->first();
 
-            if ($existing && $existing->status === 1) {
+            if ($existing && $existing->status === 0) {
                 return response()->json([
                     'success' => false,
                     'message' => "Table '{$gameTable->table_name}' is already open for today's gameday.",
@@ -45,7 +45,7 @@ class TableFloatController extends Controller
             }
 
             // 4. If closed session exists for today, prevent re-opening
-            if ($existing && $existing->status === 0) {
+            if ($existing && $existing->status === 1) {
                 return response()->json([
                     'success' => false,
                     'message' => "Table '{$gameTable->table_name}' has already been opened and closed today. Cannot reopen.",
@@ -57,7 +57,7 @@ class TableFloatController extends Controller
                 'table_id'   => $gameTable->id,
                 'float_open' => $gameTable->float,   // from game_tables.float
                 'opened_by'  => $request->opened_by,
-                'status'     => 1,
+                'status'     => 0, // 0 = open, 1 = closed
                 'gameday'    => $request->gameday,
                 'opened_at'  => now(),
             ]);
@@ -100,7 +100,7 @@ class TableFloatController extends Controller
             // 1. Find today's open session
             $session = TableFloat::where('table_id', $id)
                 ->where('gameday', $request->gameday)
-                ->where('status', 1)
+                ->where('status', 0)
                 ->first();
 
             if (!$session) {
@@ -114,7 +114,7 @@ class TableFloatController extends Controller
             $session->update([
                 'float_close' => $request->float_close,
                 'closed_by'   => $request->closed_by,
-                'status'      => 0,
+                'status'      => 1,
                 'closed_at'   => now(),
             ]);
 
@@ -173,7 +173,7 @@ class TableFloatController extends Controller
 
             return response()->json([
                 'success' => true,
-                'status'  => $session->status === 1 ? 'open' : 'closed',
+                'status'  => $session->status === 0 ? 'open' : 'closed',
                 'session' => $this->formatSession($session),
             ], 200);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
@@ -233,7 +233,7 @@ class TableFloatController extends Controller
             'float_id'    => $session->float_id,
             'table_id'    => $session->table_id,
             'gameday'     => $session->gameday->toDateString(),
-            'status'      => $session->status === 1 ? 'open' : 'closed',
+            'status'      => $session->status === 0 ? 'open' : 'closed',
             'float_open'  => (float) $session->float_open,
             'float_close' => $session->float_close ? (float) $session->float_close : null,
             'variance'    => $session->float_close

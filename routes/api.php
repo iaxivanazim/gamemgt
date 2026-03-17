@@ -7,6 +7,7 @@ use App\Http\Controllers\GameTableController;
 use App\Http\Controllers\PayoutRuleController;
 use App\Http\Controllers\GameTypeController;
 use App\Http\Controllers\TableFloatController;
+use App\Http\Controllers\TableLedgerController;
 use App\Models\GameType;
 use App\Models\PayoutRule;
 
@@ -46,6 +47,15 @@ Route::prefix('v1')->group(function () {
     Route::post('/tables/{id}/close', [TableFloatController::class, 'close']);
     Route::get('/tables/{id}/session',[TableFloatController::class, 'currentSession']);
     Route::get('/tables/{id}/history',[TableFloatController::class, 'history']);
+
+    Route::post('/ledger/txn',                        [TableLedgerController::class, 'store']);
+    Route::get('/ledger/table/{table_id}',            [TableLedgerController::class, 'byTable']);
+    Route::get('/ledger/table/{table_id}/summary',    [TableLedgerController::class, 'summary']);
+    Route::get('/ledger/tab/{tab_id}',                [TableLedgerController::class, 'byTab']);
+    Route::get('/ledger/txn/{txn_id}',                [TableLedgerController::class, 'show']);
+    Route::post('/ledger/txn/{txn_id}/claim',         [TableLedgerController::class, 'claim']);
+    Route::post('/ledger/txn/{txn_id}/complete',      [TableLedgerController::class, 'complete']);
+    Route::get('/ledger/pending',                     [TableLedgerController::class, 'pending']);
 });
 
 // https://documenter.getpostman.com/view/31035377/2sBXcEmMLA
