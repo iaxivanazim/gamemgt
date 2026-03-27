@@ -59,8 +59,31 @@
                             {{-- game_type_id is fixed after creation --}}
                         </div>
                         <div class="col-md-4">
-                            <label class="text-light small">Active MAC Address</label>
-                            <input type="text" name="active_mac" class="form-control bg-black text-white border-secondary" value="{{ old('active_mac', $gameTable->active_mac) }}">
+                            <label class="text-light small">
+                                Active MAC Address
+                                <span class="ms-1" style="color:#555; font-size:10px; letter-spacing:0.04em;">
+                                    AUTO-REGISTERED BY DEVICE
+                                </span>
+                            </label>
+                            <div class="position-relative">
+                                <input type="text" class="form-control border-secondary pe-5" style="{{ $gameTable->active_mac
+                            ? 'background:#0a1f0a; color:#6fcf97; cursor:not-allowed;'
+                            : 'background:#111; color:#555; cursor:not-allowed;' }}" value="{{ $gameTable->active_mac ?? 'Not yet registered' }}" disabled>
+                                {{-- Status dot --}}
+                                <span class="position-absolute top-50 end-0 translate-middle-y me-3" style="width:8px; height:8px; border-radius:50%;
+                     background:{{ $gameTable->active_mac ? '#6fcf97' : '#555' }};
+                     box-shadow:{{ $gameTable->active_mac ? '0 0 6px #6fcf97' : 'none' }};">
+                                </span>
+                            </div>
+                            @if($gameTable->active_mac)
+                            <div class="mt-1" style="font-size:10px; color:#6fcf97;">
+                                <i class="bi bi-check-circle me-1"></i>Device bound
+                            </div>
+                            @else
+                            <div class="mt-1" style="font-size:10px; color:#555;">
+                                <i class="bi bi-circle me-1"></i>Awaiting device registration
+                            </div>
+                            @endif
                         </div>
                         <div class="col-md-4">
                             <label class="text-light small">Float Amount</label>
@@ -166,183 +189,183 @@
                         {{-- <div class="col-md-3 d-flex flex-column justify-content-center gap-2 mt-3">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" name="config[enable_pairbets]" value="1" id="enablePairbets" {{ old('config.enable_pairbets', $preset?->enable_pairbets) ? 'checked' : '' }}>
-                                <label class="form-check-label text-light" for="enablePairbets">Pair Bets</label>
-                            </div>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" name="config[enable_lucky6]" value="1" id="enableLucky6" {{ old('config.enable_lucky6', $preset?->enable_lucky6) ? 'checked' : '' }}>
-                                <label class="form-check-label text-light" for="enableLucky6">Lucky 6</label>
-                            </div>
-                        </div> --}}
+                        <label class="form-check-label text-light" for="enablePairbets">Pair Bets</label>
                     </div>
-                    @endif
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="config[enable_lucky6]" value="1" id="enableLucky6" {{ old('config.enable_lucky6', $preset?->enable_lucky6) ? 'checked' : '' }}>
+                        <label class="form-check-label text-light" for="enableLucky6">Lucky 6</label>
+                    </div>
+                </div> --}}
+            </div>
+            @endif
 
-                    {{-- ── ANDAR BAHAR ── --}}
-                    {{-- @if($code === 'AB')
+            {{-- ── ANDAR BAHAR ── --}}
+            {{-- @if($code === 'AB')
                     <div class="row g-3">
                         <div class="col-md-6 d-flex flex-column justify-content-center gap-2 mt-2">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" name="config[enable_super_andar]" value="1" id="enableSuperAndar" {{ old('config.enable_super_andar', $preset?->enable_super_andar) ? 'checked' : '' }}>
-                                <label class="form-check-label text-light" for="enableSuperAndar">Super Andar</label>
-                            </div>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" name="config[enable_super_bahar]" value="1" id="enableSuperBahar" {{ old('config.enable_super_bahar', $preset?->enable_super_bahar) ? 'checked' : '' }}>
-                                <label class="form-check-label text-light" for="enableSuperBahar">Super Bahar</label>
-                            </div>
-                        </div>
-                    </div>
-                    @endif --}}
+            <label class="form-check-label text-light" for="enableSuperAndar">Super Andar</label>
+    </div>
+    <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" name="config[enable_super_bahar]" value="1" id="enableSuperBahar" {{ old('config.enable_super_bahar', $preset?->enable_super_bahar) ? 'checked' : '' }}>
+        <label class="form-check-label text-light" for="enableSuperBahar">Super Bahar</label>
+    </div>
+    </div>
+    </div>
+    @endif --}}
 
-                    {{-- ── DRAGON TIGER ── --}}
-                    @if($code === 'DT')
-                    <div class="row g-3">
-                        <div class="col-md-3">
-                            <label class="text-light small">Tie Min</label>
-                            <input type="number" step="0.01" name="config[tie_min]" id="tieMin" class="form-control bg-black text-white border-secondary" value="{{ old('config.tie_min', $preset?->tie_min) }}">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="text-light small">Tie Max</label>
-                            <input type="number" step="0.01" name="config[tie_max]" id="tieMax" class="form-control bg-black text-white border-secondary" value="{{ old('config.tie_max', $preset?->tie_max) }}">
-                        </div>
-                    </div>
-                    @endif
+    {{-- ── DRAGON TIGER ── --}}
+    @if($code === 'DT')
+    <div class="row g-3">
+        <div class="col-md-3">
+            <label class="text-light small">Tie Min</label>
+            <input type="number" step="0.01" name="config[tie_min]" id="tieMin" class="form-control bg-black text-white border-secondary" value="{{ old('config.tie_min', $preset?->tie_min) }}">
+        </div>
+        <div class="col-md-3">
+            <label class="text-light small">Tie Max</label>
+            <input type="number" step="0.01" name="config[tie_max]" id="tieMax" class="form-control bg-black text-white border-secondary" value="{{ old('config.tie_max', $preset?->tie_max) }}">
+        </div>
+    </div>
+    @endif
 
-                    {{-- ── THREE CARD POKER ── --}}
-                    @if($code === '3CP')
-                    <div class="row g-3">
-                        <div class="col-md-3">
-                            <label class="text-light small">Side Min</label>
-                            <input type="number" step="0.01" name="config[side_min]" id="sideMin" class="form-control bg-black text-white border-secondary" value="{{ old('config.side_min', $preset?->side_min) }}">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="text-light small">Side Max</label>
-                            <input type="number" step="0.01" name="config[side_max]" id="sideMax" class="form-control bg-black text-white border-secondary" value="{{ old('config.side_max', $preset?->side_max) }}">
-                        </div>
-                        {{-- <div class="col-md-3">
+    {{-- ── THREE CARD POKER ── --}}
+    @if($code === '3CP')
+    <div class="row g-3">
+        <div class="col-md-3">
+            <label class="text-light small">Side Min</label>
+            <input type="number" step="0.01" name="config[side_min]" id="sideMin" class="form-control bg-black text-white border-secondary" value="{{ old('config.side_min', $preset?->side_min) }}">
+        </div>
+        <div class="col-md-3">
+            <label class="text-light small">Side Max</label>
+            <input type="number" step="0.01" name="config[side_max]" id="sideMax" class="form-control bg-black text-white border-secondary" value="{{ old('config.side_max', $preset?->side_max) }}">
+        </div>
+        {{-- <div class="col-md-3">
                             <label class="text-light small">Six Card Bonus</label>
                             <input type="number" step="0.01" name="config[six_card_bonus]" class="form-control bg-black text-white border-secondary" value="{{ old('config.six_card_bonus', $preset?->six_card_bonus) }}">
-                        </div> --}}
-                    </div>
-                    @endif
+    </div> --}}
+    </div>
+    @endif
 
-                    {{-- ── BLACKJACK ── --}}
-                    @if($code === 'BJ')
-                    <div class="row g-3">
-                        <div class="col-md-3">
-                            <label class="text-light small">Pair Min</label>
-                            <input type="number" step="0.01" name="config[pair_min]" id="pairMin" class="form-control bg-black text-white border-secondary" value="{{ old('config.pair_min', $preset?->pair_min) }}">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="text-light small">Pair Max</label>
-                            <input type="number" step="0.01" name="config[pair_max]" id="pairMax" class="form-control bg-black text-white border-secondary" value="{{ old('config.pair_max', $preset?->pair_max) }}">
-                        </div>
-                        {{-- <div class="col-md-3">
+    {{-- ── BLACKJACK ── --}}
+    @if($code === 'BJ')
+    <div class="row g-3">
+        <div class="col-md-3">
+            <label class="text-light small">Pair Min</label>
+            <input type="number" step="0.01" name="config[pair_min]" id="pairMin" class="form-control bg-black text-white border-secondary" value="{{ old('config.pair_min', $preset?->pair_min) }}">
+        </div>
+        <div class="col-md-3">
+            <label class="text-light small">Pair Max</label>
+            <input type="number" step="0.01" name="config[pair_max]" id="pairMax" class="form-control bg-black text-white border-secondary" value="{{ old('config.pair_max', $preset?->pair_max) }}">
+        </div>
+        {{-- <div class="col-md-3">
                             <label class="text-light small">Split Type</label>
                             <select name="config[split_type]" class="form-select bg-black text-white border-secondary">
                                 <option value="">-- Select --</option>
                                 <option value="resplit" {{ old('config.split_type', $preset?->split_type) == 'resplit'    ? 'selected' : '' }}>Resplit</option>
-                                <option value="no_resplit" {{ old('config.split_type', $preset?->split_type) == 'no_resplit' ? 'selected' : '' }}>No Resplit</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="text-light small">Rule Type</label>
-                            <select name="config[rule_type]" class="form-select bg-black text-white border-secondary">
-                                <option value="">-- Select --</option>
-                                <option value="s17" {{ old('config.rule_type', $preset?->rule_type) == 's17' ? 'selected' : '' }}>S17</option>
-                                <option value="h17" {{ old('config.rule_type', $preset?->rule_type) == 'h17' ? 'selected' : '' }}>H17</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3 mt-2">
-                            <div class="form-check form-switch mt-3">
-                                <input class="form-check-input" type="checkbox" name="config[enable_777_charlie]" value="1" id="enable777" {{ old('config.enable_777_charlie', $preset?->enable_777_charlie) ? 'checked' : '' }}>
-                                <label class="form-check-label text-light" for="enable777">777 Charlie Rule</label>
-                            </div>
-                        </div> --}}
-                    </div>
-                    @endif
+        <option value="no_resplit" {{ old('config.split_type', $preset?->split_type) == 'no_resplit' ? 'selected' : '' }}>No Resplit</option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label class="text-light small">Rule Type</label>
+        <select name="config[rule_type]" class="form-select bg-black text-white border-secondary">
+            <option value="">-- Select --</option>
+            <option value="s17" {{ old('config.rule_type', $preset?->rule_type) == 's17' ? 'selected' : '' }}>S17</option>
+            <option value="h17" {{ old('config.rule_type', $preset?->rule_type) == 'h17' ? 'selected' : '' }}>H17</option>
+        </select>
+    </div>
+    <div class="col-md-3 mt-2">
+        <div class="form-check form-switch mt-3">
+            <input class="form-check-input" type="checkbox" name="config[enable_777_charlie]" value="1" id="enable777" {{ old('config.enable_777_charlie', $preset?->enable_777_charlie) ? 'checked' : '' }}>
+            <label class="form-check-label text-light" for="enable777">777 Charlie Rule</label>
+        </div>
+    </div> --}}
+    </div>
+    @endif
 
-                    {{-- ── MINI FLUSH ── --}}
-                    @if($code === 'MF')
-                    <div class="row g-3">
-                        <div class="col-md-3">
-                            <label class="text-light small">H/L Min</label>
-                            <input type="number" step="0.01" name="config[hl_min]" id="hlMin" class="form-control bg-black text-white border-secondary" value="{{ old('config.hl_min', $preset?->hl_min) }}">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="text-light small">H/L Max</label>
-                            <input type="number" step="0.01" name="config[hl_max]" id="hlMax" class="form-control bg-black text-white border-secondary" value="{{ old('config.hl_max', $preset?->hl_max) }}">
-                        </div>
-                    </div>
-                    @endif
+    {{-- ── MINI FLUSH ── --}}
+    @if($code === 'MF')
+    <div class="row g-3">
+        <div class="col-md-3">
+            <label class="text-light small">H/L Min</label>
+            <input type="number" step="0.01" name="config[hl_min]" id="hlMin" class="form-control bg-black text-white border-secondary" value="{{ old('config.hl_min', $preset?->hl_min) }}">
+        </div>
+        <div class="col-md-3">
+            <label class="text-light small">H/L Max</label>
+            <input type="number" step="0.01" name="config[hl_max]" id="hlMax" class="form-control bg-black text-white border-secondary" value="{{ old('config.hl_max', $preset?->hl_max) }}">
+        </div>
+    </div>
+    @endif
 
-                    {{-- ── CASINO WAR ── --}}
-                    @if($code === 'CW')
-                    <div class="row g-3">
-                        <div class="col-md-3">
-                            <label class="text-light small">Tie Min</label>
-                            <input type="number" step="0.01" name="config[tie_min]" id="tieMin" class="form-control bg-black text-white border-secondary" value="{{ old('config.tie_min', $preset?->tie_min) }}">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="text-light small">Tie Max</label>
-                            <input type="number" step="0.01" name="config[tie_max]" id="tieMax" class="form-control bg-black text-white border-secondary" value="{{ old('config.tie_max', $preset?->tie_max) }}">
-                        </div>
-                    </div>
-                    @endif
+    {{-- ── CASINO WAR ── --}}
+    @if($code === 'CW')
+    <div class="row g-3">
+        <div class="col-md-3">
+            <label class="text-light small">Tie Min</label>
+            <input type="number" step="0.01" name="config[tie_min]" id="tieMin" class="form-control bg-black text-white border-secondary" value="{{ old('config.tie_min', $preset?->tie_min) }}">
+        </div>
+        <div class="col-md-3">
+            <label class="text-light small">Tie Max</label>
+            <input type="number" step="0.01" name="config[tie_max]" id="tieMax" class="form-control bg-black text-white border-secondary" value="{{ old('config.tie_max', $preset?->tie_max) }}">
+        </div>
+    </div>
+    @endif
 
-                </div>
+    </div>
+    </div>
+
+    {{-- ═══════════════════════════════════════ --}}
+    {{-- SECTION 4: PAYOUT RULES                 --}}
+    {{-- ═══════════════════════════════════════ --}}
+    <div class="card bg-black border-warning mb-4">
+        <div class="card-body">
+            <h6 class="text-warning mb-3">④ Payout Rules</h6>
+            <div class="table-responsive">
+                <table class="table table-dark table-bordered text-center align-middle">
+                    <thead>
+                        <tr class="text-warning">
+                            <th>Bet Name</th>
+                            <th>Position</th>
+                            <th>Payout Multiplier</th>
+                            <th>Active</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($payoutRules as $rule)
+                        <tr>
+                            <td class="text-light">{{ $rule->bet_name }}</td>
+                            <td class="text-light">{{ $rule->bet_position ?? '—' }}</td>
+                            <td class="text-warning fw-bold">{{ $rule->payout_multiplier }}x</td>
+                            <td>
+                                <div class="form-check form-switch d-flex justify-content-center">
+                                    <input class="form-check-input" type="checkbox" name="payout_overrides[{{ $rule->payout_id }}]" value="1" {{ $rule->is_active ? 'checked' : '' }}>
+                                </div>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="4" class="text-muted fst-italic">
+                                No payout rules defined for this game type.
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
+        </div>
+    </div>
 
-            {{-- ═══════════════════════════════════════ --}}
-            {{-- SECTION 4: PAYOUT RULES                 --}}
-            {{-- ═══════════════════════════════════════ --}}
-            <div class="card bg-black border-warning mb-4">
-                <div class="card-body">
-                    <h6 class="text-warning mb-3">④ Payout Rules</h6>
-                    <div class="table-responsive">
-                        <table class="table table-dark table-bordered text-center align-middle">
-                            <thead>
-                                <tr class="text-warning">
-                                    <th>Bet Name</th>
-                                    <th>Position</th>
-                                    <th>Payout Multiplier</th>
-                                    <th>Active</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($payoutRules as $rule)
-                                <tr>
-                                    <td class="text-light">{{ $rule->bet_name }}</td>
-                                    <td class="text-light">{{ $rule->bet_position ?? '—' }}</td>
-                                    <td class="text-warning fw-bold">{{ $rule->payout_multiplier }}x</td>
-                                    <td>
-                                        <div class="form-check form-switch d-flex justify-content-center">
-                                            <input class="form-check-input" type="checkbox" name="payout_overrides[{{ $rule->payout_id }}]" value="1" {{ $rule->is_active ? 'checked' : '' }}>
-                                        </div>
-                                    </td>
-                                </tr>
-                                @empty
-                                <tr>
-                                    <td colspan="4" class="text-muted fst-italic">
-                                        No payout rules defined for this game type.
-                                    </td>
-                                </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+    {{-- Submit --}}
+    <div class="text-center mt-2 mb-5">
+        <button type="submit" class="btn btn-warning px-5">
+            <i class="bi bi-save me-1"></i>Save Changes
+        </button>
+        <a href="{{ route('game_tables.index') }}" class="btn btn-outline-secondary px-4 ms-2">
+            Cancel
+        </a>
+    </div>
 
-            {{-- Submit --}}
-            <div class="text-center mt-2 mb-5">
-                <button type="submit" class="btn btn-warning px-5">
-                    <i class="bi bi-save me-1"></i>Save Changes
-                </button>
-                <a href="{{ route('game_tables.index') }}" class="btn btn-outline-secondary px-4 ms-2">
-                    Cancel
-                </a>
-            </div>
-
-        </form>
+    </form>
     </div>
 
     <script>

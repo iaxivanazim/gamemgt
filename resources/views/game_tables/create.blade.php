@@ -32,8 +32,13 @@
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label class="text-light small">Active MAC Address</label>
-                            <input type="text" name="active_mac" class="form-control bg-black text-white border-secondary" value="{{ old('active_mac') }}">
+                            <label class="text-light small">
+                                Active MAC Address
+                                <span class="ms-1" style="color:#555; font-size:10px; letter-spacing:0.04em;">
+                                    AUTO-REGISTERED BY DEVICE
+                                </span>
+                            </label>
+                            <input type="text" class="form-control bg-black border-secondary" style="color:#555; cursor:not-allowed;" value="Not yet registered" disabled>
                         </div>
                         <div class="col-md-4">
                             <label class="text-light small">Float Amount</label>

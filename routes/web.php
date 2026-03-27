@@ -53,6 +53,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('/game_tables', GameTableController::class)->middleware('permission:create-game_tables');
     Route::post('/game_tables/{gameTable}/deactivate', [GameTableController::class, 'deactivate'])->name('game_tables.deactivate');
     Route::post('/game_tables/{gameTable}/restore',    [GameTableController::class, 'restore'])->name('game_tables.restore');
+    Route::post('/game_tables/{gameTable}/unregister-mac', [GameTableController::class, 'unregisterMac'])->name('game_tables.unregister-mac');
     // Route::get('/game_tables/create', [GameTableController::class, 'create'])->name('game_tables.create')->middleware('permission:create-game_tables');
     // Route::post('/game_tables', [GameTableController::class, 'store'])->name('game_tables.store')->middleware('permission:create-game_tables');
     // Route::get('/game_tables/{table}/edit', [GameTableController::class, 'edit'])->name('game_tables.edit')->middleware('permission:edit-game_tables');

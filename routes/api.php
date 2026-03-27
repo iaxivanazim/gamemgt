@@ -24,6 +24,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/game-tables/active', [GameTableController::class, 'apiActive']);
     Route::get('/game-tables/by-mac/{mac}', [GameTableController::class, 'apiByMac']);
     Route::get('/game-tables/{id}/configuration', [GameTableController::class, 'apiConfiguration']);
+    Route::post('/game-tables/{id}/register-mac', [GameTableController::class, 'registerMac']);
 
     Route::get('/game-tables', [GameTableController::class, 'apiIndex']);
     Route::get('/game-tables/{id}', [GameTableController::class, 'apiShow'])->whereNumber('id');
@@ -56,6 +57,8 @@ Route::prefix('v1')->group(function () {
     Route::post('/ledger/txn/{txn_id}/claim',         [TableLedgerController::class, 'claim']);
     Route::post('/ledger/txn/{txn_id}/complete',      [TableLedgerController::class, 'complete']);
     Route::get('/ledger/pending',                     [TableLedgerController::class, 'pending']);
+
+    Route::get('/game-tables/{id}/float', [GameTableController::class, 'currentFloat']);
 });
 
 // https://documenter.getpostman.com/view/31035377/2sBXcEmMLA

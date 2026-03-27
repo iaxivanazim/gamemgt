@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('table_name')->unique();
             $table->foreignId('game_type_id')->constrained('game_types')->cascadeOnDelete();
-            $table->string('active_mac')->unique();
+            $table->string('active_mac')->unique()->nullable();
             $table->decimal('float', 19, 4);
             $table->boolean('status')->default(true);
             $table->string('felt_color')->nullable();

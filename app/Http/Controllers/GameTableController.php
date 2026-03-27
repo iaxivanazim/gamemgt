@@ -15,6 +15,8 @@ use App\Models\MiniFlushPreset;
 use App\Models\CasinoWarPreset;
 use App\Models\PayoutRule;
 use App\Models\GameTablePayoutRule;
+use App\Models\TableLedger;
+use App\Models\TableFloat;
 use Illuminate\Support\Facades\DB;
 
 use Illuminate\Http\Request;
@@ -386,5 +388,191 @@ class GameTableController extends Controller
             ],
             default => []
         };
+    }
+
+    public function registerMac(Request $request, $id)
+    {
+        $request->validate([
+            'mac_address' => [
+                'required',
+                'string',
+                'regex:/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/' // valid MAC format
+            ],
+        ]);
+
+        try {
+            $table      = GameTable::findOrFail($id);
+            $incomingMac = strtoupper($request->mac_address);
+
+            // ── Table is inactive ────────────────────────────────────────
+            if ($table->status !== true) {
+                return response()->json([
+                    'success' => false,
+                    'code'    => 'TABLE_INACTIVE',
+                    'message' => "Table '{$table->table_name}' is inactive and cannot be registered.",
+                ], 422);
+            }
+
+            // ── No MAC registered yet → register it ─────────────────────
+            if (is_null($table->active_mac)) {
+                $table->update(['active_mac' => $incomingMac]);
+
+                return response()->json([
+                    'success' => true,
+                    'code'    => 'MAC_REGISTERED',
+                    'message' => "MAC address registered successfully for table '{$table->table_name}'.",
+                    'data'    => [
+                        'table_id'   => $table->id,
+                        'table_name' => $table->table_name,
+                        'active_mac' => $incomingMac,
+                        'registered_at' => now()->toISOString(),
+                    ],
+                ], 200);
+            }
+
+            $registeredMac = strtoupper($table->active_mac);
+
+            // ── Same MAC → already bound to this device ──────────────────
+            if ($registeredMac === $incomingMac) {
+                return response()->json([
+                    'success' => true,
+                    'code'    => 'MAC_ALREADY_REGISTERED',
+                    'message' => "This device is already registered to table '{$table->table_name}'.",
+                    'data'    => [
+                        'table_id'   => $table->id,
+                        'table_name' => $table->table_name,
+                        'active_mac' => $registeredMac,
+                    ],
+                ], 200);
+            }
+
+            // ── Different MAC → table bound to another device ────────────
+            return response()->json([
+                'success' => false,
+                'code'    => 'MAC_CONFLICT',
+                'message' => "Table '{$table->table_name}' is already bound to a different device. Contact administrator to reassign.",
+                'data'    => [
+                    'table_id'      => $table->id,
+                    'table_name'    => $table->table_name,
+                    'registered_mac' => $registeredMac,
+                    'incoming_mac'  => $incomingMac,
+                ],
+            ], 409); // 409 Conflict
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'code'    => 'TABLE_NOT_FOUND',
+                'message' => "Game table with ID {$id} not found.",
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'code'    => 'SERVER_ERROR',
+                'message' => 'Failed to process MAC registration.',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function unregisterMac(GameTable $gameTable)
+    {
+        $old = $gameTable->active_mac;
+        $gameTable->update(['active_mac' => null]);
+
+        return redirect()
+            ->route('game_tables.index')
+            ->with('success', "MAC address ({$old}) unregistered from '{$gameTable->table_name}'. Device can now be reassigned.");
+    }
+
+    public function currentFloat(Request $request, $id)
+    {
+        $request->validate([
+            'gameday' => 'required|date_format:Y-m-d',
+        ]);
+
+        try {
+            $table   = GameTable::findOrFail($id);
+            $gameday = $request->gameday;
+
+            // 1. Check active session for this gameday
+            $session = TableFloat::where('table_id', $id)
+                ->where('gameday', $gameday)
+                ->first();
+
+            if (!$session) {
+                return response()->json([
+                    'success' => false,
+                    'code'    => 'NO_SESSION',
+                    'message' => "No session found for table '{$table->table_name}' on gameday {$gameday}.",
+                    'data'    => null,
+                ], 404);
+            }
+
+            // 2. Get latest ledger entry for current float balance
+            //    If no transactions yet, float_open is the current float
+            $lastTxn = TableLedger::where('table_id', $id)
+                ->where('gameday', $gameday)
+                ->latest('txn_id')
+                ->first();
+
+            $currentFloat = $lastTxn
+                ? (float) $lastTxn->float_balance
+                : (float) $session->float_open;
+
+            // 3. Build movement summary for context
+            $txns      = TableLedger::where('table_id', $id)
+                ->where('gameday', $gameday)
+                ->get();
+
+            $totalIn  = (float) $txns->whereIn('txn_type', ['FILL', 'CREDIT', 'BUYIN'])
+                ->sum('amount');
+            $totalOut = (float) $txns->whereIn('txn_type', ['DROP', 'CASHOUT'])
+                ->sum('amount');
+
+            return response()->json([
+                'success' => true,
+                'code'    => 'FLOAT_FETCHED',
+                'data'    => [
+                    'table_id'      => $table->id,
+                    'table_name'    => $table->table_name,
+                    'gameday'       => $gameday,
+                    'session_status' => $session->status === 1 ? 'open' : 'closed',
+
+                    'float' => [
+                        'open'    => (float) $session->float_open,
+                        'current' => $currentFloat,
+                        'close'   => $session->float_close
+                            ? (float) $session->float_close
+                            : null,
+                        'movement' => [
+                            'total_in'  => $totalIn,
+                            'total_out' => $totalOut,
+                            'net'       => round($totalIn - $totalOut, 2),
+                        ],
+                    ],
+
+                    'last_txn' => $lastTxn ? [
+                        'txn_id'   => $lastTxn->txn_id,
+                        'txn_type' => $lastTxn->txn_type,
+                        'amount'   => (float) $lastTxn->amount,
+                        'at'       => $lastTxn->created_at?->toISOString(),
+                    ] : null,
+                ],
+            ], 200);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'code'    => 'TABLE_NOT_FOUND',
+                'message' => "Game table with ID {$id} not found.",
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'code'    => 'SERVER_ERROR',
+                'message' => 'Failed to fetch float balance.',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
     }
 }

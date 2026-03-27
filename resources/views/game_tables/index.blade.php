@@ -148,139 +148,155 @@
                             <span class="badge" style="{{ $preset->$field
                                                         ? 'background:#0f2e1a; color:#6fcf97; border:1px solid #6fcf97;'
                                                         : 'background:#1e1e1e; color:#555; border:1px solid #333;' }}
-                                                     font-size:10px;">
-                                {{ $preset->$field ? '✓' : '✕' }} {{ $label }}
-                            </span>
-                            @endif
-                            @endforeach
-                        </div> --}}
-                        @else
-                        <div class="text-muted small mt-2 fst-italic">No configuration assigned</div>
+                        font-size:10px;">
+                        {{ $preset->$field ? '✓' : '✕' }} {{ $label }}
+                        </span>
                         @endif
-                    </div>
+                        @endforeach
+                    </div> --}}
+                    @else
+                    <div class="text-muted small mt-2 fst-italic">No configuration assigned</div>
+                    @endif
+                </div>
 
-                    {{-- ── RIGHT: Chip Preview ── --}}
-                    <div class="col-md-3 d-flex align-items-center justify-content-center p-3" style="border-left:1px solid #222; border-right:1px solid #222;">
-                        @if($chip)
-                        <div class="d-flex align-items-center gap-1 flex-wrap justify-content-center">
-                            @foreach($colors as $i => $color)
-                            @php $val = $chip->{'chip_'.($i+1).'_value'}; @endphp
-                            <div class="text-center">
-                                <div class="casino-chip chip-{{ $color }}" style="width:44px; height:44px; font-size:10px; border-width:2px;">
-                                    <span class="text-white fw-bold" style="font-size:10px;">{{ $val }}</span>
-                                </div>
-                            </div>
-                            @endforeach
-                            <div style="width:1px; height:44px; background:linear-gradient(to bottom, transparent, #ffc107, transparent); margin:0 6px;"></div>
-                            <div class="text-center">
-                                <div class="text-warning" style="font-size:9px; letter-spacing:0.05em;">BASE</div>
-                                <div class="text-white fw-bold" style="font-size:13px;">{{ $chip->base_value }}</div>
+                {{-- ── RIGHT: Chip Preview ── --}}
+                <div class="col-md-3 d-flex align-items-center justify-content-center p-3" style="border-left:1px solid #222; border-right:1px solid #222;">
+                    @if($chip)
+                    <div class="d-flex align-items-center gap-1 flex-wrap justify-content-center">
+                        @foreach($colors as $i => $color)
+                        @php $val = $chip->{'chip_'.($i+1).'_value'}; @endphp
+                        <div class="text-center">
+                            <div class="casino-chip chip-{{ $color }}" style="width:44px; height:44px; font-size:10px; border-width:2px;">
+                                <span class="text-white fw-bold" style="font-size:10px;">{{ $val }}</span>
                             </div>
                         </div>
-                        @else
-                        <span class="text-muted small fst-italic">No chip preset</span>
-                        @endif
+                        @endforeach
+                        <div style="width:1px; height:44px; background:linear-gradient(to bottom, transparent, #ffc107, transparent); margin:0 6px;"></div>
+                        <div class="text-center">
+                            <div class="text-warning" style="font-size:9px; letter-spacing:0.05em;">BASE</div>
+                            <div class="text-white fw-bold" style="font-size:13px;">{{ $chip->base_value }}</div>
+                        </div>
+                    </div>
+                    @else
+                    <span class="text-muted small fst-italic">No chip preset</span>
+                    @endif
+                </div>
+
+                {{-- ── PAYOUT RULES ── --}}
+                <div class="col-md-12 px-4 pb-3" style="border-top:1px solid #1e1e1e;">
+                    <div class="d-flex align-items-center gap-2 mt-3 mb-2">
+                        <span class="text-warning small fw-bold" style="letter-spacing:0.06em;">
+                            PAYOUT RULES
+                        </span>
+                        <div style="flex:1; height:1px; background:linear-gradient(to right, #ffc10733, transparent);"></div>
+                        {{-- Active/Total count badge --}}
+                        @php
+                        $totalRules = $table->payoutRules->count();
+                        $activeRules = $table->payoutRules->where('is_active', 1)->count();
+                        @endphp
+                        <span class="badge rounded-pill" style="background:#1a1a1a; color:#ffc107; border:1px solid #ffc10744; font-size:10px;">
+                            {{ $activeRules }}/{{ $totalRules }} active
+                        </span>
                     </div>
 
-                    {{-- ── PAYOUT RULES ── --}}
-                    <div class="col-md-12 px-4 pb-3" style="border-top:1px solid #1e1e1e;">
-                        <div class="d-flex align-items-center gap-2 mt-3 mb-2">
-                            <span class="text-warning small fw-bold" style="letter-spacing:0.06em;">
-                                PAYOUT RULES
-                            </span>
-                            <div style="flex:1; height:1px; background:linear-gradient(to right, #ffc10733, transparent);"></div>
-                            {{-- Active/Total count badge --}}
-                            @php
-                            $totalRules = $table->payoutRules->count();
-                            $activeRules = $table->payoutRules->where('is_active', 1)->count();
-                            @endphp
-                            <span class="badge rounded-pill" style="background:#1a1a1a; color:#ffc107; border:1px solid #ffc10744; font-size:10px;">
-                                {{ $activeRules }}/{{ $totalRules }} active
-                            </span>
-                        </div>
-
-                        @if($table->payoutRules->isEmpty())
-                        <span class="text-muted small fst-italic">No payout rules assigned</span>
-                        @else
-                        <div class="d-flex flex-wrap gap-2">
-                            @foreach($table->payoutRules as $tableRule)
-                            @php $rule = $tableRule->payoutRule; @endphp
-                            @if($rule)
-                            <div class="d-flex align-items-center gap-1 px-2 py-1 rounded" style="{{ $tableRule->is_active
+                    @if($table->payoutRules->isEmpty())
+                    <span class="text-muted small fst-italic">No payout rules assigned</span>
+                    @else
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach($table->payoutRules as $tableRule)
+                        @php $rule = $tableRule->payoutRule; @endphp
+                        @if($rule)
+                        <div class="d-flex align-items-center gap-1 px-2 py-1 rounded" style="{{ $tableRule->is_active
                             ? 'background:#0f1f0f; border:1px solid #2a5a2a;'
                             : 'background:#1a1a1a; border:1px solid #2e2e2e;' }}">
 
-                                {{-- Active dot --}}
-                                <span style="width:6px; height:6px; border-radius:50%; flex-shrink:0;
+                            {{-- Active dot --}}
+                            <span style="width:6px; height:6px; border-radius:50%; flex-shrink:0;
                                      background:{{ $tableRule->is_active ? '#6fcf97' : '#555' }};"></span>
 
-                                {{-- Bet name --}}
-                                <span style="font-size:11px; color:{{ $tableRule->is_active ? '#ddd' : '#555' }};">
-                                    {{ $rule->bet_name }}
-                                </span>
+                            {{-- Bet name --}}
+                            <span style="font-size:11px; color:{{ $tableRule->is_active ? '#ddd' : '#555' }};">
+                                {{ $rule->bet_name }}
+                            </span>
 
-                                @if($rule->bet_position)
-                                <span style="font-size:10px; color:#666;">({{ $rule->bet_position }})</span>
-                                @endif
-
-                                {{-- Divider --}}
-                                <span style="width:1px; height:12px; background:#333; margin:0 3px;"></span>
-
-                                {{-- Multiplier --}}
-                                <span style="font-size:11px; font-weight:bold;
-                                     color:{{ $tableRule->is_active ? '#ffc107' : '#444' }};">
-                                    {{ $rule->payout_multiplier }}x
-                                </span>
-                            </div>
+                            @if($rule->bet_position)
+                            <span style="font-size:10px; color:#666;">({{ $rule->bet_position }})</span>
                             @endif
-                            @endforeach
+
+                            {{-- Divider --}}
+                            <span style="width:1px; height:12px; background:#333; margin:0 3px;"></span>
+
+                            {{-- Multiplier --}}
+                            <span style="font-size:11px; font-weight:bold;
+                                     color:{{ $tableRule->is_active ? '#ffc107' : '#444' }};">
+                                {{ $rule->payout_multiplier }}x
+                            </span>
                         </div>
                         @endif
+                        @endforeach
                     </div>
-
-                    {{-- ── FAR RIGHT: Actions ── --}}
-                    <div class="col-md-2 d-flex flex-column align-items-center justify-content-center gap-2 p-3">
-                        <a href="{{ route('game_tables.edit', $table->id) }}" class="btn btn-sm btn-outline-warning w-100">
-                            <i class="bi bi-pencil-square me-1"></i>Edit
-                        </a>
-
-                        @if($table->status == 1)
-                        <form method="POST" action="{{ route('game_tables.deactivate', $table->id) }}" class="w-100">
-                            @csrf
-                            <button type="submit" class="btn btn-sm btn-outline-danger w-100" onclick="return confirm('Deactivate this table?')">
-                                <i class="bi bi-pause-circle me-1"></i>Deactivate
-                            </button>
-                        </form>
-                        @else
-                        <form method="POST" action="{{ route('game_tables.restore', $table->id) }}" class="w-100">
-                            @csrf
-                            <button type="submit" class="btn btn-sm btn-outline-success w-100">
-                                <i class="bi bi-arrow-counterclockwise me-1"></i>Restore
-                            </button>
-                        </form>
-                        @endif
-                    </div>
-
+                    @endif
                 </div>
+
+                {{-- ── FAR RIGHT: Actions ── --}}
+                <div class="col-md-2 d-flex flex-column align-items-center justify-content-center gap-2 p-3">
+
+                    <a href="{{ route('game_tables.edit', $table->id) }}" class="btn btn-sm btn-outline-warning w-100">
+                        <i class="bi bi-pencil-square me-1"></i>Edit
+                    </a>
+
+                    {{-- Unregister MAC --}}
+                    @if($table->active_mac)
+                    <form method="POST" action="{{ route('game_tables.unregister-mac', $table->id) }}" class="w-100">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-outline-secondary w-100" onclick="return confirm('Unregister MAC {{ $table->active_mac }} from this table?')">
+                            <i class="bi bi-pc-display me-1"></i>Unregister MAC
+                        </button>
+                    </form>
+                    @else
+                    <span class="btn btn-sm w-100 disabled" style="border:1px dashed #444; color:#555; font-size:11px;">
+                        <i class="bi bi-pc-display me-1"></i>No MAC Bound
+                    </span>
+                    @endif
+
+                    {{-- Deactivate / Restore --}}
+                    @if($table->status == 1)
+                    <form method="POST" action="{{ route('game_tables.deactivate', $table->id) }}" class="w-100">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-outline-danger w-100" onclick="return confirm('Deactivate this table?')">
+                            <i class="bi bi-pause-circle me-1"></i>Deactivate
+                        </button>
+                    </form>
+                    @else
+                    <form method="POST" action="{{ route('game_tables.restore', $table->id) }}" class="w-100">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-outline-success w-100">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i>Restore
+                        </button>
+                    </form>
+                    @endif
+                </div>
+
             </div>
         </div>
+    </div>
 
-        @empty
-        <div class="text-center py-5">
-            <div style="font-size:48px; opacity:0.2;">🎰</div>
-            <div class="text-muted mt-3">No game tables found.</div>
-            <a href="{{ route('game_tables.create') }}" class="btn btn-warning btn-sm mt-3">
-                + Create First Table
-            </a>
-        </div>
-        @endforelse
+    @empty
+    <div class="text-center py-5">
+        <div style="font-size:48px; opacity:0.2;">🎰</div>
+        <div class="text-muted mt-3">No game tables found.</div>
+        <a href="{{ route('game_tables.create') }}" class="btn btn-warning btn-sm mt-3">
+            + Create First Table
+        </a>
+    </div>
+    @endforelse
 
-        {{-- Pagination --}}
-        @if($tables->hasPages())
-        <div class="d-flex justify-content-center mt-2">
-            {{ $tables->links() }}
-        </div>
-        @endif
+    {{-- Pagination --}}
+    @if($tables->hasPages())
+    <div class="d-flex justify-content-center mt-2">
+        {{ $tables->links() }}
+    </div>
+    @endif
 
     </div>
 </x-app-layout>

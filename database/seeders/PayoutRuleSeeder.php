@@ -96,7 +96,8 @@ class PayoutRuleSeeder extends Seeder
             /* GAME TYPE 7 */
 
             ['payout_id' => 52, 'game_type_id' => 7, 'bet_name' => 'Bet', 'bet_position' => 'B', 'payout_multiplier' => 1, 'is_active' => 1],
-            ['payout_id' => 53, 'game_type_id' => 7, 'bet_name' => 'War', 'bet_position' => 'W', 'payout_multiplier' => 10, 'is_active' => 1],
+            ['payout_id' => 53, 'game_type_id' => 7, 'bet_name' => 'War', 'bet_position' => 'W', 'payout_multiplier' => 1, 'is_active' => 1],
+            ['payout_id' => 54, 'game_type_id' => 7, 'bet_name' => 'Tie', 'bet_position' => 'T', 'payout_multiplier' => 10, 'is_active' => 1],
 
         ]);
     }
