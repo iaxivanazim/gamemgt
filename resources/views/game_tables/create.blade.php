@@ -106,34 +106,61 @@
 
             {{-- Preset Name (common) --}}
             <div class="row g-3 mb-3">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="text-light small">Config Preset Name</label>
                     <input type="text" name="config[name]" id="configName" class="form-control bg-black text-white border-secondary" placeholder="e.g. High Roller Baccarat" required>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="text-light small">Min Bet</label>
                     <input type="number" step="0.01" name="config[min_bet]" id="minBet" class="form-control bg-black text-white border-secondary" required>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="text-light small">Max Bet</label>
                     <input type="number" step="0.01" name="config[max_bet]" id="maxBet" class="form-control bg-black text-white border-secondary" required>
                 </div>
+                <div class="col-md-3">
+                    <label class="text-light small">Burn Card every round</label>
+                    <input type="number" name="config[burn_card]" id="burnCard" class="form-control bg-black text-white border-secondary" placeholder="Number of cards to burn" min="0" max="9">
+                </div>
+
             </div>
 
             {{-- ── BACCARAT ── --}}
             <div class="game-fields" id="fields-BAC" style="display:none;">
                 <div class="row g-3">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label class="text-light small">Side Min Bet</label>
                         <input type="number" step="0.01" name="config[side_min_bet]" id="sideMinBet" class="form-control bg-black text-white border-secondary">
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label class="text-light small">Side Max Bet</label>
                         <input type="number" step="0.01" name="config[side_max_bet]" id="sideMaxBet" class="form-control bg-black text-white border-secondary">
                     </div>
-                    <div class="col-md-4">
-                        <label class="text-light small">Commission (%)</label>
-                        <input type="number" step="0.01" name="config[commission]" class="form-control bg-black text-white border-secondary" value="5">
+                    <div class="col-md-3">
+                        <label class="text-light small">Commission</label>
+                        <select name="config[commission]" id="commissionSelect" class="form-select bg-black text-white border-secondary">
+                            <option value="1" selected>Enabled (0.95x Banker)</option>
+                            <option value="0">Disabled (1x Banker)</option>
+                        </select>
+                        <div id="commissionHint" class="mt-1" style="font-size:10px; color:#ffc107;">
+                            <i class="bi bi-info-circle me-1"></i>Banker payout: <span id="bankerMultiplier">0.95x</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="text-light small d-flex align-items-center gap-2">
+                            Baccarat 6 Commission
+                            <span id="b6CommissionBadge" style="font-size:9px; padding:2px 6px; border-radius:10px;
+                             background:#2e1010; color:#eb5757; border:1px solid #eb5757;">
+                                B6 Inactive
+                            </span>
+                        </label>
+                        <select name="config[baccarat_6_commission]" id="b6CommissionSelect" class="form-select bg-black border-secondary" style="color:#555; cursor:not-allowed;" disabled>
+                            <option value="1">Commission (0.95x)</option>
+                            <option value="0">Non-Commission (0.50x)</option>
+                        </select>
+                        <div class="mt-1" style="font-size:10px; color:#ffc107;">
+                            <i class="bi bi-info-circle me-1"></i>B6 payout: <span id="b6Multiplier">—</span>
+                        </div>
                     </div>
                     {{-- <div class="col-md-3 d-flex flex-column justify-content-center gap-2 mt-3">
                         <div class="form-check form-switch">
@@ -207,6 +234,24 @@
                         <label class="text-light small">Pair Max</label>
                         <input type="number" step="0.01" name="config[pair_max]" id="pairMax" class="form-control bg-black text-white border-secondary">
                     </div>
+                    <div class="col-md-3">
+                        <label class="text-light small">Surrender Option</label>
+                        <select name="config[surrender]" class="form-select bg-black text-white border-secondary">
+                            <option value="">-- Select --</option>
+                            <option value="0">No Surrender</option>
+                            <option value="1">Surrender on any card</option>
+                            <option value="2">Surrender on any card except Ace</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="text-light small">Insurance</label>
+                        <select name="config[insurance]" class="form-select bg-black text-white border-secondary">
+                            <option value="">-- Select --</option>
+                            <option value="1">Enabled</option>
+                            <option value="0">Disabled</option>
+                        </select>
+                    </div>
+
                     {{-- <div class="col-md-3">
                         <label class="text-light small">Split Type</label>
                         <select name="config[split_type]" class="form-select bg-black text-white border-secondary">

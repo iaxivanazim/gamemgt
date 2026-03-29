@@ -10,10 +10,13 @@ class BlackjackPreset extends Model
         'name',
         'min_bet',
         'max_bet',
+        'burn_card',
         'pair_min',
         'pair_max',
         'split_type',
         'rule_type',
+        'surrender',
+        'insurance',
         'enable_777_charlie',
         'chip_preset_id',
         'status'

@@ -5,9 +5,12 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\GameTable;
 use App\Models\TableFloat;
+use App\FormatsGameTable;
+
 
 class TableFloatController extends Controller
 {
+    use FormatsGameTable;
     public function open(Request $request, $id)
     {
         $request->validate([
@@ -66,7 +69,7 @@ class TableFloatController extends Controller
                 'success' => true,
                 'message' => "Table '{$gameTable->table_name}' opened successfully.",
                 'session' => $this->formatSession($session),
-                'table'   => $this->formatTableSnapshot($gameTable),
+                'table'   => $this->formatTableResponse($gameTable),
             ], 201);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([

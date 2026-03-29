@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->decimal('min_bet', 10, 2);
             $table->decimal('max_bet', 10, 2);
+            $table->integer('burn_card')->nullable();
             $table->decimal('side_min', 10, 2)->nullable();
             $table->decimal('side_max', 10, 2)->nullable();
             // $table->decimal('six_card_bonus', 10, 2)->nullable();

@@ -11,6 +11,7 @@ class DragonTigerPreset extends Model
         'name',
         'min_bet',
         'max_bet',
+        'burn_card',
         'tie_min',
         'tie_max',
         'chip_preset_id',

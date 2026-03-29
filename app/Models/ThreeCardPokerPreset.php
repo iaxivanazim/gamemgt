@@ -11,6 +11,7 @@ class ThreeCardPokerPreset extends Model
         'name',
         'min_bet',
         'max_bet',
+        'burn_card',
         'side_min',
         'side_max',
         'six_card_bonus',

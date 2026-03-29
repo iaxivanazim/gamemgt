@@ -11,6 +11,7 @@ class AndarBaharPreset extends Model
         'name',
         'min_bet',
         'max_bet',
+        'burn_card',
         'enable_super_andar',
         'enable_super_bahar',
         'chip_preset_id',

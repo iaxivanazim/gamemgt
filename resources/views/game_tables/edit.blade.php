@@ -57,6 +57,7 @@
                                    'casinowar' => '#8b0000', default => '#aaa'
                                } }}" value="{{ $gameTable->gameType?->name }}" disabled>
                             {{-- game_type_id is fixed after creation --}}
+                            <input type="hidden" name="game_type_id" value="{{ $gameTable->game_type_id }}">
                         </div>
                         <div class="col-md-4">
                             <label class="text-light small">
@@ -157,34 +158,87 @@
 
                     {{-- Common fields --}}
                     <div class="row g-3 mb-3">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="text-light small">Config Preset Name</label>
                             <input type="text" name="config[name]" class="form-control bg-black text-white border-secondary" value="{{ old('config.name', $preset?->name) }}" required>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="text-light small">Min Bet</label>
                             <input type="number" step="0.01" name="config[min_bet]" id="minBet" class="form-control bg-black text-white border-secondary" value="{{ old('config.min_bet', $preset?->min_bet) }}" required>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="text-light small">Max Bet</label>
                             <input type="number" step="0.01" name="config[max_bet]" id="maxBet" class="form-control bg-black text-white border-secondary" value="{{ old('config.max_bet', $preset?->max_bet) }}" required>
                         </div>
+                        <div class="col-md-3">
+                            <label class="text-light small">Burn Card every round</label>
+                            <input type="number" name="config[burn_card]" id="burnCard" class="form-control bg-black text-white border-secondary" min="0" max="9" value="{{ old('config.burn_card', $preset?->burn_card) }}">
+                        </div>
+
                     </div>
 
                     {{-- ── BACCARAT ── --}}
-                    @if($code === 'BC')
+                    @if($code === 'BAC')
                     <div class="row g-3">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="text-light small">Side Min Bet</label>
                             <input type="number" step="0.01" name="config[side_min_bet]" id="sideMinBet" class="form-control bg-black text-white border-secondary" value="{{ old('config.side_min_bet', $preset?->side_min_bet) }}">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="text-light small">Side Max Bet</label>
                             <input type="number" step="0.01" name="config[side_max_bet]" id="sideMaxBet" class="form-control bg-black text-white border-secondary" value="{{ old('config.side_max_bet', $preset?->side_max_bet) }}">
                         </div>
-                        <div class="col-md-4">
-                            <label class="text-light small">Commission (%)</label>
-                            <input type="number" step="0.01" name="config[commission]" class="form-control bg-black text-white border-secondary" value="{{ old('config.commission', $preset?->commission ?? 5) }}">
+                        <div class="col-md-3">
+                            <label class="text-light small">Commission</label>
+                            <select name="config[commission]" id="commissionSelect" class="form-select bg-black text-white border-secondary">
+                                <option value="1" {{ old('config.commission', $preset?->commission) ? 'selected' : '' }}>
+                                    Enabled (0.95x Banker)
+                                </option>
+                                <option value="0" {{ !old('config.commission', $preset?->commission ?? 1) ? 'selected' : '' }}>
+                                    Disabled (1x Banker)
+                                </option>
+                            </select>
+                            <div class="mt-1" style="font-size:10px; color:#ffc107;">
+                                <i class="bi bi-info-circle me-1"></i>Banker payout:
+                                <span id="bankerMultiplier">
+                                    {{ ($preset?->commission ?? 1) ? '0.95x' : '1x' }}
+                                </span>
+                            </div>
+                        </div>
+                        @php
+                        $b6Rule = $payoutRules->firstWhere('bet_position', 'B6');
+                        $b6Active = $b6Rule ? (bool) $b6Rule->is_active : false;
+                        @endphp
+                        <div class="col-md-3">
+                            <label class="text-light small d-flex align-items-center gap-2">
+                                Baccarat 6 Commission
+                                <span id="b6CommissionBadge" style="font-size:9px; padding:2px 6px; border-radius:10px;
+                     {{ $b6Active
+                         ? 'background:#0f2e1a; color:#6fcf97; border:1px solid #6fcf97;'
+                         : 'background:#2e1010; color:#eb5757; border:1px solid #eb5757;' }}">
+                                    {{ $b6Active ? 'B6 Active' : 'B6 Inactive' }}
+                                </span>
+                            </label>
+                            <select name="config[baccarat_6_commission]" id="b6CommissionSelect" class="form-select border-secondary" style="{{ $b6Active
+                        ? 'background:#0a1a0a; color:#fff; cursor:pointer;'
+                        : 'background:#111; color:#555; cursor:not-allowed;' }}" {{ $b6Active ? '' : 'disabled' }}>
+                                <option value="1" {{ old('config.baccarat_6_commission', $preset?->baccarat_6_commission ?? 1) ? 'selected' : '' }}>
+                                    Commission (0.95x)
+                                </option>
+                                <option value="0" {{ !old('config.baccarat_6_commission', $preset?->baccarat_6_commission ?? 1) ? 'selected' : '' }}>
+                                    Non-Commission (0.50x)
+                                </option>
+                            </select>
+                            <div class="mt-1" style="font-size:10px; color:#ffc107;">
+                                <i class="bi bi-info-circle me-1"></i>B6 payout:
+                                <span id="b6Multiplier">
+                                    @if($b6Active)
+                                    {{ ($preset?->baccarat_6_commission ?? 1) ? '0.95x' : '0.50x' }}
+                                    @else
+                                    —
+                                    @endif
+                                </span>
+                            </div>
                         </div>
                         {{-- <div class="col-md-3 d-flex flex-column justify-content-center gap-2 mt-3">
                             <div class="form-check form-switch">
@@ -258,13 +312,31 @@
             <label class="text-light small">Pair Max</label>
             <input type="number" step="0.01" name="config[pair_max]" id="pairMax" class="form-control bg-black text-white border-secondary" value="{{ old('config.pair_max', $preset?->pair_max) }}">
         </div>
-        {{-- <div class="col-md-3">
+        <div class="col-md-3">
+            <label class="text-light small">Surrender Option</label>
+            <select name="config[surrender]" class="form-select bg-black text-white border-secondary">
+                <option value="">-- Select --</option>
+                <option value="0" {{ old('config.surrender', $preset?->surrender) === '0' ? 'selected' : '' }}>No Surrender</option>
+                <option value="1" {{ old('config.surrender', $preset?->surrender) === '1' ? 'selected' : '' }}>Surrender on any card</option>
+                <option value="2" {{ old('config.surrender', $preset?->surrender) === '2' ? 'selected' : '' }}>Surrender on any card except Ace</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="text-light small">Insurance</label>
+            <select name="config[insurance]" class="form-select bg-black text-white border-secondary">
+                <option value="">-- Select --</option>
+                <option value="1" {{ old('config.insurance', $preset?->insurance) == '1' ? 'selected' : '' }}>Enabled</option>
+                <option value="0" {{ old('config.insurance', $preset?->insurance) == '0' ? 'selected' : '' }}>Disabled</option>
+            </select>
+        </div>
+    </div>
+    {{-- <div class="col-md-3">
                             <label class="text-light small">Split Type</label>
                             <select name="config[split_type]" class="form-select bg-black text-white border-secondary">
                                 <option value="">-- Select --</option>
                                 <option value="resplit" {{ old('config.split_type', $preset?->split_type) == 'resplit'    ? 'selected' : '' }}>Resplit</option>
-        <option value="no_resplit" {{ old('config.split_type', $preset?->split_type) == 'no_resplit' ? 'selected' : '' }}>No Resplit</option>
-        </select>
+    <option value="no_resplit" {{ old('config.split_type', $preset?->split_type) == 'no_resplit' ? 'selected' : '' }}>No Resplit</option>
+    </select>
     </div>
     <div class="col-md-3">
         <label class="text-light small">Rule Type</label>
@@ -280,7 +352,6 @@
             <label class="form-check-label text-light" for="enable777">777 Charlie Rule</label>
         </div>
     </div> --}}
-    </div>
     @endif
 
     {{-- ── MINI FLUSH ── --}}
@@ -317,7 +388,7 @@
     {{-- ═══════════════════════════════════════ --}}
     {{-- SECTION 4: PAYOUT RULES                 --}}
     {{-- ═══════════════════════════════════════ --}}
-    <div class="card bg-black border-warning mb-4">
+    <div class="card bg-black border-warning mb-4" id="payoutSection">
         <div class="card-body">
             <h6 class="text-warning mb-3">④ Payout Rules</h6>
             <div class="table-responsive">
@@ -338,7 +409,7 @@
                             <td class="text-warning fw-bold">{{ $rule->payout_multiplier }}x</td>
                             <td>
                                 <div class="form-check form-switch d-flex justify-content-center">
-                                    <input class="form-check-input" type="checkbox" name="payout_overrides[{{ $rule->payout_id }}]" value="1" {{ $rule->is_active ? 'checked' : '' }}>
+                                    <input class="form-check-input payout-toggle" type="checkbox" name="payout_overrides[{{ $rule->payout_id }}]" value="1" data-position="{{ $rule->bet_position }}" {{-- ← add --}} {{ $rule->is_active ? 'checked' : '' }}>
                                 </div>
                             </td>
                         </tr>

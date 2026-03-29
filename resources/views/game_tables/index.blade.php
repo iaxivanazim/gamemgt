@@ -72,8 +72,11 @@
                             <div style="width:40px; height:40px; border-radius:50%; background:{{ $feltColor }};
                                         border:3px dashed white; margin:auto;
                                         box-shadow: 0 0 12px {{ $feltColor }}88;">
+                                
+                                    <span class="text-white fw-bold" style="font-size:10px;">{{ $table->id }}</span>
+                                
                             </div>
-                            <div class="text-muted mt-2" style="font-size:10px; letter-spacing:0.05em;">FELT</div>
+                            <div class="mt-2" style="font-size:10px; letter-spacing:0.05em; color:#fff;">FELT</div>
                         </div>
                     </div>
 
@@ -130,9 +133,38 @@
                             @endif
                             @if(isset($preset->commission))
                             <span class="small" style="color:#aaa;">
-                                Commission: <span class="text-warning fw-bold">{{ $preset->commission }}%</span>
+                                Commission:
+                                <span class="{{ $preset->commission ? 'text-warning' : 'text-secondary' }} fw-bold">
+                                    {{ $preset->commission ? 'Enabled (0.95x)' : 'Disabled (1x)' }}
+                                </span>
                             </span>
                             @endif
+                            @if(isset($preset->surrender))
+                            <span class="small" style="color:#aaa;">
+                                Surrender:
+                                <span class="text-warning fw-bold">
+                                    @if($preset->surrender == '0')
+                                    No Surrender
+                                    @elseif($preset->surrender == '1')
+                                    Surrender on any card
+                                    @else
+                                    Surrender on any card except Ace
+                                    @endif
+                                </span>
+                            </span>
+                            @endif
+                            @if(isset($preset->insurance))
+                            <span class="small" style="color:#aaa;">
+                                Insurance: <span class="text-warning fw-bold">{{ $preset->insurance ? 'Enabled' : 'Disabled' }}</span>
+                            </span>
+                            @endif
+                            @if(isset($preset->burn_card))
+                            <span class="small" style="color:#aaa;">
+                                Burn Card: <span class="text-warning fw-bold">{{ $preset->burn_card }}</span>
+                            </span>
+                            @endif
+
+
                         </div>
 
                         {{-- Toggle Badges --}}
@@ -179,6 +211,44 @@
                     </div>
                     @else
                     <span class="text-muted small fst-italic">No chip preset</span>
+                    @endif
+                </div>
+                {{-- ── FAR RIGHT: Actions ── --}}
+                <div class="col-md-2 d-flex flex-column align-items-center justify-content-center gap-2 p-3">
+
+                    <a href="{{ route('game_tables.edit', $table->id) }}" class="btn btn-sm btn-outline-warning w-100">
+                        <i class="bi bi-pencil-square me-1"></i>Edit
+                    </a>
+
+                    {{-- Unregister MAC --}}
+                    @if($table->active_mac)
+                    <form method="POST" action="{{ route('game_tables.unregister-mac', $table->id) }}" class="w-100">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-outline-secondary w-100" onclick="return confirm('Unregister MAC {{ $table->active_mac }} from this table?')">
+                            <i class="bi bi-pc-display me-1"></i>Unregister MAC
+                        </button>
+                    </form>
+                    @else
+                    <span class="btn btn-sm w-100 disabled" style="border:1px dashed #444; color:#555; font-size:11px;">
+                        <i class="bi bi-pc-display me-1"></i>No MAC Bound
+                    </span>
+                    @endif
+
+                    {{-- Deactivate / Restore --}}
+                    @if($table->status == 1)
+                    <form method="POST" action="{{ route('game_tables.deactivate', $table->id) }}" class="w-100">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-outline-danger w-100" onclick="return confirm('Deactivate this table?')">
+                            <i class="bi bi-pause-circle me-1"></i>Deactivate
+                        </button>
+                    </form>
+                    @else
+                    <form method="POST" action="{{ route('game_tables.restore', $table->id) }}" class="w-100">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-outline-success w-100">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i>Restore
+                        </button>
+                    </form>
                     @endif
                 </div>
 
@@ -238,44 +308,7 @@
                     @endif
                 </div>
 
-                {{-- ── FAR RIGHT: Actions ── --}}
-                <div class="col-md-2 d-flex flex-column align-items-center justify-content-center gap-2 p-3">
-
-                    <a href="{{ route('game_tables.edit', $table->id) }}" class="btn btn-sm btn-outline-warning w-100">
-                        <i class="bi bi-pencil-square me-1"></i>Edit
-                    </a>
-
-                    {{-- Unregister MAC --}}
-                    @if($table->active_mac)
-                    <form method="POST" action="{{ route('game_tables.unregister-mac', $table->id) }}" class="w-100">
-                        @csrf
-                        <button type="submit" class="btn btn-sm btn-outline-secondary w-100" onclick="return confirm('Unregister MAC {{ $table->active_mac }} from this table?')">
-                            <i class="bi bi-pc-display me-1"></i>Unregister MAC
-                        </button>
-                    </form>
-                    @else
-                    <span class="btn btn-sm w-100 disabled" style="border:1px dashed #444; color:#555; font-size:11px;">
-                        <i class="bi bi-pc-display me-1"></i>No MAC Bound
-                    </span>
-                    @endif
-
-                    {{-- Deactivate / Restore --}}
-                    @if($table->status == 1)
-                    <form method="POST" action="{{ route('game_tables.deactivate', $table->id) }}" class="w-100">
-                        @csrf
-                        <button type="submit" class="btn btn-sm btn-outline-danger w-100" onclick="return confirm('Deactivate this table?')">
-                            <i class="bi bi-pause-circle me-1"></i>Deactivate
-                        </button>
-                    </form>
-                    @else
-                    <form method="POST" action="{{ route('game_tables.restore', $table->id) }}" class="w-100">
-                        @csrf
-                        <button type="submit" class="btn btn-sm btn-outline-success w-100">
-                            <i class="bi bi-arrow-counterclockwise me-1"></i>Restore
-                        </button>
-                    </form>
-                    @endif
-                </div>
+                
 
             </div>
         </div>

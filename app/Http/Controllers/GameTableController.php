@@ -19,6 +19,9 @@ use App\Models\TableLedger;
 use App\Models\TableFloat;
 use Illuminate\Support\Facades\DB;
 
+use App\FormatsGameTable;
+
+
 use Illuminate\Http\Request;
 
 class GameTableController extends Controller
@@ -26,7 +29,7 @@ class GameTableController extends Controller
     private function resolvePresetModel(int $gameTypeId): string
     {
         return match (GameType::findOrFail($gameTypeId)->code) {
-            'BC'       => BaccaratPreset::class,
+            'BAC'       => BaccaratPreset::class,
             'AB'     => AndarBaharPreset::class,
             'DT'    => DragonTigerPreset::class,
             '3CP' => ThreeCardPokerPreset::class,
@@ -64,7 +67,7 @@ class GameTableController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'table_name'     => 'required|string|max:255',
+            'table_name'     => 'required|string|max:255|unique:game_tables,table_name',
             'game_type_id'   => 'required|exists:game_types,id',
             'active_mac'     => 'nullable|string|max:255',
             'float'          => 'nullable|numeric',
@@ -73,6 +76,7 @@ class GameTableController extends Controller
             'config.name'    => 'required|string|max:255',
             'config.min_bet' => 'required|numeric|min:0',
             'config.max_bet' => 'required|numeric|gt:config.min_bet',
+            'config.burn_card' => 'nullable|integer|min:0',
         ]);
 
         DB::transaction(function () use ($request) {
@@ -157,6 +161,18 @@ class GameTableController extends Controller
 
     public function update(Request $request, GameTable $gameTable)
     {
+        $request->validate([
+            'table_name'     => 'required|string|max:255|unique:game_tables,table_name,' . $gameTable->id,
+            'game_type_id'   => 'required|exists:game_types,id',
+            'active_mac'     => 'nullable|string|max:255',
+            'float'          => 'nullable|numeric',
+            'felt_color'     => 'nullable|string|max:50',
+            'chip_preset_id' => 'required|exists:chips,id',
+            'config.name'    => 'required|string|max:255',
+            'config.min_bet' => 'required|numeric|min:0',
+            'config.max_bet' => 'required|numeric|gt:config.min_bet',
+            'config.burn_card' => 'nullable|integer|min:0',
+        ]);
         DB::transaction(function () use ($request, $gameTable) {
 
             // 1. Update game table
@@ -282,113 +298,7 @@ class GameTableController extends Controller
     // ══════════════════════════════════════════════════════
     // Shared response formatter
     // ══════════════════════════════════════════════════════
-    private function formatTableResponse(GameTable $table): array
-    {
-        $config  = $table->config;
-        $preset  = $config?->preset;
-        $chip    = $preset?->chipPreset;
-
-        return [
-
-            // ── Table Core ──────────────────────────────
-            'table_id'      => $table->id,
-            'table_name'    => $table->table_name,
-            'status'        => $table->status,
-            'active_mac'    => $table->active_mac,
-            'float'         => (float) $table->float,
-            'felt_color'    => $table->felt_color,
-
-            // ── Game Type ───────────────────────────────
-            'game_type' => $table->gameType ? [
-                'id'          => $table->gameType->id,
-                'name'        => $table->gameType->name,
-                'code'        => $table->gameType->code,
-                'description' => $table->gameType->description,
-            ] : null,
-
-            // ── Game Config (preset) ────────────────────
-            'config' => $preset ? array_merge(
-                [
-                    'preset_id'   => $preset->id,
-                    'preset_name' => $preset->name,
-                    'min_bet'     => (float) $preset->min_bet,
-                    'max_bet'     => (float) $preset->max_bet,
-                ],
-                $this->formatPresetFields($preset, $table->gameType?->code)
-            ) : null,
-
-            // ── Chip Preset ─────────────────────────────
-            'chip_preset' => $chip ? [
-                'id'         => $chip->id,
-                'base_value' => (float) $chip->base_value,
-                'chips'      => [
-                    ['position' => 1, 'value' => (float) $chip->chip_1_value],
-                    ['position' => 2, 'value' => (float) $chip->chip_2_value],
-                    ['position' => 3, 'value' => (float) $chip->chip_3_value],
-                    ['position' => 4, 'value' => (float) $chip->chip_4_value],
-                    ['position' => 5, 'value' => (float) $chip->chip_5_value],
-                ],
-            ] : null,
-
-            // ── Payout Rules ────────────────────────────
-            'payout_rules' => $table->payoutRules
-                ->filter(fn($r) => $r->payoutRule !== null)
-                ->map(fn($r) => [
-                    'payout_id'         => $r->payoutRule->payout_id,
-                    'bet_name'          => $r->payoutRule->bet_name,
-                    'bet_position'      => $r->payoutRule->bet_position,
-                    'payout_multiplier' => (float) $r->payoutRule->payout_multiplier,
-                    'is_active'         => (bool) $r->is_active,
-                ])
-                ->values(),
-
-            'created_at' => $table->created_at?->toISOString(),
-            'updated_at' => $table->updated_at?->toISOString(),
-        ];
-    }
-
-    // ── Format game-specific preset fields ──────────────
-    private function formatPresetFields($preset, ?string $code): array
-    {
-        return match ($code) {
-            'baccarat' => [
-                'side_min_bet'     => (float) $preset->side_min_bet,
-                'side_max_bet'     => (float) $preset->side_max_bet,
-                'commission'       => (float) $preset->commission,
-                // 'enable_pairbets'  => (bool)  $preset->enable_pairbets,
-                // 'enable_lucky6'    => (bool)  $preset->enable_lucky6,
-            ],
-            'andarbahar' => [
-                // 'enable_super_andar' => (bool) $preset->enable_super_andar,
-                // 'enable_super_bahar' => (bool) $preset->enable_super_bahar,
-            ],
-            'dragontiger' => [
-                'tie_min' => (float) $preset->tie_min,
-                'tie_max' => (float) $preset->tie_max,
-            ],
-            'threecardpoker' => [
-                'side_min'       => (float) $preset->side_min,
-                'side_max'       => (float) $preset->side_max,
-                // 'six_card_bonus' => (float) $preset->six_card_bonus,
-            ],
-            'blackjack' => [
-                'pair_min'           => (float) $preset->pair_min,
-                'pair_max'           => (float) $preset->pair_max,
-                // 'split_type'         => $preset->split_type,
-                // 'rule_type'          => $preset->rule_type,
-                // 'enable_777_charlie' => (bool) $preset->enable_777_charlie,
-            ],
-            'miniflush' => [
-                'hl_min' => (float) $preset->hl_min,
-                'hl_max' => (float) $preset->hl_max,
-            ],
-            'casinowar' => [
-                'tie_min' => (float) $preset->tie_min,
-                'tie_max' => (float) $preset->tie_max,
-            ],
-            default => []
-        };
-    }
+    use FormatsGameTable;
 
     public function registerMac(Request $request, $id)
     {

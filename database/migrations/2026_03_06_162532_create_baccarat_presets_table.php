@@ -16,9 +16,11 @@ return new class extends Migration
             $table->string('name');
             $table->decimal('min_bet', 10, 2);
             $table->decimal('max_bet', 10, 2);
+            $table->integer('burn_card')->nullable();
             $table->decimal('side_min_bet', 10, 2)->nullable();
             $table->decimal('side_max_bet', 10, 2)->nullable();
-            $table->decimal('commission', 5, 2)->default(5.00);
+            $table->boolean('commission')->default(1);
+            $table->boolean('baccarat_6_commission')->default(1)->nullable();
             // $table->boolean('enable_pairbets')->default(0);
             // $table->boolean('enable_lucky6')->default(0);
             $table->foreignId('chip_preset_id')->constrained('chips')->cascadeOnDelete();

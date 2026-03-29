@@ -478,19 +478,25 @@ console.log('Selected game type code:', code);
         }
 
         tbody.innerHTML = rules.map(rule => `
-            <tr>
-                <td class="text-light">${rule.bet_name}</td>
-                <td class="text-light">${rule.bet_position ?? '—'}</td>
-                <td class="text-warning fw-bold">${rule.payout_multiplier}x</td>
-                <td>
-                    <div class="form-check form-switch d-flex justify-content-center">
-                        <input class="form-check-input" type="checkbox"
-                               name="payout_overrides[${rule.payout_id}]" value="1"
-                               ${rule.is_active ? 'checked' : ''}>
-                    </div>
-                </td>
-            </tr>
-        `).join('');
+    <tr>
+        <td class="text-light">${rule.bet_name}</td>
+        <td class="text-light">${rule.bet_position ?? '—'}</td>
+        <td class="text-warning fw-bold">${rule.payout_multiplier}x</td>
+        <td>
+            <div class="form-check form-switch d-flex justify-content-center">
+                <input class="form-check-input payout-toggle"
+                       type="checkbox"
+                       name="payout_overrides[${rule.payout_id}]"
+                       value="1"
+                       data-position="${rule.bet_position}"
+                       ${rule.is_active ? 'checked' : ''}>
+            </div>
+        </td>
+    </tr>
+`).join('');
+
+// after rendering — init B6 toggle state
+syncB6State();
     }).fail(function () {
         document.getElementById('payoutRulesBody').innerHTML = `
             <tr>
@@ -617,5 +623,63 @@ document.getElementById('masterForm').addEventListener('submit', function (e) {
         });
     }
 });
+
+// ── Baccarat 6 commission hint ────────────────────────────────────────
+const b6Select = document.getElementById('b6CommissionSelect');
+if (b6Select) {
+    b6Select.addEventListener('change', function () {
+        document.getElementById('b6Multiplier').textContent =
+            this.value == 1 ? '0.95x' : '0.50x';
+    });
+}
+
+// ── Sync B6 dropdown state from payout toggle ─────────────────────────
+function syncB6State() {
+    const b6Toggle = document.querySelector('.payout-toggle[data-position="B6"]');
+    if (!b6Toggle) return;
+
+    const isActive   = b6Toggle.checked;
+    const b6Select   = document.getElementById('b6CommissionSelect');
+    const b6Badge    = document.getElementById('b6CommissionBadge');
+    const b6Hint     = document.getElementById('b6Multiplier');
+
+    if (!b6Select) return;
+
+    if (isActive) {
+        // enable
+        b6Select.disabled                   = false;
+        b6Select.style.color                = '#fff';
+        b6Select.style.background           = '#0a1a0a';
+        b6Select.style.cursor               = 'pointer';
+        b6Badge.textContent                 = 'B6 Active';
+        b6Badge.style.background            = '#0f2e1a';
+        b6Badge.style.color                 = '#6fcf97';
+        b6Badge.style.border                = '1px solid #6fcf97';
+        b6Hint.textContent                  = b6Select.value == 1 ? '0.95x' : '0.50x';
+    } else {
+        // disable
+        b6Select.disabled                   = true;
+        b6Select.style.color                = '#555';
+        b6Select.style.background           = '#111';
+        b6Select.style.cursor               = 'not-allowed';
+        b6Badge.textContent                 = 'B6 Inactive';
+        b6Badge.style.background            = '#2e1010';
+        b6Badge.style.color                 = '#eb5757';
+        b6Badge.style.border                = '1px solid #eb5757';
+        b6Hint.textContent                  = '—';
+    }
+}
+
+// ── Listen for B6 payout toggle change ───────────────────────────────
+// Use event delegation since payout rows may be dynamically rendered
+document.addEventListener('change', function (e) {
+    if (e.target.classList.contains('payout-toggle') &&
+        e.target.dataset.position === 'B6') {
+        syncB6State();
+    }
+});
+
+// Init on page load (edit page)
+document.addEventListener('DOMContentLoaded', syncB6State);
 
 </script>

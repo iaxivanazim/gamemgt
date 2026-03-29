@@ -16,8 +16,11 @@ return new class extends Migration
             $table->string('name');
             $table->decimal('min_bet', 10, 2);
             $table->decimal('max_bet', 10, 2);
+            $table->integer('burn_card')->nullable();
             $table->decimal('pair_min', 10, 2)->nullable();
             $table->decimal('pair_max', 10, 2)->nullable();
+            $table->enum('surrender', ['0', '1', '2'])->nullable();
+            $table->boolean('insurance')->nullable();
             // $table->string('split_type')->nullable();
             // $table->string('rule_type')->nullable();
             // $table->boolean('enable_777_charlie')->default(0);

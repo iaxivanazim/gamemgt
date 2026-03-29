@@ -11,6 +11,7 @@ class MiniFlushPreset extends Model
         'name',
         'min_bet',
         'max_bet',
+        'burn_card',
         'hl_min',
         'hl_max',
         'chip_preset_id',
