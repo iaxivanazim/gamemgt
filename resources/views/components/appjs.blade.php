@@ -479,9 +479,18 @@ console.log('Selected game type code:', code);
 
         tbody.innerHTML = rules.map(rule => `
     <tr>
-        <td class="text-light">${rule.bet_name}</td>
+        <td class="text-light">
+            ${rule.bet_name}
+            ${rule.is_jackpot
+                ? `<span class="ms-1 badge"
+                          style="background:#1a1200; color:#ffc107;
+                                 border:1px solid #ffc10744; font-size:9px;">
+                       JACKPOT
+                   </span>`
+                : ''}
+        </td>
         <td class="text-light">${rule.bet_position ?? '—'}</td>
-        <td class="text-warning fw-bold">${rule.payout_multiplier}x</td>
+        <td class="text-warning fw-bold">${rule.payout_multiplier ? rule.payout_multiplier + 'x' : '—'}</td>
         <td>
             <div class="form-check form-switch d-flex justify-content-center">
                 <input class="form-check-input payout-toggle"
@@ -489,14 +498,31 @@ console.log('Selected game type code:', code);
                        name="payout_overrides[${rule.payout_id}]"
                        value="1"
                        data-position="${rule.bet_position}"
+                       data-jackpot="${rule.is_jackpot ? '1' : '0'}"
+                       data-payout-id="${rule.payout_id}"
                        ${rule.is_active ? 'checked' : ''}>
             </div>
+        </td>
+        <td>
+            ${rule.is_jackpot
+                ? `<input type="number"
+                          step="0.01"
+                          min="0"
+                          name="seed_values[${rule.payout_id}]"
+                          id="seed_${rule.payout_id}"
+                          class="form-control form-control-sm text-center seed-input"
+                          style="background:#111; color:#555; border:1px solid #333;
+                                 width:120px; margin:auto; cursor:not-allowed;"
+                          placeholder="Enter seed"
+                          disabled>`
+                : '<span class="text-muted small">—</span>'}
         </td>
     </tr>
 `).join('');
 
-// after rendering — init B6 toggle state
+// after render
 syncB6State();
+syncJackpotSeeds();
     }).fail(function () {
         document.getElementById('payoutRulesBody').innerHTML = `
             <tr>
@@ -672,14 +698,51 @@ function syncB6State() {
 
 // ── Listen for B6 payout toggle change ───────────────────────────────
 // Use event delegation since payout rows may be dynamically rendered
+
+
+// ── Sync all jackpot seed inputs based on their toggle state ──────────
+function syncJackpotSeeds() {
+    document.querySelectorAll('.payout-toggle[data-jackpot="1"]').forEach(toggle => {
+        enableSeedInput(toggle.dataset.payoutId, toggle.checked);
+    });
+}
+
+function enableSeedInput(payoutId, isActive) {
+    const seedInput = document.getElementById('seed_' + payoutId);
+    if (!seedInput) return;
+
+    if (isActive) {
+        seedInput.disabled            = false;
+        seedInput.style.background    = '#0a1a0a';
+        seedInput.style.color         = '#ffc107';
+        seedInput.style.border        = '1px solid #ffc10755';
+        seedInput.style.cursor        = 'pointer';
+    } else {
+        seedInput.disabled            = true;
+        seedInput.style.background    = '#111';
+        seedInput.style.color         = '#555';
+        seedInput.style.border        = '1px solid #333';
+        seedInput.style.cursor        = 'not-allowed';
+        seedInput.value               = ''; // clear when disabled
+    }
+}
+
+// ── Event delegation — payout toggles ────────────────────────────────
 document.addEventListener('change', function (e) {
-    if (e.target.classList.contains('payout-toggle') &&
-        e.target.dataset.position === 'B6') {
-        syncB6State();
+    if (!e.target.classList.contains('payout-toggle')) return;
+
+    // B6 sync
+    if (e.target.dataset.position === 'B6') syncB6State();
+
+    // Jackpot seed sync
+    if (e.target.dataset.jackpot === '1') {
+        enableSeedInput(e.target.dataset.payoutId, e.target.checked);
     }
 });
 
-// Init on page load (edit page)
-document.addEventListener('DOMContentLoaded', syncB6State);
-
+// ── Init on page load ─────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function () {
+    syncB6State();
+    syncJackpotSeeds();
+});
 </script>

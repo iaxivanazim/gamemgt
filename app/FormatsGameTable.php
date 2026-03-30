@@ -65,17 +65,15 @@ trait FormatsGameTable
             'payout_rules' => $table->payoutRules
                 ->filter(fn($r) => $r->payoutRule !== null)
                 ->map(function ($r) use ($preset) {
-                    $multiplier = (float) $r->payoutRule->payout_multiplier;
+                    $multiplier = $r->payoutRule->payout_multiplier
+                        ? (float) $r->payoutRule->payout_multiplier
+                        : null;
 
                     if ($preset instanceof \App\Models\BaccaratPreset) {
-
-                        // Banker override
-                        if (strtoupper($r->payoutRule->bet_position) === 'B') {
+                        if (strtoupper($r->payoutRule->bet_position ?? '') === 'B') {
                             $multiplier = $preset->getBankerMultiplier();
                         }
-
-                        // Baccarat 6 override — only when rule is active
-                        if (strtoupper($r->payoutRule->bet_position) === 'B6' && $r->is_active) {
+                        if (strtoupper($r->payoutRule->bet_position ?? '') === 'B6' && $r->is_active) {
                             $multiplier = $preset->getBaccarat6Multiplier();
                         }
                     }
@@ -85,6 +83,10 @@ trait FormatsGameTable
                         'bet_name'          => $r->payoutRule->bet_name,
                         'bet_position'      => $r->payoutRule->bet_position,
                         'payout_multiplier' => $multiplier,
+                        'is_jackpot'        => (bool) $r->payoutRule->is_jackpot,
+                        'seed_value'        => $r->payoutRule->is_jackpot && $r->is_active
+                            ? (float) $r->seed_value
+                            : null,
                         'is_active'         => (bool) $r->is_active,
                     ];
                 })

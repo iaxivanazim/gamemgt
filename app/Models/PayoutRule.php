@@ -13,7 +13,13 @@ class PayoutRule extends Model
         'bet_name',
         'bet_position',
         'payout_multiplier',
-        'is_active'
+        'is_active',
+        'is_jackpot'
+    ];
+
+    protected $casts = [
+        'is_active'  => 'boolean',
+        'is_jackpot' => 'boolean',
     ];
 
     public function gameType()

@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('table_id')->constrained('game_tables')->cascadeOnDelete();
             $table->foreignId('payout_id')->constrained('payout_rules', 'payout_id')->cascadeOnDelete();
             $table->boolean('is_active')->default(1);
+            $table->decimal('seed_value', 12, 2)->nullable();
             $table->timestamps();
 
             $table->unique(['table_id', 'payout_id']); // one record per rule per table

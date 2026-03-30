@@ -127,6 +127,16 @@ class GameTableController extends Controller
             })->all();
 
             GameTablePayoutRule::insert($payoutData);
+
+            $seedValues = $request->input('seed_values', []);
+
+            foreach ($seedValues as $payoutId => $seedValue) {
+                if ($seedValue === null || $seedValue === '') continue;
+
+                GameTablePayoutRule::where('table_id', $table->id)
+                    ->where('payout_id', $payoutId)
+                    ->update(['seed_value' => $seedValue]);
+            }
         });
 
         return redirect()->route('game_tables.index')
@@ -207,6 +217,17 @@ class GameTableController extends Controller
                         'is_active' => isset($overrides[$payoutId]) ? 1 : 0,
                     ]
                 );
+            }
+            $seedValues = $request->input('seed_values', []);
+
+            foreach ($seedValues as $payoutId => $seedValue) {
+                GameTablePayoutRule::where('table_id', $gameTable->id)
+                    ->where('payout_id', $payoutId)
+                    ->update([
+                        'seed_value' => ($seedValue !== '' && $seedValue !== null)
+                            ? $seedValue
+                            : null
+                    ]);
             }
         });
 

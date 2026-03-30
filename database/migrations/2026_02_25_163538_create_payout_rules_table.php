@@ -22,6 +22,7 @@ return new class extends Migration
             $table->decimal('payout_multiplier', 8, 3)->nullable(); // Example: 35.00
 
             $table->boolean('is_active')->default(1);
+            $table->boolean('is_jackpot')->default(0);
 
             $table->timestamps();
 

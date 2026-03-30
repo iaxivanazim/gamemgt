@@ -322,6 +322,7 @@
                             <th>Position</th>
                             <th>Payout Multiplier</th>
                             <th>Active</th>
+                            <th>Seed Value</th>
                         </tr>
                     </thead>
                     <tbody id="payoutRulesBody">

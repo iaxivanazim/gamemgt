@@ -399,23 +399,47 @@
                             <th>Position</th>
                             <th>Payout Multiplier</th>
                             <th>Active</th>
+                            <th>Seed Value</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($payoutRules as $rule)
+                        @php
+                        $savedRule = $table->payoutRules
+                        ->firstWhere('payout_id', $rule->payout_id);
+                        @endphp
                         <tr>
-                            <td class="text-light">{{ $rule->bet_name }}</td>
+                            <td class="text-light">
+                                {{ $rule->bet_name }}
+                                @if($rule->is_jackpot)
+                                <span class="ms-1 badge" style="background:#1a1200; color:#ffc107;
+                                     border:1px solid #ffc10744; font-size:9px;">
+                                    JACKPOT
+                                </span>
+                                @endif
+                            </td>
                             <td class="text-light">{{ $rule->bet_position ?? '—' }}</td>
-                            <td class="text-warning fw-bold">{{ $rule->payout_multiplier }}x</td>
+                            <td class="text-warning fw-bold">
+                                {{ $rule->payout_multiplier ? $rule->payout_multiplier.'x' : '—' }}
+                            </td>
                             <td>
                                 <div class="form-check form-switch d-flex justify-content-center">
-                                    <input class="form-check-input payout-toggle" type="checkbox" name="payout_overrides[{{ $rule->payout_id }}]" value="1" data-position="{{ $rule->bet_position }}" {{-- ← add --}} {{ $rule->is_active ? 'checked' : '' }}>
+                                    <input class="form-check-input payout-toggle" type="checkbox" name="payout_overrides[{{ $rule->payout_id }}]" value="1" data-position="{{ $rule->bet_position }}" data-jackpot="{{ $rule->is_jackpot ? '1' : '0' }}" data-payout-id="{{ $rule->payout_id }}" {{ $rule->is_active ? 'checked' : '' }}>
                                 </div>
+                            </td>
+                            <td>
+                                @if($rule->is_jackpot)
+                                <input type="number" step="0.01" min="0" name="seed_values[{{ $rule->payout_id }}]" id="seed_{{ $rule->payout_id }}" class="form-control form-control-sm text-center seed-input" style="{{ $rule->is_active
+                                           ? 'background:#0a1a0a; color:#ffc107; border:1px solid #ffc10755; width:120px; margin:auto;'
+                                           : 'background:#111; color:#555; border:1px solid #333; width:120px; margin:auto; cursor:not-allowed;' }}" value="{{ $savedRule?->seed_value ?? '' }}" placeholder="Enter seed" {{ $rule->is_active ? '' : 'disabled' }}>
+                                @else
+                                <span class="text-muted small">—</span>
+                                @endif
                             </td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="4" class="text-muted fst-italic">
+                            <td colspan="5" class="text-muted fst-italic">
                                 No payout rules defined for this game type.
                             </td>
                         </tr>
