@@ -82,23 +82,22 @@ class PayoutRuleSeeder extends Seeder
             ['payout_id' => 40, 'game_type_id' => 6, 'bet_name' => 'Board Bonus Trail', 'bet_position' => 'BB*T', 'payout_multiplier' => 5, 'is_active' => 1, 'is_jackpot' => 0],
             ['payout_id' => 41, 'game_type_id' => 6, 'bet_name' => 'Board Bonus Straight Flush', 'bet_position' => 'BB*SF', 'payout_multiplier' => 4, 'is_active' => 1, 'is_jackpot' => 0],
             ['payout_id' => 42, 'game_type_id' => 6, 'bet_name' => 'Board Bonus Run', 'bet_position' => 'BB*R', 'payout_multiplier' => 1, 'is_active' => 1, 'is_jackpot' => 0],
-            ['payout_id' => 43, 'game_type_id' => 6, 'bet_name' => 'Bet Trail', 'bet_position' => 'B*T', 'payout_multiplier' => 100, 'is_active' => 1, 'is_jackpot' => 0],
-            ['payout_id' => 44, 'game_type_id' => 6, 'bet_name' => 'Bet Straight Flush', 'bet_position' => 'B*SF', 'payout_multiplier' => 75, 'is_active' => 1, 'is_jackpot' => 0],
-            ['payout_id' => 45, 'game_type_id' => 6, 'bet_name' => 'Bet Run', 'bet_position' => 'B*R', 'payout_multiplier' => 4, 'is_active' => 1, 'is_jackpot' => 0],
-            ['payout_id' => 46, 'game_type_id' => 6, 'bet_name' => 'Bet Flush', 'bet_position' => 'B*F', 'payout_multiplier' => 2, 'is_active' => 1, 'is_jackpot' => 0],
-            ['payout_id' => 47, 'game_type_id' => 6, 'bet_name' => 'High', 'bet_position' => 'H', 'payout_multiplier' => 1, 'is_active' => 1, 'is_jackpot' => 0],
-            ['payout_id' => 48, 'game_type_id' => 6, 'bet_name' => 'Low Nine Top', 'bet_position' => 'L*9', 'payout_multiplier' => 1, 'is_active' => 1, 'is_jackpot' => 0],
-            ['payout_id' => 49, 'game_type_id' => 6, 'bet_name' => 'Low Eight Top', 'bet_position' => 'L*8', 'payout_multiplier' => 2, 'is_active' => 1, 'is_jackpot' => 0],
-            ['payout_id' => 50, 'game_type_id' => 6, 'bet_name' => 'Low Seven Top', 'bet_position' => 'L*7', 'payout_multiplier' => 4, 'is_active' => 1, 'is_jackpot' => 0],
-            ['payout_id' => 51, 'game_type_id' => 6, 'bet_name' => 'Low Six Top', 'bet_position' => 'L*6', 'payout_multiplier' => 15, 'is_active' => 1, 'is_jackpot' => 0],
-            ['payout_id' => 52, 'game_type_id' => 6, 'bet_name' => 'Low Five Top', 'bet_position' => 'L*5', 'payout_multiplier' => 50, 'is_active' => 1, 'is_jackpot' => 0],
+            ['payout_id' => 43, 'game_type_id' => 6, 'bet_name' => 'High Trail', 'bet_position' => 'H*T', 'payout_multiplier' => 100, 'is_active' => 1, 'is_jackpot' => 0],
+            ['payout_id' => 44, 'game_type_id' => 6, 'bet_name' => 'High Straight Flush', 'bet_position' => 'H*SF', 'payout_multiplier' => 75, 'is_active' => 1, 'is_jackpot' => 0],
+            ['payout_id' => 45, 'game_type_id' => 6, 'bet_name' => 'High Run', 'bet_position' => 'H*R', 'payout_multiplier' => 4, 'is_active' => 1, 'is_jackpot' => 0],
+            ['payout_id' => 46, 'game_type_id' => 6, 'bet_name' => 'High Flush', 'bet_position' => 'H*F', 'payout_multiplier' => 2, 'is_active' => 1, 'is_jackpot' => 0],
+            ['payout_id' => 47, 'game_type_id' => 6, 'bet_name' => 'Low Nine Top', 'bet_position' => 'L*9', 'payout_multiplier' => 1, 'is_active' => 1, 'is_jackpot' => 0],
+            ['payout_id' => 48, 'game_type_id' => 6, 'bet_name' => 'Low Eight Top', 'bet_position' => 'L*8', 'payout_multiplier' => 2, 'is_active' => 1, 'is_jackpot' => 0],
+            ['payout_id' => 49, 'game_type_id' => 6, 'bet_name' => 'Low Seven Top', 'bet_position' => 'L*7', 'payout_multiplier' => 4, 'is_active' => 1, 'is_jackpot' => 0],
+            ['payout_id' => 50, 'game_type_id' => 6, 'bet_name' => 'Low Six Top', 'bet_position' => 'L*6', 'payout_multiplier' => 15, 'is_active' => 1, 'is_jackpot' => 0],
+            ['payout_id' => 51, 'game_type_id' => 6, 'bet_name' => 'Low Five Top', 'bet_position' => 'L*5', 'payout_multiplier' => 50, 'is_active' => 1, 'is_jackpot' => 0],
 
 
             /* GAME TYPE 7 */
 
-            ['payout_id' => 53, 'game_type_id' => 7, 'bet_name' => 'Bet', 'bet_position' => 'B', 'payout_multiplier' => 1, 'is_active' => 1, 'is_jackpot' => 0],
-            ['payout_id' => 54, 'game_type_id' => 7, 'bet_name' => 'War', 'bet_position' => 'W', 'payout_multiplier' => 1, 'is_active' => 1, 'is_jackpot' => 0],
-            ['payout_id' => 55, 'game_type_id' => 7, 'bet_name' => 'Tie', 'bet_position' => 'T', 'payout_multiplier' => 10, 'is_active' => 1, 'is_jackpot' => 0],
+            ['payout_id' => 52, 'game_type_id' => 7, 'bet_name' => 'Bet', 'bet_position' => 'B', 'payout_multiplier' => 1, 'is_active' => 1, 'is_jackpot' => 0],
+            ['payout_id' => 53, 'game_type_id' => 7, 'bet_name' => 'War', 'bet_position' => 'W', 'payout_multiplier' => 1, 'is_active' => 1, 'is_jackpot' => 0],
+            ['payout_id' => 54, 'game_type_id' => 7, 'bet_name' => 'Tie', 'bet_position' => 'T', 'payout_multiplier' => 10, 'is_active' => 1, 'is_jackpot' => 0],
 
         ]);
     }

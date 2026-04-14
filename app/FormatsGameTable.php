@@ -25,7 +25,7 @@ trait FormatsGameTable
             'table_name' => $table->table_name,
             'status'     => $table->status,
             'active_mac' => $table->active_mac,
-            'float'      => (float) $table->float,
+            'float_reference' => (float) $table->float,
             'felt_color' => $table->felt_color,
 
             // ── Game Type ───────────────────────────────

@@ -41,7 +41,10 @@
                             <input type="text" class="form-control bg-black border-secondary" style="color:#555; cursor:not-allowed;" value="Not yet registered" disabled>
                         </div>
                         <div class="col-md-4">
-                            <label class="text-light small">Float Amount</label>
+                            <label class="text-light small">
+                                Float Reference
+                                <span class="ms-1" style="color:#555; font-size:10px;">SUGGESTED OPENING FLOAT</span>
+                            </label>
                             <input type="number" step="0.01" name="float" class="form-control bg-black text-white border-secondary" value="{{ old('float') }}">
                         </div>
                         <div class="col-md-4">

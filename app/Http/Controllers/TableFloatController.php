@@ -16,6 +16,7 @@ class TableFloatController extends Controller
         $request->validate([
             'opened_by' => 'required|string|max:255',
             'gameday'   => 'required|date_format:Y-m-d',
+            'float_open' => 'required|numeric|min:0',
         ]);
 
         try {
@@ -58,7 +59,7 @@ class TableFloatController extends Controller
             // 5. Open the table — float_open pulled from game_table
             $session = TableFloat::create([
                 'table_id'   => $gameTable->id,
-                'float_open' => $gameTable->float,   // from game_tables.float
+                'float_open' => $request->float_open,
                 'opened_by'  => $request->opened_by,
                 'status'     => 0, // 0 = open, 1 = closed
                 'gameday'    => $request->gameday,
