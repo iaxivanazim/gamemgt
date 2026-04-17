@@ -192,29 +192,9 @@
                             <input type="number" step="0.01" name="config[side_max_bet]" id="sideMaxBet" class="form-control bg-black text-white border-secondary" value="{{ old('config.side_max_bet', $preset?->side_max_bet) }}">
                         </div>
                         <div class="col-md-3">
-                            <label class="text-light small">Commission</label>
-                            <select name="config[commission]" id="commissionSelect" class="form-select bg-black text-white border-secondary">
-                                <option value="1" {{ old('config.commission', $preset?->commission) ? 'selected' : '' }}>
-                                    Enabled (0.95x Banker)
-                                </option>
-                                <option value="0" {{ !old('config.commission', $preset?->commission ?? 1) ? 'selected' : '' }}>
-                                    Disabled (1x Banker)
-                                </option>
-                            </select>
-                            <div class="mt-1" style="font-size:10px; color:#ffc107;">
-                                <i class="bi bi-info-circle me-1"></i>Banker payout:
-                                <span id="bankerMultiplier">
-                                    {{ ($preset?->commission ?? 1) ? '0.95x' : '1x' }}
-                                </span>
-                            </div>
-                        </div>
-                        @php
-                        $b6Rule = $payoutRules->firstWhere('bet_position', 'B6');
-                        $b6Active = $b6Rule ? (bool) $b6Rule->is_active : false;
-                        @endphp
-                        <div class="col-md-3">
                             <label class="text-light small d-flex align-items-center gap-2">
-                                Baccarat 6 Commission
+                                Commission
+                                @php $b6Active = $payoutRules->firstWhere('bet_position', 'B6')?->is_active ?? false; @endphp
                                 <span id="b6CommissionBadge" style="font-size:9px; padding:2px 6px; border-radius:10px;
                      {{ $b6Active
                          ? 'background:#0f2e1a; color:#6fcf97; border:1px solid #6fcf97;'
@@ -226,20 +206,32 @@
                         ? 'background:#0a1a0a; color:#fff; cursor:pointer;'
                         : 'background:#111; color:#555; cursor:not-allowed;' }}" {{ $b6Active ? '' : 'disabled' }}>
                                 <option value="1" {{ old('config.baccarat_6_commission', $preset?->baccarat_6_commission ?? 1) ? 'selected' : '' }}>
-                                    Commission (0.95x)
+                                    Commission
                                 </option>
                                 <option value="0" {{ !old('config.baccarat_6_commission', $preset?->baccarat_6_commission ?? 1) ? 'selected' : '' }}>
-                                    Non-Commission (0.50x)
+                                    Non-Commission
                                 </option>
                             </select>
-                            <div class="mt-1" style="font-size:10px; color:#ffc107;">
-                                <i class="bi bi-info-circle me-1"></i>B6 payout:
-                                <span id="b6Multiplier">
-                                    @if($b6Active)
-                                    {{ ($preset?->baccarat_6_commission ?? 1) ? '0.95x' : '0.50x' }}
-                                    @else
-                                    —
-                                    @endif
+                            <div class="mt-1 d-flex flex-column gap-1" style="font-size:10px; color:#ffc107;">
+                                <span>
+                                    <i class="bi bi-info-circle me-1"></i>Banker:
+                                    <span id="bankerMultiplier">
+                                        @if($b6Active)
+                                        {{ ($preset?->baccarat_6_commission ?? 1) ? '0.95x' : '1x' }}
+                                        @else
+                                        —
+                                        @endif
+                                    </span>
+                                </span>
+                                <span>
+                                    <i class="bi bi-info-circle me-1"></i>B6:
+                                    <span id="b6Multiplier">
+                                        @if($b6Active)
+                                        {{ ($preset?->baccarat_6_commission ?? 1) ? '0.95x' : '0.50x' }}
+                                        @else
+                                        —
+                                        @endif
+                                    </span>
                                 </span>
                             </div>
                         </div>
@@ -408,7 +400,7 @@
                     <tbody>
                         @forelse($payoutRules as $rule)
                         @php
-                        $savedRule = $table->payoutRules
+                        $savedRule = $gameTable->payoutRules
                         ->firstWhere('payout_id', $rule->payout_id);
                         @endphp
                         <tr>

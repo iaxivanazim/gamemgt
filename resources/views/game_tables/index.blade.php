@@ -72,9 +72,9 @@
                             <div style="width:40px; height:40px; border-radius:50%; background:{{ $feltColor }};
                                         border:3px dashed white; margin:auto;
                                         box-shadow: 0 0 12px {{ $feltColor }}88;">
-                                
-                                    <span class="text-white fw-bold" style="font-size:10px;">{{ $table->id }}</span>
-                                
+
+                                <span class="text-white fw-bold" style="font-size:10px;">{{ $table->id }}</span>
+
                             </div>
                             <div class="mt-2" style="font-size:10px; letter-spacing:0.05em; color:#fff;">FELT</div>
                         </div>
@@ -276,31 +276,57 @@
                         @foreach($table->payoutRules as $tableRule)
                         @php $rule = $tableRule->payoutRule; @endphp
                         @if($rule)
-                        <div class="d-flex align-items-center gap-1 px-2 py-1 rounded" style="{{ $tableRule->is_active
-                            ? 'background:#0f1f0f; border:1px solid #2a5a2a;'
-                            : 'background:#1a1a1a; border:1px solid #2e2e2e;' }}">
+                        <div class="d-flex flex-column gap-1">
+                            <div class="d-flex align-items-center gap-1 px-2 py-1 rounded" style="{{ $tableRule->is_active
+                        ? 'background:#0f1f0f; border:1px solid #2a5a2a;'
+                        : 'background:#1a1a1a; border:1px solid #2e2e2e;' }}">
 
-                            {{-- Active dot --}}
-                            <span style="width:6px; height:6px; border-radius:50%; flex-shrink:0;
-                                     background:{{ $tableRule->is_active ? '#6fcf97' : '#555' }};"></span>
+                                {{-- Active dot --}}
+                                <span style="width:6px; height:6px; border-radius:50%; flex-shrink:0;
+                                 background:{{ $tableRule->is_active ? '#6fcf97' : '#555' }};"></span>
 
-                            {{-- Bet name --}}
-                            <span style="font-size:11px; color:{{ $tableRule->is_active ? '#ddd' : '#555' }};">
-                                {{ $rule->bet_name }}
-                            </span>
+                                {{-- Bet name --}}
+                                <span style="font-size:11px; color:{{ $tableRule->is_active ? '#ddd' : '#555' }};">
+                                    {{ $rule->bet_name }}
+                                </span>
 
-                            @if($rule->bet_position)
-                            <span style="font-size:10px; color:#666;">({{ $rule->bet_position }})</span>
+                                @if($rule->bet_position)
+                                <span style="font-size:10px; color:#666;">({{ $rule->bet_position }})</span>
+                                @endif
+
+                                {{-- Jackpot badge --}}
+                                @if($rule->is_jackpot)
+                                <span style="font-size:9px; padding:1px 5px; border-radius:8px;
+                                     background:#1a1200; color:#ffc107; border:1px solid #ffc10744;">
+                                    JACKPOT
+                                </span>
+                                @endif
+
+                                {{-- Divider --}}
+                                <span style="width:1px; height:12px; background:#333; margin:0 3px;"></span>
+
+                                {{-- Multiplier or seed --}}
+                                @if($rule->payout_multiplier)
+                                <span style="font-size:11px; font-weight:bold;
+                                     color:{{ $tableRule->is_active ? '#ffc107' : '#444' }};">
+                                    {{ $rule->payout_multiplier }}x
+                                </span>
+                                @else
+                                <span style="font-size:11px; font-weight:bold; color:#555;">—</span>
+                                @endif
+                            </div>
+
+                            {{-- Seed value pill — only for active jackpot rules with a seed ──────── --}}
+                            @if($rule->is_jackpot && $tableRule->is_active && $tableRule->seed_value)
+                            <div class="d-flex align-items-center gap-1 px-2 py-1 rounded" style="background:#1a1200; border:1px solid #ffc10733;">
+                                <i class="bi bi-coin" style="color:#ffc107; font-size:10px;"></i>
+                                <span style="font-size:10px; color:#999; letter-spacing:0.04em;">SEED</span>
+                                <span style="font-size:11px; font-weight:bold; color:#ffc107;">
+                                    {{ number_format($tableRule->seed_value, 2) }}
+                                </span>
+                            </div>
                             @endif
 
-                            {{-- Divider --}}
-                            <span style="width:1px; height:12px; background:#333; margin:0 3px;"></span>
-
-                            {{-- Multiplier --}}
-                            <span style="font-size:11px; font-weight:bold;
-                                     color:{{ $tableRule->is_active ? '#ffc107' : '#444' }};">
-                                {{ $rule->payout_multiplier }}x
-                            </span>
                         </div>
                         @endif
                         @endforeach
@@ -308,7 +334,7 @@
                     @endif
                 </div>
 
-                
+
 
             </div>
         </div>

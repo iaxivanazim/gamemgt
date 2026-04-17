@@ -99,6 +99,12 @@ class GameTableController extends Controller
                 $request->input('config', []),
                 ['chip_preset_id' => $request->chip_preset_id]
             );
+
+            // sync commission from single dropdown
+            if (isset($configData['baccarat_6_commission'])) {
+                $configData['commission'] = $configData['baccarat_6_commission'];
+            }
+
             $preset = $presetModel::create($configData);
 
             // 4. Link to pivot
@@ -196,8 +202,14 @@ class GameTableController extends Controller
             // 2. Update preset
             $config  = $gameTable->config;
             $preset  = $config->preset;
+            $configData = $request->input('config', []);
+
+            if (isset($configData['baccarat_6_commission'])) {
+                $configData['commission'] = $configData['baccarat_6_commission'];
+            }
+
             $preset->update(array_merge(
-                $request->input('config', []),
+                $configData,
                 ['chip_preset_id' => $request->chip_preset_id]
             ));
 

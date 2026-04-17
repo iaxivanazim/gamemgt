@@ -140,29 +140,20 @@
                         <input type="number" step="0.01" name="config[side_max_bet]" id="sideMaxBet" class="form-control bg-black text-white border-secondary">
                     </div>
                     <div class="col-md-3">
-                        <label class="text-light small">Commission</label>
-                        <select name="config[commission]" id="commissionSelect" class="form-select bg-black text-white border-secondary">
-                            <option value="1" selected>Enabled (0.95x Banker)</option>
-                            <option value="0">Disabled (1x Banker)</option>
-                        </select>
-                        <div id="commissionHint" class="mt-1" style="font-size:10px; color:#ffc107;">
-                            <i class="bi bi-info-circle me-1"></i>Banker payout: <span id="bankerMultiplier">0.95x</span>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
                         <label class="text-light small d-flex align-items-center gap-2">
-                            Baccarat 6 Commission
+                            Commission
                             <span id="b6CommissionBadge" style="font-size:9px; padding:2px 6px; border-radius:10px;
-                             background:#2e1010; color:#eb5757; border:1px solid #eb5757;">
+                     background:#2e1010; color:#eb5757; border:1px solid #eb5757;">
                                 B6 Inactive
                             </span>
                         </label>
                         <select name="config[baccarat_6_commission]" id="b6CommissionSelect" class="form-select bg-black border-secondary" style="color:#555; cursor:not-allowed;" disabled>
-                            <option value="1">Commission (0.95x)</option>
-                            <option value="0">Non-Commission (0.50x)</option>
+                            <option value="1">Commission</option>
+                            <option value="0">Non-Commission</option>
                         </select>
-                        <div class="mt-1" style="font-size:10px; color:#ffc107;">
-                            <i class="bi bi-info-circle me-1"></i>B6 payout: <span id="b6Multiplier">—</span>
+                        <div class="mt-1 d-flex flex-column gap-1" style="font-size:10px; color:#ffc107;">
+                            <span><i class="bi bi-info-circle me-1"></i>Banker: <span id="bankerMultiplier">—</span></span>
+                            <span><i class="bi bi-info-circle me-1"></i>B6: <span id="b6Multiplier">—</span></span>
                         </div>
                     </div>
                     {{-- <div class="col-md-3 d-flex flex-column justify-content-center gap-2 mt-3">

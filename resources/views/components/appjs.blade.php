@@ -650,49 +650,50 @@ document.getElementById('masterForm').addEventListener('submit', function (e) {
     }
 });
 
-// ── Baccarat 6 commission hint ────────────────────────────────────────
-const b6Select = document.getElementById('b6CommissionSelect');
-if (b6Select) {
-    b6Select.addEventListener('change', function () {
-        document.getElementById('b6Multiplier').textContent =
-            this.value == 1 ? '0.95x' : '0.50x';
-    });
-}
+// ── Commission dropdown hint (both banker + B6) ───────────────────────
+document.getElementById('b6CommissionSelect')?.addEventListener('change', function () {
+    document.getElementById('bankerMultiplier').textContent = this.value == 1 ? '0.95x' : '1x';
+    document.getElementById('b6Multiplier').textContent     = this.value == 1 ? '0.95x' : '0.50x';
+});
 
 // ── Sync B6 dropdown state from payout toggle ─────────────────────────
 function syncB6State() {
     const b6Toggle = document.querySelector('.payout-toggle[data-position="B6"]');
     if (!b6Toggle) return;
 
-    const isActive   = b6Toggle.checked;
-    const b6Select   = document.getElementById('b6CommissionSelect');
-    const b6Badge    = document.getElementById('b6CommissionBadge');
-    const b6Hint     = document.getElementById('b6Multiplier');
+    const isActive = b6Toggle.checked;
+    const b6Select = document.getElementById('b6CommissionSelect');
+    const b6Badge  = document.getElementById('b6CommissionBadge');
 
     if (!b6Select) return;
 
     if (isActive) {
-        // enable
-        b6Select.disabled                   = false;
-        b6Select.style.color                = '#fff';
-        b6Select.style.background           = '#0a1a0a';
-        b6Select.style.cursor               = 'pointer';
-        b6Badge.textContent                 = 'B6 Active';
-        b6Badge.style.background            = '#0f2e1a';
-        b6Badge.style.color                 = '#6fcf97';
-        b6Badge.style.border                = '1px solid #6fcf97';
-        b6Hint.textContent                  = b6Select.value == 1 ? '0.95x' : '0.50x';
+        b6Select.disabled        = false;
+        b6Select.style.color     = '#fff';
+        b6Select.style.background= '#0a1a0a';
+        b6Select.style.cursor    = 'pointer';
+        b6Badge.textContent      = 'B6 Active';
+        b6Badge.style.background = '#0f2e1a';
+        b6Badge.style.color      = '#6fcf97';
+        b6Badge.style.border     = '1px solid #6fcf97';
+
+        // update both hints from current dropdown value
+        const val = b6Select.value;
+        document.getElementById('bankerMultiplier').textContent = val == 1 ? '0.95x' : '1x';
+        document.getElementById('b6Multiplier').textContent     = val == 1 ? '0.95x' : '0.50x';
     } else {
-        // disable
-        b6Select.disabled                   = true;
-        b6Select.style.color                = '#555';
-        b6Select.style.background           = '#111';
-        b6Select.style.cursor               = 'not-allowed';
-        b6Badge.textContent                 = 'B6 Inactive';
-        b6Badge.style.background            = '#2e1010';
-        b6Badge.style.color                 = '#eb5757';
-        b6Badge.style.border                = '1px solid #eb5757';
-        b6Hint.textContent                  = '—';
+        b6Select.disabled        = true;
+        b6Select.style.color     = '#555';
+        b6Select.style.background= '#111';
+        b6Select.style.cursor    = 'not-allowed';
+        b6Badge.textContent      = 'B6 Inactive';
+        b6Badge.style.background = '#2e1010';
+        b6Badge.style.color      = '#eb5757';
+        b6Badge.style.border     = '1px solid #eb5757';
+
+        // reset hints
+        document.getElementById('bankerMultiplier').textContent = '—';
+        document.getElementById('b6Multiplier').textContent     = '—';
     }
 }
 
