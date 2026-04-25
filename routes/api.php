@@ -29,6 +29,10 @@ Route::prefix('v1')->group(function () {
     Route::get('/game-tables', [GameTableController::class, 'apiIndex']);
     Route::get('/game-tables/{id}', [GameTableController::class, 'apiShow'])->whereNumber('id');
 
+    // routes/api.php
+    Route::get('/game-tables/{id}/bet-index', [GameTableController::class, 'getBetIndex']);
+    Route::post('/game-tables/{id}/bet-index', [GameTableController::class, 'setBetIndex']);
+
     Route::get('/payout-rules/game-type/{id}', [PayoutRuleController::class, 'apiByGameType']);
     // Route::get('/payout-rules/{id}', [PayoutRuleController::class, 'apiShow'])->whereNumber('id');
 
@@ -46,8 +50,8 @@ Route::prefix('v1')->group(function () {
 
     Route::post('/tables/{id}/open',  [TableFloatController::class, 'open']);
     Route::post('/tables/{id}/close', [TableFloatController::class, 'close']);
-    Route::get('/tables/{id}/session',[TableFloatController::class, 'currentSession']);
-    Route::get('/tables/{id}/history',[TableFloatController::class, 'history']);
+    Route::get('/tables/{id}/session', [TableFloatController::class, 'currentSession']);
+    Route::get('/tables/{id}/history', [TableFloatController::class, 'history']);
 
     Route::post('/ledger/txn',                        [TableLedgerController::class, 'store']);
     Route::get('/ledger/table/{table_id}',            [TableLedgerController::class, 'byTable']);

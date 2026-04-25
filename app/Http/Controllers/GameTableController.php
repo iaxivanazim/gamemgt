@@ -17,6 +17,7 @@ use App\Models\PayoutRule;
 use App\Models\GameTablePayoutRule;
 use App\Models\TableLedger;
 use App\Models\TableFloat;
+use App\Rules\PipeSeparatedNumbers;
 use Illuminate\Support\Facades\DB;
 
 use App\FormatsGameTable;
@@ -44,7 +45,7 @@ class GameTableController extends Controller
     {
         $status = $request->input('status', 1);
 
-        $query = GameTable::with(['gameType', 'config.preset.chipPreset', 'payoutRules.payoutRule'])
+        $query = GameTable::with(['gameType', 'config.preset.chipPreset', 'payoutRules.payoutRule', 'currentFloat'])
             ->where('status', $status)
             ->latest();
 
@@ -74,10 +75,15 @@ class GameTableController extends Controller
             'felt_color'     => 'nullable|string|max:50',
             'chip_preset_id' => 'required|exists:chips,id',
             'config.name'    => 'required|string|max:255',
-            'config.min_bet' => 'required|numeric|min:0',
-            'config.max_bet' => 'required|numeric|gt:config.min_bet',
+            'config.min_bet' => ['required', new PipeSeparatedNumbers],
+            'config.max_bet' => ['required', new PipeSeparatedNumbers],
             'config.burn_card' => 'nullable|integer|min:0',
         ]);
+
+        $this->validateMinMaxPairs(
+            $request->input('config.min_bet'),
+            $request->input('config.max_bet')
+        );
 
         DB::transaction(function () use ($request) {
 
@@ -185,10 +191,15 @@ class GameTableController extends Controller
             'felt_color'     => 'nullable|string|max:50',
             'chip_preset_id' => 'required|exists:chips,id',
             'config.name'    => 'required|string|max:255',
-            'config.min_bet' => 'required|numeric|min:0',
-            'config.max_bet' => 'required|numeric|gt:config.min_bet',
+            'config.min_bet' => ['required', new PipeSeparatedNumbers],
+            'config.max_bet' => ['required', new PipeSeparatedNumbers],
             'config.burn_card' => 'nullable|integer|min:0',
         ]);
+
+        $this->validateMinMaxPairs(
+            $request->input('config.min_bet'),
+            $request->input('config.max_bet')
+        );
         DB::transaction(function () use ($request, $gameTable) {
 
             // 1. Update game table
@@ -263,6 +274,81 @@ class GameTableController extends Controller
         return redirect()
             ->route('game_tables.index', ['status' => 1])
             ->with('success', "Table '{$gameTable->table_name}' restored successfully.");
+    }
+
+    //Helper method for Min Max Validation
+    private function validateMinMaxPairs(string $minBet, string $maxBet): void
+    {
+        $mins = array_map('trim', explode('|', $minBet));
+        $maxs = array_map('trim', explode('|', $maxBet));
+
+        if (count($mins) !== count($maxs)) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'config.max_bet' => 'Min and Max bet must have the same number of values.'
+            ]);
+        }
+
+        foreach ($mins as $i => $min) {
+            if ((float) $maxs[$i] <= (float) $min) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'config.max_bet' => "Max bet value #" . ($i + 1) . " ({$maxs[$i]}) must be greater than min bet ({$min})."
+                ]);
+            }
+        }
+    }
+
+    public function getBetIndex($id)
+    {
+        $table = GameTable::findOrFail($id);
+        $preset = $table->config?->preset;
+
+        $mins = $preset ? explode('|', $preset->min_bet) : [];
+        $maxs = $preset ? explode('|', $preset->max_bet) : [];
+        $total = count($mins);
+        $index = $table->bet_index ?? 1;
+
+        return response()->json([
+            'table_id'    => $table->id,
+            'bet_index'   => $index,
+            'total_pairs' => $total,
+            'active_range' => [
+                'min' => isset($mins[$index - 1]) ? (float)$mins[$index - 1] : null,
+                'max' => isset($maxs[$index - 1]) ? (float)$maxs[$index - 1] : null,
+            ],
+            'all_ranges' => array_map(fn($i) => [
+                'index' => $i + 1,
+                'min'   => (float)$mins[$i],
+                'max'   => (float)$maxs[$i],
+            ], range(0, $total - 1)),
+        ]);
+    }
+
+    public function setBetIndex(Request $request, $id)
+    {
+        $table = GameTable::findOrFail($id);
+        $preset = $table->config?->preset;
+
+        $total = $preset ? count(explode('|', $preset->min_bet)) : 1;
+
+        $request->validate([
+            'bet_index' => "required|integer|min:1|max:{$total}",
+        ]);
+
+        $table->update(['bet_index' => $request->bet_index]);
+
+        $mins = explode('|', $preset->min_bet);
+        $maxs = explode('|', $preset->max_bet);
+        $i = $request->bet_index - 1;
+
+        return response()->json([
+            'success'      => true,
+            'table_id'     => $table->id,
+            'bet_index'    => $table->bet_index,
+            'active_range' => [
+                'min' => (float)$mins[$i],
+                'max' => (float)$maxs[$i],
+            ],
+        ]);
     }
 
     // ══════════════════════════════════════════════════════

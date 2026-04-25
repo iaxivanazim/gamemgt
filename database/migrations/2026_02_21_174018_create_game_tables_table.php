@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('game_type_id')->constrained('game_types')->cascadeOnDelete();
             $table->string('active_mac')->unique()->nullable();
             $table->decimal('float', 19, 4);
+            $table->unsignedTinyInteger('bet_index')->default(1);
             $table->boolean('status')->default(true);
             $table->string('felt_color')->nullable();
             // $table->foreignId('theme_id')->nullable()->constrained('themes')->nullOnDelete();

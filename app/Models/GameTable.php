@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class GameTable extends Model
 {
@@ -11,6 +12,7 @@ class GameTable extends Model
         'game_type_id',
         'active_mac',
         'float',
+        'bet_index',
         'status',
         'felt_color',
     ];
@@ -44,5 +46,40 @@ class GameTable extends Model
         return $this->hasMany(GameTablePayoutRule::class, 'table_id')
             ->where('is_active', 1)
             ->with('payoutRule');
+    }
+
+    public function currentFloat()
+    {
+        return $this->hasOne(TableFloat::class, 'table_id')
+            ->where('status', 1); // status=1 = open
+    }
+
+    public function getLiveFloatAttribute(): ?float
+    {
+        $openSession = $this->currentFloat;
+        if (!$openSession) return null;
+
+        // Get latest float_balance from ledger for this table + gameday
+        return DB::table('table_ledgers')
+            ->where('table_id', $this->id)
+            ->where('gameday', $openSession->gameday)
+            ->orderBy('txn_id', 'desc')
+            ->value('float_balance');
+    }
+
+    public function getActiveBetRangeAttribute(): array
+    {
+        $preset = $this->config?->preset;
+        if (!$preset) return [];
+
+        $index = ($this->bet_index ?? 1) - 1; // convert to 0-based
+
+        $mins = explode('|', $preset->min_bet);
+        $maxs = explode('|', $preset->max_bet);
+
+        return [
+            'min' => isset($mins[$index]) ? (float)$mins[$index] : (float)$mins[0],
+            'max' => isset($maxs[$index]) ? (float)$maxs[$index] : (float)$maxs[0],
+        ];
     }
 }

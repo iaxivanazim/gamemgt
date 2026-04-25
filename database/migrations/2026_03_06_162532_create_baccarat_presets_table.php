@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('baccarat_presets', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->decimal('min_bet', 10, 2);
-            $table->decimal('max_bet', 10, 2);
+            $table->string('min_bet');
+            $table->string('max_bet');
             $table->integer('burn_card')->nullable();
             $table->decimal('side_min_bet', 10, 2)->nullable();
             $table->decimal('side_max_bet', 10, 2)->nullable();

@@ -41,8 +41,8 @@ trait FormatsGameTable
                 [
                     'preset_id'   => $preset->id,
                     'preset_name' => $preset->name,
-                    'min_bet'     => (float) $preset->min_bet,
-                    'max_bet'     => (float) $preset->max_bet,
+                    'min_bet'     => $this->parsePipeValues($preset->min_bet),
+                    'max_bet'     => $this->parsePipeValues($preset->max_bet),
                     'burn_card'   => $preset->burn_card,
                 ],
                 $this->formatPresetFields($preset)
@@ -151,4 +151,14 @@ trait FormatsGameTable
             default => []
         };
     }
+
+    // ── Helper ────────────────────────────────────────────────────────────
+private function parsePipeValues(?string $value): array
+{
+    if (!$value) return [];
+    return array_map(
+        fn($v) => (float) trim($v),
+        explode('|', $value)
+    );
+}
 }

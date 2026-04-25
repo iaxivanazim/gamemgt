@@ -237,7 +237,7 @@ class TableFloatController extends Controller
             'float_id'    => $session->float_id,
             'table_id'    => $session->table_id,
             'gameday'     => $session->gameday->toDateString(),
-            'status'      => $session->status === 0 ? 'open' : 'closed',
+            'status'      => $session->status === 1 ? 'open' : 'closed',
             'float_open'  => (float) $session->float_open,
             'float_close' => $session->float_close ? (float) $session->float_close : null,
             'variance'    => $session->float_close

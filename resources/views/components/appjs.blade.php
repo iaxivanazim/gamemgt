@@ -535,118 +535,100 @@ document.getElementById('tableName').addEventListener('input', function () {
     document.getElementById('configName').value = this.value;
 });
 
-// ── Min/Max pairs to validate ─────────────────────────────────────────
+// ── Pipe value preview renderer ───────────────────────────────────────
+function renderPipeTags(inputId, previewId, color = '#ffc107') {
+    const input   = document.getElementById(inputId);
+    const preview = document.getElementById(previewId);
+    if (!input || !preview) return;
+
+    input.addEventListener('input', function () {
+        const parts = this.value.split('|').map(v => v.trim()).filter(v => v !== '');
+        preview.innerHTML = parts.map(v => {
+            const isValid = !isNaN(v) && parseFloat(v) > 0;
+            return `<span style="
+                        font-size:10px; padding:2px 8px; border-radius:10px;
+                        background:${isValid ? '#1a1a00' : '#2e1010'};
+                        color:${isValid ? color : '#eb5757'};
+                        border:1px solid ${isValid ? color + '55' : '#eb5757'};">
+                        ${v}
+                    </span>`;
+        }).join('');
+    });
+}
+
+renderPipeTags('minBet', 'minBetPreview');
+renderPipeTags('maxBet', 'maxBetPreview');
+
+// ── Update min/max pairs in submit validation ─────────────────────────
+// Remove old minBet/maxBet from minMaxPairs array since they're now pipe values
+// handled separately below
 const minMaxPairs = [
-    { min: 'minBet',    max: 'maxBet',    label: 'Bet'        },
-    { min: 'sideMinBet',max: 'sideMaxBet',label: 'Side Bet'   },
-    { min: 'tieMin',    max: 'tieMax',    label: 'Tie'        },
-    { min: 'sideMin',   max: 'sideMax',   label: 'Side'       },
-    { min: 'pairMin',   max: 'pairMax',   label: 'Pair'       },
-    { min: 'hlMin',     max: 'hlMax',     label: 'H/L'        },
+    // remove { min: 'minBet', max: 'maxBet', label: 'Bet' } ← delete this line
+    { min: 'sideMinBet', max: 'sideMaxBet', label: 'Side Bet'  },
+    { min: 'tieMin',     max: 'tieMax',     label: 'Tie'       },
+    { min: 'sideMin',    max: 'sideMax',    label: 'Side'      },
+    { min: 'pairMin',    max: 'pairMax',    label: 'Pair'      },
+    { min: 'hlMin',      max: 'hlMax',      label: 'H/L'       },
 ];
 
-// ── Attach live validation on each field ─────────────────────────────
-minMaxPairs.forEach(({ min, max, label }) => {
-    const minEl = document.getElementById(min);
-    const maxEl = document.getElementById(max);
-    if (!minEl || !maxEl) return;
-
-    const validate = () => {
-        const minVal = parseFloat(minEl.value);
-        const maxVal = parseFloat(maxEl.value);
-
-        if (minEl.value === '' || maxEl.value === '') {
-            clearError(minEl);
-            clearError(maxEl);
-            return true;
-        }
-
-        if (minVal <= 0) {
-            setError(minEl, `${label} min must be greater than 0`);
-        } else {
-            clearError(minEl);
-        }
-
-        if (maxVal <= 0) {
-            setError(maxEl, `${label} max must be greater than 0`);
-        } else if (maxVal <= minVal) {
-            setError(maxEl, `${label} max must be greater than min`);
-        } else {
-            clearError(maxEl);
-        }
-    };
-
-    minEl.addEventListener('input', validate);
-    maxEl.addEventListener('input', validate);
-});
-
-// ── Helpers ───────────────────────────────────────────────────────────
-function setError(el, message) {
-    el.classList.add('is-invalid');
-    el.classList.remove('is-valid');
-
-    // create feedback div if it doesn't exist
-    let feedback = el.nextElementSibling;
-    if (!feedback || !feedback.classList.contains('invalid-feedback')) {
-        feedback = document.createElement('div');
-        feedback.classList.add('invalid-feedback');
-        el.parentNode.insertBefore(feedback, el.nextSibling);
-    }
-    feedback.textContent = message;
-}
-
-function clearError(el) {
-    el.classList.remove('is-invalid');
-    el.classList.add('is-valid');
-
-    const feedback = el.nextElementSibling;
-    if (feedback && feedback.classList.contains('invalid-feedback')) {
-        feedback.textContent = '';
-    }
-}
-
-// ── Block form submit if any pair is invalid ──────────────────────────
+// ── Pipe min/max cross validation on submit ───────────────────────────
 document.getElementById('masterForm').addEventListener('submit', function (e) {
     let hasError = false;
 
+    // ── existing minMaxPairs validation (unchanged) ──
     minMaxPairs.forEach(({ min, max, label }) => {
         const minEl = document.getElementById(min);
         const maxEl = document.getElementById(max);
-        if (!minEl || !maxEl) return;
-        if (minEl.value === '' && maxEl.value === '') return; // skip empty optional pairs
+        if (!minEl || !maxEl || (minEl.value === '' && maxEl.value === '')) return;
 
         const minVal = parseFloat(minEl.value);
         const maxVal = parseFloat(maxEl.value);
 
-        if (minVal <= 0) {
-            setError(minEl, `${label} min must be greater than 0`);
-            hasError = true;
-        }
-        if (maxVal <= 0) {
-            setError(maxEl, `${label} max must be greater than 0`);
-            hasError = true;
-        } else if (maxVal <= minVal) {
-            setError(maxEl, `${label} max must be greater than min (${minVal})`);
-            hasError = true;
-        }
+        if (minVal <= 0) { setError(minEl, `${label} min must be > 0`); hasError = true; }
+        if (maxVal <= 0) { setError(maxEl, `${label} max must be > 0`); hasError = true; }
+        else if (maxVal <= minVal) { setError(maxEl, `${label} max must be > min (${minVal})`); hasError = true; }
     });
+
+    // ── Pipe min/max validation ──────────────────────────────────────
+    const minBetEl = document.getElementById('minBet');
+    const maxBetEl = document.getElementById('maxBet');
+
+    if (minBetEl && maxBetEl) {
+        const mins = minBetEl.value.split('|').map(v => v.trim()).filter(v => v);
+        const maxs = maxBetEl.value.split('|').map(v => v.trim()).filter(v => v);
+
+        // all values must be numeric and > 0
+        const allValid = arr => arr.every(v => !isNaN(v) && parseFloat(v) > 0);
+
+        if (!mins.length || !allValid(mins)) {
+            setError(minBetEl, 'Min bet must contain valid numbers separated by |');
+            hasError = true;
+        } else {
+            clearError(minBetEl);
+        }
+
+        if (!maxs.length || !allValid(maxs)) {
+            setError(maxBetEl, 'Max bet must contain valid numbers separated by |');
+            hasError = true;
+        } else if (mins.length !== maxs.length) {
+            setError(maxBetEl, `Min and Max must have the same number of values (${mins.length} vs ${maxs.length})`);
+            hasError = true;
+        } else {
+            const mismatch = mins.findIndex((m, i) => parseFloat(maxs[i]) <= parseFloat(m));
+            if (mismatch !== -1) {
+                setError(maxBetEl, `Max #${mismatch + 1} (${maxs[mismatch]}) must be greater than Min (${mins[mismatch]})`);
+                hasError = true;
+            } else {
+                clearError(maxBetEl);
+            }
+        }
+    }
 
     if (hasError) {
         e.preventDefault();
-
-        // scroll to first error
         const firstError = document.querySelector('.is-invalid');
-        if (firstError) {
-            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            firstError.focus();
-        }
-
-        Swal.fire({
-            icon : 'error',
-            title: 'Validation Error',
-            text : 'Please fix the min/max fields before submitting.',
-            confirmButtonColor: '#ffc107'
-        });
+        if (firstError) { firstError.scrollIntoView({ behavior:'smooth', block:'center' }); firstError.focus(); }
+        Swal.fire({ icon:'error', title:'Validation Error', text:'Please fix the highlighted fields.', confirmButtonColor:'#ffc107' });
     }
 });
 
