@@ -17,6 +17,9 @@
     {{--sweetalert2--}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+    {{-- Bootstrap JS --}}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
@@ -42,7 +45,7 @@
 
     @include('components.appjs')
 
-    
+    @stack('scripts')
 </body>
 
 </html>

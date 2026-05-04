@@ -9,6 +9,7 @@ use App\Http\Controllers\GameTypeController;
 use App\Http\Controllers\ThemeController;
 use App\Http\Controllers\PayoutRuleController;
 use App\Http\Controllers\ChipController;
+use App\Http\Controllers\GameHistoryController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -83,6 +84,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/chips/delete/{id}', [ChipController::class, 'destroy'])->name('chips.destroy')->middleware('permission:delete-chips');
     Route::get('/chips/{id}', [ChipController::class, 'show'])->name('chips.show')->middleware('permission:view-chips');
     Route::post('/chips/restore/{id}', [ChipController::class, 'restore'])->name('chips.restore')->middleware('permission:edit-chips');
+
+    // Route::get('/history', [GameHistoryController::class, 'index'])->name('history.index')->middleware('permission:view-history');
+    Route::get('/history',                  [GameHistoryController::class, 'index'])->name('history.index')->middleware('permission:view-history');
 });
 
 

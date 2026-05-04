@@ -39,6 +39,13 @@
         </li>
 
         <li class="nav-item">
+            <a href="/history" class="nav-link">
+                <i class="bi bi-clock-history"></i>
+                <span class="link-text">History</span>
+            </a>
+        </li>
+
+        <li class="nav-item">
             <a href="/reports" class="nav-link">
                 <i class="bi bi-bar-chart"></i>
                 <span class="link-text">Reports</span>

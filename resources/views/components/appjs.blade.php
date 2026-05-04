@@ -500,7 +500,7 @@ console.log('Selected game type code:', code);
                        data-position="${rule.bet_position}"
                        data-jackpot="${rule.is_jackpot ? '1' : '0'}"
                        data-payout-id="${rule.payout_id}"
-                       ${rule.is_active ? 'checked' : ''}>
+                       ${rule.is_active && !rule.is_jackpot ? 'checked' : ''}>
             </div>
         </td>
         <td>
@@ -729,3 +729,6 @@ document.addEventListener('DOMContentLoaded', function () {
     syncJackpotSeeds();
 });
 </script>
+
+{{-- History JS --}}
+

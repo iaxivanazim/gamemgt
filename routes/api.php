@@ -8,6 +8,7 @@ use App\Http\Controllers\PayoutRuleController;
 use App\Http\Controllers\GameTypeController;
 use App\Http\Controllers\TableFloatController;
 use App\Http\Controllers\TableLedgerController;
+use App\Http\Controllers\GameHistoryController;
 use App\Models\GameType;
 use App\Models\PayoutRule;
 
@@ -28,6 +29,8 @@ Route::prefix('v1')->group(function () {
 
     Route::get('/game-tables', [GameTableController::class, 'apiIndex']);
     Route::get('/game-tables/{id}', [GameTableController::class, 'apiShow'])->whereNumber('id');
+
+    Route::get('/game-tables/{id}/float', [GameTableController::class, 'currentFloat']);
 
     // routes/api.php
     Route::get('/game-tables/{id}/bet-index', [GameTableController::class, 'getBetIndex']);
@@ -62,7 +65,12 @@ Route::prefix('v1')->group(function () {
     Route::post('/ledger/txn/{txn_id}/complete',      [TableLedgerController::class, 'complete']);
     Route::get('/ledger/pending',                     [TableLedgerController::class, 'pending']);
 
-    Route::get('/game-tables/{id}/float', [GameTableController::class, 'currentFloat']);
+    Route::post('/history/{game}',           [GameHistoryController::class, 'store']);
+    Route::get('/history/{game}/table/{id}', [GameHistoryController::class, 'byTable']);
+    Route::get('/history/{game}/tab/{tabId}',  [GameHistoryController::class, 'byTab']);
+    Route::get('/history/{game}/{recordId}', [GameHistoryController::class, 'show']);
+
+    
 });
 
 // https://documenter.getpostman.com/view/31035377/2sBXcEmMLA

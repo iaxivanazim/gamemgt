@@ -45,14 +45,16 @@
                             <input type="text" class="form-control bg-black border-secondary"
                                 style="color:#555; cursor:not-allowed;" value="Not yet registered" disabled>
                         </div>
-                        <div class="col-md-4">
+                        {{-- <div class="col-md-4">
                             <label class="text-light small">
                                 Float Reference
                                 <span class="ms-1" style="color:#555; font-size:10px;">SUGGESTED OPENING FLOAT</span>
                             </label>
                             <input type="number" step="0.01" name="float"
-                                class="form-control bg-black text-white border-secondary" value="{{ old('float') }}">
-                        </div>
+                                class="form-control bg-black text-white border-secondary" value="10000" hidden>
+                        </div> --}}
+                        <input type="number" step="0.01" name="float"
+                                class="form-control bg-black text-white border-secondary" value="100000" hidden>
                         <div class="col-md-4">
                             <label class="text-light small">Felt Color</label>
                             <div class="d-flex gap-2 align-items-center mt-1">
@@ -285,7 +287,6 @@
                                 <label class="text-light small">Surrender Option</label>
                                 <select name="config[surrender]"
                                     class="form-select bg-black text-white border-secondary">
-                                    <option value="">-- Select --</option>
                                     <option value="0">No Surrender</option>
                                     <option value="1">Surrender on any card</option>
                                     <option value="2">Surrender on any card except Ace</option>
@@ -295,7 +296,6 @@
                                 <label class="text-light small">Insurance</label>
                                 <select name="config[insurance]"
                                     class="form-select bg-black text-white border-secondary">
-                                    <option value="">-- Select --</option>
                                     <option value="1">Enabled</option>
                                     <option value="0">Disabled</option>
                                 </select>
