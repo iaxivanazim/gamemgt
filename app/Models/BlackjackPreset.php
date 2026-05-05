@@ -14,7 +14,7 @@ class BlackjackPreset extends Model
         'pair_min',
         'pair_max',
         'split_type',
-        'rule_type',
+        'soft17rule',
         'surrender',
         'insurance',
         'enable_777_charlie',

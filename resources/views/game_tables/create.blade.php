@@ -301,23 +301,21 @@
                                 </select>
                             </div>
 
-                            {{-- <div class="col-md-3">
+                            <div class="col-md-3">
                         <label class="text-light small">Split Type</label>
                         <select name="config[split_type]" class="form-select bg-black text-white border-secondary">
-                            <option value="">-- Select --</option>
-                            <option value="resplit">Resplit</option>
-                            <option value="no_resplit">No Resplit</option>
+                            <option value="same_rank">Same Rank</option>
+                            <option value="same_value">Same Value</option>
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <label class="text-light small">Rule Type</label>
-                        <select name="config[rule_type]" class="form-select bg-black text-white border-secondary">
-                            <option value="">-- Select --</option>
-                            <option value="s17">S17</option>
-                            <option value="h17">H17</option>
+                        <label class="text-light small">Soft 17 Rule</label>
+                        <select name="config[soft17rule]" class="form-select bg-black text-white border-secondary">
+                            <option value="s17">Stand Soft 17</option>
+                            <option value="h17">Hit Soft 17</option>
                         </select>
                     </div>
-                    <div class="col-md-3 mt-2">
+                    {{--<div class="col-md-3 mt-2">
                         <div class="form-check form-switch mt-3">
                             <input class="form-check-input" type="checkbox" name="config[enable_777_charlie]" value="1" id="enable777">
                             <label class="form-check-label text-light" for="enable777">777 Charlie Rule</label>

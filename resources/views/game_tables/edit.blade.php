@@ -409,23 +409,30 @@
                                 </select>
                             </div>
                         </div>
-                        {{-- <div class="col-md-3">
+                        <div class="col-md-3">
                             <label class="text-light small">Split Type</label>
-                            <select name="config[split_type]" class="form-select bg-black text-white border-secondary">
-                                <option value="">-- Select --</option>
-                                <option value="resplit" {{ old('config.split_type', $preset?->split_type) == 'resplit'    ? 'selected' : '' }}>Resplit</option>
-    <option value="no_resplit" {{ old('config.split_type', $preset?->split_type) == 'no_resplit' ? 'selected' : '' }}>No Resplit</option>
-    </select>
-    </div>
-    <div class="col-md-3">
-        <label class="text-light small">Rule Type</label>
-        <select name="config[rule_type]" class="form-select bg-black text-white border-secondary">
-            <option value="">-- Select --</option>
-            <option value="s17" {{ old('config.rule_type', $preset?->rule_type) == 's17' ? 'selected' : '' }}>S17</option>
-            <option value="h17" {{ old('config.rule_type', $preset?->rule_type) == 'h17' ? 'selected' : '' }}>H17</option>
-        </select>
-    </div>
-    <div class="col-md-3 mt-2">
+                            <select name="config[split_type]"
+                                class="form-select bg-black text-white border-secondary">
+                                <option value="same_rank"
+                                    {{ old('config.split_type', $preset?->split_type) == 'same_rank' ? 'selected' : '' }}>
+                                    Same Rank</option>
+                                <option value="same_value"
+                                    {{ old('config.split_type', $preset?->split_type) == 'same_value' ? 'selected' : '' }}>
+                                    Same Value</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="text-light small">Soft 17 Rule</label>
+                            <select name="config[soft17rule]" class="form-select bg-black text-white border-secondary">
+                                <option value="s17"
+                                    {{ old('config.soft17rule', $preset?->soft17rule) == 's17' ? 'selected' : '' }}>Stand Soft 17
+                                </option>
+                                <option value="h17"
+                                    {{ old('config.soft17rule', $preset?->soft17rule) == 'h17' ? 'selected' : '' }}>Hit Soft 17
+                                </option>
+                            </select>
+                        </div>
+                        {{-- <div class="col-md-3 mt-2">
         <div class="form-check form-switch mt-3">
             <input class="form-check-input" type="checkbox" name="config[enable_777_charlie]" value="1" id="enable777" {{ old('config.enable_777_charlie', $preset?->enable_777_charlie) ? 'checked' : '' }}>
             <label class="form-check-label text-light" for="enable777">777 Charlie Rule</label>

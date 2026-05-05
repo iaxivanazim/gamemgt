@@ -133,8 +133,8 @@ trait FormatsGameTable
                 'pair_max'           => (float) $preset->pair_max,
                 'surrender'          => (bool)  $preset->surrender,
                 'insurance'          => (bool)  $preset->insurance,
-                // 'split_type'         =>         $preset->split_type,
-                // 'rule_type'          =>         $preset->rule_type,
+                'split_type'         =>         $preset->split_type,
+                'soft17rule'         =>         $preset->soft17rule,
                 // 'enable_777_charlie' => (bool)  $preset->enable_777_charlie,
             ],
 

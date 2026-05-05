@@ -200,7 +200,18 @@
                                                 class="text-warning fw-bold">{{ $preset->burn_card }}</span>
                                         </span>
                                     @endif
-
+                                    @if (isset($preset->split_type))
+                                        <span class="small" style="color:#aaa;">
+                                            Split Type: <span
+                                                class="text-warning fw-bold">{{ $preset->split_type === 'same_rank' ? 'Same Rank' : 'Same Value' }}</span>
+                                        </span>
+                                    @endif
+                                    @if (isset($preset->soft17rule))
+                                        <span class="small" style="color:#aaa;">
+                                            Soft 17 Rule: <span
+                                                class="text-warning fw-bold">{{ $preset->soft17rule === 's17' ? 'Stand Soft 17' : 'Hit Soft 17' }}</span>
+                                        </span>
+                                    @endif
 
                                 </div>
 
