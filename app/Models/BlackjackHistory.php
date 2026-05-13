@@ -19,6 +19,8 @@ class BlackjackHistory extends Model
         'player_cards' => 'array',
         'dealer_cards' => 'array',
         'split_hands'    => 'array',
+        'bet_position' => 'array',
+        'side_win'     => 'array',
         'double_amount' => 'float',
         'insurance_amount' => 'float',
         'bet_amount'   => 'float',

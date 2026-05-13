@@ -29,10 +29,10 @@ class TableLedger extends Model
     ];
 
     // txn_types that affect float balance
-    const FLOAT_AFFECTING = ['FILL', 'CREDIT', 'DROP', 'ADJUST', 'CASHOUT', 'BUYIN'];
+    const FLOAT_AFFECTING = ['FILL', 'CREDIT', 'DROP', 'ADJUST', 'CASHOUT', 'BUYIN', 'VOID', 'BET'];
 
     // txn_types that affect tab balance
-    const TAB_AFFECTING   = ['BUYIN', 'CASHOUT', 'PAYOUT', 'CREDIT'];
+    const TAB_AFFECTING   = ['BUYIN', 'CASHOUT', 'PAYOUT', 'CREDIT', 'VOID', 'BET'];
 
     public function gameTable()
     {

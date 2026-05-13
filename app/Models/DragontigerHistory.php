@@ -18,6 +18,8 @@ class DragontigerHistory extends Model
     protected $casts = [
         'dragon_card' => 'array',
         'tiger_card' => 'array',
+        'bet_position' => 'array',
+        'side_win'     => 'array',
         'bet_amount'   => 'float',
         'win_amount'   => 'float',
         'current_credit' => 'float',

@@ -18,7 +18,7 @@ class TableLedgerController extends Controller
     {
         $request->validate([
             'table_id'     => 'required|exists:game_tables,id',
-            'txn_type'     => 'required|in:FILL,CREDIT,DROP,ADJUST,CASHOUT,BUYIN,PAYOUT',
+            'txn_type'     => 'required|in:FILL,CREDIT,DROP,ADJUST,CASHOUT,BUYIN,PAYOUT,VOID,BET',
             'amount'       => 'required|numeric',
             'gameday'      => 'required|date_format:Y-m-d',
             'tab_id'       => 'nullable|string|max:255',
@@ -191,6 +191,8 @@ class TableLedgerController extends Controller
             $cashout    = (float) ($totals['CASHOUT']['total']?? 0);
             $buyin      = (float) ($totals['BUYIN']['total']  ?? 0);
             $payout     = (float) ($totals['PAYOUT']['total'] ?? 0);
+            $void       = (float) ($totals['VOID']['total']   ?? 0);
+            $bet        = (float) ($totals['BET']['total']    ?? 0);
 
             $expectedClose = $floatOpen + $buyin - $cashout + $fill + $credit + $adjust;
             $variance      = $floatClose > 0 ? round($floatClose - $expectedClose, 2) : null;
@@ -228,6 +230,8 @@ class TableLedgerController extends Controller
                     'CASHOUT' => ['count' => $totals['CASHOUT']['count']?? 0, 'total' => $cashout],
                     'BUYIN'   => ['count' => $totals['BUYIN']['count']  ?? 0, 'total' => $buyin],
                     'PAYOUT'  => ['count' => $totals['PAYOUT']['count'] ?? 0, 'total' => $payout],
+                    'VOID'    => ['count' => $totals['VOID']['count']   ?? 0, 'total' => $void],
+                    'BET'     => ['count' => $totals['BET']['count']    ?? 0, 'total' => $bet],
                 ],
                 'total_txns' => $txns->count(),
             ], 200);
@@ -383,6 +387,8 @@ class TableLedgerController extends Controller
             'CASHOUT' =>  $current - $amount,   // player takes cash out
             'BUYIN'   =>  $current + $amount,   // player converts cash to chips
             'PAYOUT'  =>  $current,             // accounting only, no float change
+            'VOID'    =>  $current,             // void doesn't change float (handled by opposite txn)
+            'BET'     =>  $current,             // bets don't change float until resolved (handled by payout)
             default   =>  $current,
         };
     }
@@ -405,6 +411,8 @@ class TableLedgerController extends Controller
             'CASHOUT' => $currentTab - $amount,  // player withdraws
             'PAYOUT'  => $currentTab + $amount,  // winnings credited to tab
             'CREDIT'  => $currentTab + $amount,  // credit added to tab
+            'VOID'    => $currentTab,             // void doesn't affect tab (handled by opposite txn)
+            'BET'     => $currentTab,             // bets don't affect tab until resolved (handled by payout)
             default   => $currentTab,             // FILL, DROP, ADJUST don't affect tab
         };
     }

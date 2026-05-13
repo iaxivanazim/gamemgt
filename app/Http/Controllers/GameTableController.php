@@ -44,18 +44,25 @@ class GameTableController extends Controller
     public function index(Request $request)
     {
         $status = $request->input('status', 1);
+        $sortBy = $request->input('sort_by', 'created_at');
+        $order  = $request->input('order', 'desc');
+
+        // Validate sort parameters
+        $allowedSorts = ['table_name', 'created_at', 'id'];
+        if (!in_array($sortBy, $allowedSorts)) $sortBy = 'created_at';
+        if (!in_array($order, ['asc', 'desc'])) $order = 'desc';
 
         $query = GameTable::with(['gameType', 'config.preset.chipPreset', 'payoutRules.payoutRule', 'currentFloat'])
             ->where('status', $status)
-            ->latest();
+            ->orderBy($sortBy, $order);
 
         if ($request->search) {
             $query->where('table_name', 'like', "%{$request->search}%");
         }
 
-        $tables = $query->paginate(10)->appends($request->only(['status', 'search']));
+        $tables = $query->paginate(10)->appends($request->only(['status', 'search', 'sort_by', 'order']));
 
-        return view('game_tables.index', compact('tables', 'status'));
+        return view('game_tables.index', compact('tables', 'status', 'sortBy', 'order'));
     }
 
     public function create()

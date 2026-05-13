@@ -194,7 +194,15 @@
                 <span class="badge bg-{{ $winnerColor }}">{{ strtoupper($row['winner']) }}</span>
               </td>
 
-              <td class="text-secondary small">{{ $row['bet_position'] }}</td>
+              <td class="text-secondary small">
+                @if(is_array($row['bet_position']))
+                  @foreach($row['bet_position'] as $key => $val)
+                    {{ is_numeric($key) ? $val : "$key:$val" }}{{ !$loop->last ? ", " : "" }}
+                  @endforeach
+                @else
+                  {{ $row['bet_position'] }}
+                @endif
+              </td>
               <td class="text-end text-warning">{{ number_format($row['bet_amount'], 2) }}</td>
               <td class="text-end {{ $row['win_amount'] > 0 ? 'text-success' : 'text-secondary' }}">
                 {{ number_format($row['win_amount'], 2) }}
@@ -203,7 +211,11 @@
               <td>
                 @if($row['side_win'])
                   <span class="badge bg-warning text-dark" style="font-size:.7rem">
-                    {{ $row['side_win'] }}
+                    @if(is_array($row['side_win']))
+                      {{ implode(', ', $row['side_win']) }}
+                    @else
+                      {{ $row['side_win'] }}
+                    @endif
                   </span>
                 @else
                   <span class="text-muted small">—</span>
@@ -337,6 +349,22 @@ function renderDetail(d, game) {
     splitHtml += '</div>';
   }
 
+  let betPosHtml = '';
+  if (typeof d.bet_position === 'object' && d.bet_position !== null) {
+    betPosHtml = Object.entries(d.bet_position).map(([k, v]) => 
+      isNaN(k) ? `${k}:${v}` : v
+    ).join(', ');
+  } else {
+    betPosHtml = d.bet_position || '—';
+  }
+
+  let sideWinHtml = '';
+  if (Array.isArray(d.side_win)) {
+    sideWinHtml = d.side_win.join(', ');
+  } else {
+    sideWinHtml = d.side_win ?? '—';
+  }
+
   return `<div>
     ${cards}
     ${splitHtml}
@@ -345,7 +373,7 @@ function renderDetail(d, game) {
       <div class="col-6 col-md-3"><div class="text-secondary small">Winner</div>
         <span class="badge bg-primary">${d.winner.toUpperCase()}</span></div>
       <div class="col-6 col-md-3"><div class="text-secondary small">Bet Position</div>
-        <div class="text-white">${d.bet_position}</div></div>
+        <div class="text-white">${betPosHtml}</div></div>
       <div class="col-6 col-md-3"><div class="text-secondary small">Bet Amount</div>
         <div class="text-warning fw-bold">${fmt(d.bet_amount)}</div></div>
       <div class="col-6 col-md-3"><div class="text-secondary small">Win Amount</div>
@@ -358,7 +386,7 @@ function renderDetail(d, game) {
       <div class="col-6 col-md-3"><div class="text-secondary small">Current Credit</div>
         <div class="text-white">${fmt(d.current_credit)}</div></div>
       <div class="col-6 col-md-3"><div class="text-secondary small">Side Win</div>
-        <div class="text-warning">${d.side_win ?? '—'}</div></div>
+        <div class="text-warning">${sideWinHtml}</div></div>
       <div class="col-12"><div class="text-secondary small">Date / Time</div>
         <div class="text-secondary">${d.date_time}</div></div>
     </div>

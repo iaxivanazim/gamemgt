@@ -1,11 +1,4 @@
 import './bootstrap';
-import 'bootstrap/dist/js/bootstrap.bundle.min.js';
-
-// Sidebar toggle functionality
-document.getElementById('sidebarToggle').addEventListener('click', function () {
-    document.getElementById('sidebar').classList.toggle('collapsed');
-    document.getElementById('main-content').classList.toggle('expanded');
-});
 
 // SweetAlert2 for deactivation confirmation
 document.querySelectorAll('.btn-deactivate').forEach(button => {

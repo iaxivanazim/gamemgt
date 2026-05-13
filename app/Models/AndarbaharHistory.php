@@ -18,6 +18,8 @@ class AndarbaharHistory extends Model
     protected $casts = [
         'andar_cards' => 'array',
         'bahar_cards' => 'array',
+        'bet_position' => 'array',
+        'side_win'     => 'array',
         'bet_amount'   => 'float',
         'win_amount'   => 'float',
         'current_credit' => 'float',

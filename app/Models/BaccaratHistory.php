@@ -27,6 +27,8 @@ class BaccaratHistory extends Model
     protected $casts = [
         'player_cards' => 'array',
         'banker_cards' => 'array',
+        'bet_position' => 'array',
+        'side_win'     => 'array',
         'bet_amount'   => 'float',
         'win_amount'   => 'float',
         'current_credit' => 'float',

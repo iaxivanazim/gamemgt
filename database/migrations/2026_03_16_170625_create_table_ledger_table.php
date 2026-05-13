@@ -22,7 +22,9 @@ return new class extends Migration
                 'ADJUST',
                 'CASHOUT',
                 'BUYIN',
-                'PAYOUT'
+                'PAYOUT',
+                'VOID',
+                'BET',
             ]);
             $table->decimal('amount', 12, 2);
             $table->decimal('tab_balance', 12, 2)->default(0);   // running tab balance

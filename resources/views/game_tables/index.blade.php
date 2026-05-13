@@ -2,37 +2,62 @@
     <div class="content-wrapper p-4">
 
         {{-- Header --}}
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
             <h5 class="text-warning mb-0">
                 <i class="bi bi-grid-3x3-gap-fill me-2"></i>Game Tables
             </h5>
-            <div class="d-flex align-items-center gap-3">
-
-                {{-- Search --}}
-                <form method="GET" action="{{ route('game_tables.index') }}" class="d-flex gap-2">
+            
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                {{-- Search & Sort --}}
+                <form method="GET" action="{{ route('game_tables.index') }}" class="d-flex align-items-center gap-2">
                     <input type="hidden" name="status" value="{{ $status }}">
-                    <input type="text" name="search"
-                        class="form-control form-control-sm bg-black text-white border-secondary"
-                        placeholder="Search table name..." value="{{ request('search') }}" style="min-width:200px;">
-                    <button type="submit" class="btn btn-sm btn-outline-warning">
-                        <i class="bi bi-search"></i>
-                    </button>
+                    
+                    <div class="input-group input-group-sm" style="width: 220px;">
+                        <span class="input-group-text bg-black border-secondary text-secondary">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" name="search"
+                            class="form-control bg-black text-white border-secondary"
+                            placeholder="Search table..." value="{{ request('search') }}">
+                        @if(request('search'))
+                            <a href="{{ route('game_tables.index', ['status' => $status]) }}" class="btn btn-outline-secondary border-secondary">
+                                <i class="bi bi-x-lg"></i>
+                            </a>
+                        @endif
+                    </div>
+
+                    <div class="d-flex align-items-center gap-1">
+                        <select name="sort_by" class="form-select form-select-sm bg-black text-white border-secondary" 
+                                onchange="this.form.submit()" style="width: 130px;">
+                            <option value="created_at" {{ request('sort_by') == 'created_at' ? 'selected' : '' }}>Newest</option>
+                            <option value="table_name" {{ request('sort_by') == 'table_name' ? 'selected' : '' }}>Name</option>
+                            <option value="id" {{ request('sort_by') == 'id' ? 'selected' : '' }}>ID</option>
+                        </select>
+
+                        <select name="order" class="form-select form-select-sm bg-black text-white border-secondary" 
+                                onchange="this.form.submit()" style="width: 85px;">
+                            <option value="desc" {{ request('order') == 'desc' ? 'selected' : '' }}>DESC</option>
+                            <option value="asc" {{ request('order') == 'asc' ? 'selected' : '' }}>ASC</option>
+                        </select>
+                    </div>
                 </form>
+
+                <div class="vr bg-secondary mx-1 d-none d-lg-block" style="height: 24px; opacity: 0.4;"></div>
 
                 {{-- Status Filter --}}
                 <div class="btn-group" role="group">
-                    <a href="{{ route('game_tables.index', ['status' => 1, 'search' => request('search')]) }}"
+                    <a href="{{ route('game_tables.index', ['status' => 1, 'search' => request('search'), 'sort_by' => request('sort_by'), 'order' => request('order')]) }}"
                         class="btn btn-sm {{ $status == 1 ? 'btn-warning' : 'btn-outline-warning' }}">
                         Active
                     </a>
-                    <a href="{{ route('game_tables.index', ['status' => 0, 'search' => request('search')]) }}"
+                    <a href="{{ route('game_tables.index', ['status' => 0, 'search' => request('search'), 'sort_by' => request('sort_by'), 'order' => request('order')]) }}"
                         class="btn btn-sm {{ $status == 0 ? 'btn-warning' : 'btn-outline-warning' }}">
                         Inactive
                     </a>
                 </div>
 
-                <a href="{{ route('game_tables.create') }}" class="btn btn-warning btn-sm">
-                    + New Table
+                <a href="{{ route('game_tables.create') }}" class="btn btn-warning btn-sm fw-bold">
+                    <i class="bi bi-plus-lg me-1"></i>New Table
                 </a>
             </div>
         </div>
@@ -56,13 +81,13 @@
                 $feltColor = $table->felt_color ?? '#006400';
 
                 $gameBadgeColor = match ($table->gameType?->code ?? '') {
-                    'baccarat' => '#c9a227',
-                    'blackjack' => '#0047ab',
-                    'dragontiger' => '#b30000',
-                    'andarbahar' => '#006400',
-                    'threecardpoker' => '#5a007a',
-                    'miniflush' => '#1a6b6b',
-                    'casinowar' => '#8b0000',
+                    'BAC' => '#c9a227',
+                    'BJ' => '#0047ab',
+                    'DT' => '#b30000',
+                    'AB' => '#006400',
+                    '3CP' => '#5a007a',
+                    'MF' => '#1a6b6b',
+                    'CW' => '#8b0000',
                     default => '#444',
                 };
             @endphp

@@ -73,8 +73,37 @@ class GameHistoryController extends Controller
     public function store(Request $request, string $game)
     {
         $model = $this->resolveModel($game);
-        $record = $model::create($request->all());
+        $data = $request->all();
+
+        // Support multiple bet positions in format "banker:100,tie:200" or as array
+        if (isset($data['bet_position']) && is_string($data['bet_position'])) {
+            $data['bet_position'] = $this->parseKeyValueString($data['bet_position']);
+        }
+
+        // Support side_win in format "player_pair,lucky6" or as array
+        if (isset($data['side_win']) && is_string($data['side_win'])) {
+            $data['side_win'] = array_map('trim', explode(',', $data['side_win']));
+        }
+
+        $record = $model::create($data);
         return response()->json(['success' => true, 'id' => $record->id], 201);
+    }
+
+    private function parseKeyValueString(string $str): array
+    {
+        if (empty($str)) return [];
+        
+        $parts = explode(',', $str);
+        $result = [];
+        foreach ($parts as $part) {
+            if (str_contains($part, ':')) {
+                [$key, $val] = explode(':', $part, 2);
+                $result[trim($key)] = trim($val);
+            } else {
+                $result[] = trim($part);
+            }
+        }
+        return $result;
     }
 
     public function byTable(Request $request, string $game, int $id)
