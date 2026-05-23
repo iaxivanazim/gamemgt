@@ -10,7 +10,7 @@ class MiniflushHistory extends Model
     protected $table = 'miniflush_history';
 
     protected $fillable = [
-        'table_id', 'tab_id', 'player_cards', 'dealer_cards',
+        'table_id', 'game_no', 'tab_id', 'player_cards', 'dealer_cards',
         'winner', 'side_win', 'bet_position', 'bet_amount',
         'win_amount', 'current_credit', 'date_time',
     ];

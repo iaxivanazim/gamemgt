@@ -10,7 +10,7 @@ class BlackjackHistory extends Model
     protected $table = 'blackjack_history';
 
     protected $fillable = [
-        'table_id', 'tab_id', 'player_cards', 'dealer_cards', 'split_hands', 'double_amount','insurance_amount',
+        'table_id', 'game_no', 'tab_id', 'player_cards', 'dealer_cards', 'split_hands', 'double_amount','insurance_amount',
         'winner', 'side_win', 'bet_position', 'bet_amount',
         'win_amount', 'current_credit', 'date_time', 
     ];

@@ -54,6 +54,8 @@ class PermissionSeeder extends Seeder
             ['name' => 'delete-chips', 'slug' => 'delete-chips', 'module' => 'chips'],
 
             ['name' => 'view-history', 'slug' => 'view-history', 'module' => 'history'],
+
+            ['name' => 'view-ledger', 'slug' => 'view-ledger', 'module' => 'ledger'],
         ]);
     }
 }

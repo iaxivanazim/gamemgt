@@ -94,9 +94,58 @@
   @elseif(empty($records['data']))
     <div class="text-center text-secondary py-5">
       <i class="bi bi-inbox" style="font-size:2rem"></i>
-      <p class="mt-2">No records found.</p>
+      <p class="mt-2">No records found for this table.</p>
     </div>
   @else
+
+    {{-- Game Navigation --}}
+    @if(isset($records['game_no']))
+    <div class="card bg-black border-secondary mb-3">
+      <div class="card-body d-flex align-items-center justify-content-between py-2">
+        <div class="d-flex align-items-center gap-3">
+          <span class="text-secondary small">Game Session:</span>
+          <span class="text-warning fw-bold fs-5">{{ $records['game_no'] ?? 'N/A' }}</span>
+        </div>
+        
+        <div class="d-flex align-items-center gap-2">
+          <div class="btn-group">
+            <a href="{{ request()->fullUrlWithQuery(['game_no' => $records['prev_game_no']]) }}" 
+               class="btn btn-outline-warning btn-sm {{ !$records['prev_game_no'] ? 'disabled' : '' }}"
+               title="Older Game">
+              <i class="bi bi-chevron-left"></i> Older
+            </a>
+            
+            <button class="btn btn-dark btn-sm disabled text-white border-secondary px-3" style="opacity: 1">
+              {{ $records['current_page'] }} / {{ $records['last_page'] }}
+            </button>
+
+            <a href="{{ request()->fullUrlWithQuery(['game_no' => $records['next_game_no']]) }}" 
+               class="btn btn-outline-warning btn-sm {{ !$records['next_game_no'] ? 'disabled' : '' }}"
+               title="Newer Game">
+              Newer <i class="bi bi-chevron-right"></i>
+            </a>
+          </div>
+
+          {{-- Optional dropdown to jump to a specific game --}}
+          <div class="dropdown">
+            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+              Jump to
+            </button>
+            <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow" style="max-height: 300px; overflow-y: auto;">
+              @foreach($records['all_game_nos'] as $gn)
+                <li>
+                  <a class="dropdown-item {{ $gn == $records['game_no'] ? 'active' : '' }}" 
+                     href="{{ request()->fullUrlWithQuery(['game_no' => $gn]) }}">
+                    {{ $gn }}
+                  </a>
+                </li>
+              @endforeach
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    @endif
 
     {{-- Summary Strip --}}
     @php
@@ -108,25 +157,25 @@
     <div class="row g-2 mb-3">
       <div class="col-6 col-md-3">
         <div class="card bg-black border-secondary text-center py-2">
-          <div class="text-secondary small">Records</div>
-          <div class="text-white fw-bold">{{ $records['total'] }}</div>
+          <div class="text-secondary small">Players in Game</div>
+          <div class="text-white fw-bold">{{ count($records['data']) }}</div>
         </div>
       </div>
       <div class="col-6 col-md-3">
         <div class="card bg-black border-secondary text-center py-2">
-          <div class="text-secondary small">Total Bet</div>
+          <div class="text-secondary small">Total Bet (Game)</div>
           <div class="text-warning fw-bold">{{ number_format($totalBet, 2) }}</div>
         </div>
       </div>
       <div class="col-6 col-md-3">
         <div class="card bg-black border-secondary text-center py-2">
-          <div class="text-secondary small">Total Win</div>
+          <div class="text-secondary small">Total Win (Game)</div>
           <div class="text-success fw-bold">{{ number_format($totalWin, 2) }}</div>
         </div>
       </div>
       <div class="col-6 col-md-3">
         <div class="card bg-black border-secondary text-center py-2">
-          <div class="text-secondary small">Net</div>
+          <div class="text-secondary small">Net (Game)</div>
           <div class="fw-bold {{ $totalNet >= 0 ? 'text-success' : 'text-danger' }}">
             {{ number_format($totalNet, 2) }}
           </div>
@@ -141,6 +190,7 @@
           <thead class="border-secondary">
             <tr class="text-secondary text-uppercase" style="font-size:.75rem">
               <th>#</th>
+              <th>Game No</th>
               @if(in_array($normalizedGame, ['baccarat','dragontiger'])) <th>Shoe</th> @endif
               <th>Time</th>
               <th>Tab ID</th>
@@ -157,6 +207,7 @@
             @foreach($records['data'] as $row)
             <tr class="history-row" data-id="{{ $row['id'] }}" style="cursor:pointer">
               <td class="text-secondary">{{ $row['id'] }}</td>
+              <td class="text-warning fw-bold">{{ $row['game_no'] }}</td>
 
               @if(in_array($normalizedGame, ['baccarat','dragontiger']))
                 <td class="text-secondary">{{ $row['shoe_no'] ?? '-' }}</td>

@@ -10,7 +10,7 @@ class AndarbaharHistory extends Model
     protected $table = 'andarbahar_history';
 
     protected $fillable = [
-        'table_id', 'tab_id', 'joker_card', 'andar_cards', 'bahar_cards',
+        'table_id', 'game_no', 'tab_id', 'joker_card', 'andar_cards', 'bahar_cards',
         'winner', 'side_win', 'bet_position', 'bet_amount',
         'win_amount', 'current_credit', 'date_time',
     ];

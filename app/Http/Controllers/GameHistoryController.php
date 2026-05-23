@@ -109,16 +109,53 @@ class GameHistoryController extends Controller
     public function byTable(Request $request, string $game, int $id)
     {
         $model = $this->resolveModel($game);
-        $data = $model::where('table_id', $id)
-            ->when($request->tab_id,    fn($q) => $q->where('tab_id', $request->tab_id))
-            ->when($request->date,      fn($q) => $q->whereDate('date_time', $request->date))
-            ->when($request->from,      fn($q) => $q->where('date_time', '>=', $request->from))
-            ->when($request->to,        fn($q) => $q->where('date_time', '<=', $request->to))
-            ->when($request->winner,    fn($q) => $q->where('winner', $request->winner))
-            ->orderBy('date_time', 'desc')
-            ->paginate($request->per_page ?? 50);
+        
+        // If tab_id or date filters are used, we might want to fall back to traditional pagination
+        // or just apply them within the game_no set. 
+        // For now, let's implement the game_no grouping as requested.
 
-        return response()->json($data);
+        $gameNo = $request->input('game_no');
+        
+        // If no game_no, get the latest one from the table
+        if (!$gameNo) {
+            $latest = $model::where('table_id', $id)->orderBy('date_time', 'desc')->first();
+            $gameNo = $latest ? $latest->game_no : null;
+        }
+
+        $query = $model::where('table_id', $id)
+            ->when($gameNo, fn($q) => $q->where('game_no', $gameNo))
+            ->when($request->tab_id, fn($q) => $q->where('tab_id', $request->tab_id))
+            ->when($request->date,   fn($q) => $q->whereDate('date_time', $request->date))
+            ->orderBy('date_time', 'desc');
+
+        $data = $query->get();
+
+        // Get navigation list (distinct game_nos ordered by time)
+        $gameNos = $model::where('table_id', $id)
+            ->select('game_no')
+            ->groupBy('game_no')
+            ->orderByRaw('MAX(date_time) DESC')
+            ->pluck('game_no')
+            ->toArray();
+
+        $currentIndex = array_search($gameNo, $gameNos);
+        $prevGameNo = ($currentIndex !== false && isset($gameNos[$currentIndex + 1])) ? $gameNos[$currentIndex + 1] : null;
+        $nextGameNo = ($currentIndex !== false && $currentIndex > 0) ? $gameNos[$currentIndex - 1] : null;
+
+        // Wrap in a structure similar to pagination for compatibility
+        return response()->json([
+            'data'         => $data,
+            'current_page' => $currentIndex !== false ? $currentIndex + 1 : 1,
+            'last_page'    => count($gameNos),
+            'total'        => count($gameNos), // Total number of games
+            'from'         => $currentIndex !== false ? $currentIndex + 1 : 0,
+            'to'           => $currentIndex !== false ? $currentIndex + 1 : 0,
+            'per_page'     => 1,
+            'game_no'      => $gameNo,
+            'prev_game_no' => $prevGameNo,
+            'next_game_no' => $nextGameNo,
+            'all_game_nos' => $gameNos
+        ]);
     }
 
     public function byTab(Request $request, string $game, string $tabId)

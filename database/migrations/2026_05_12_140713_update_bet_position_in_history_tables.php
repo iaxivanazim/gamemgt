@@ -22,6 +22,7 @@ return new class extends Migration
             Schema::table($table, function (Blueprint $table) {
                 $table->text('bet_position')->change();
                 $table->text('side_win')->nullable()->change();
+                $table->string('game_no')->nullable()->after('table_id');
             });
         }
     }
@@ -30,8 +31,9 @@ return new class extends Migration
     {
         foreach ($this->tables as $table) {
             Schema::table($table, function (Blueprint $table) {
-                $table->string('bet_position', 50)->change();
-                $table->string('side_win', 100)->nullable()->change();
+                $table->string('bet_position')->change();
+                $table->string('side_win')->nullable()->change();
+                $table->dropColumn('game_no');
             });
         }
     }

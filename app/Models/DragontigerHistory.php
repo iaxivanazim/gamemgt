@@ -10,7 +10,7 @@ class DragontigerHistory extends Model
     protected $table = 'dragontiger_history';
 
     protected $fillable = [
-        'shoe_no', 'table_id', 'tab_id', 'dragon_card', 'tiger_card',
+        'shoe_no', 'table_id', 'game_no', 'tab_id', 'dragon_card', 'tiger_card',
         'winner', 'side_win', 'bet_position', 'bet_amount',
         'win_amount', 'current_credit', 'date_time',
     ];

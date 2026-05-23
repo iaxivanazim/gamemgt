@@ -46,13 +46,31 @@
 
                 {{-- Status Filter --}}
                 <div class="btn-group" role="group">
-                    <a href="{{ route('game_tables.index', ['status' => 1, 'search' => request('search'), 'sort_by' => request('sort_by'), 'order' => request('order')]) }}"
+                    <a href="{{ route('game_tables.index', ['status' => 1, 'search' => request('search'), 'sort_by' => request('sort_by'), 'order' => request('order'), 'mac_filter' => $macFilter]) }}"
                         class="btn btn-sm {{ $status == 1 ? 'btn-warning' : 'btn-outline-warning' }}">
                         Active
                     </a>
-                    <a href="{{ route('game_tables.index', ['status' => 0, 'search' => request('search'), 'sort_by' => request('sort_by'), 'order' => request('order')]) }}"
+                    <a href="{{ route('game_tables.index', ['status' => 0, 'search' => request('search'), 'sort_by' => request('sort_by'), 'order' => request('order'), 'mac_filter' => $macFilter]) }}"
                         class="btn btn-sm {{ $status == 0 ? 'btn-warning' : 'btn-outline-warning' }}">
                         Inactive
+                    </a>
+                </div>
+
+                <div class="vr bg-secondary mx-1 d-none d-lg-block" style="height: 24px; opacity: 0.4;"></div>
+
+                {{-- MAC Filter --}}
+                <div class="btn-group" role="group">
+                    <a href="{{ route('game_tables.index', ['mac_filter' => 'all', 'status' => $status, 'search' => request('search'), 'sort_by' => request('sort_by'), 'order' => request('order')]) }}"
+                        class="btn btn-sm {{ $macFilter == 'all' ? 'btn-warning' : 'btn-outline-warning' }}">
+                        All
+                    </a>
+                    <a href="{{ route('game_tables.index', ['mac_filter' => 'bound', 'status' => $status, 'search' => request('search'), 'sort_by' => request('sort_by'), 'order' => request('order')]) }}"
+                        class="btn btn-sm {{ $macFilter == 'bound' ? 'btn-warning' : 'btn-outline-warning' }}">
+                        Bound
+                    </a>
+                    <a href="{{ route('game_tables.index', ['mac_filter' => 'unbound', 'status' => $status, 'search' => request('search'), 'sort_by' => request('sort_by'), 'order' => request('order')]) }}"
+                        class="btn btn-sm {{ $macFilter == 'unbound' ? 'btn-warning' : 'btn-outline-warning' }}">
+                        Unbound
                     </a>
                 </div>
 

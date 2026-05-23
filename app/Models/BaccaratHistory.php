@@ -12,6 +12,7 @@ class BaccaratHistory extends Model
     protected $fillable = [
         'shoe_no',
         'table_id',
+        'game_no',
         'tab_id',
         'player_cards',
         'banker_cards',

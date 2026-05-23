@@ -46,6 +46,7 @@ class GameTableController extends Controller
         $status = $request->input('status', 1);
         $sortBy = $request->input('sort_by', 'created_at');
         $order  = $request->input('order', 'desc');
+        $macFilter = $request->input('mac_filter', 'all');
 
         // Validate sort parameters
         $allowedSorts = ['table_name', 'created_at', 'id'];
@@ -53,16 +54,23 @@ class GameTableController extends Controller
         if (!in_array($order, ['asc', 'desc'])) $order = 'desc';
 
         $query = GameTable::with(['gameType', 'config.preset.chipPreset', 'payoutRules.payoutRule', 'currentFloat'])
-            ->where('status', $status)
-            ->orderBy($sortBy, $order);
+            ->where('status', $status);
+
+        if ($macFilter === 'bound') {
+            $query->whereNotNull('active_mac');
+        } elseif ($macFilter === 'unbound') {
+            $query->whereNull('active_mac');
+        }
+
+        $query->orderBy($sortBy, $order);
 
         if ($request->search) {
             $query->where('table_name', 'like', "%{$request->search}%");
         }
 
-        $tables = $query->paginate(10)->appends($request->only(['status', 'search', 'sort_by', 'order']));
+        $tables = $query->paginate(10)->appends($request->only(['status', 'search', 'sort_by', 'order', 'mac_filter']));
 
-        return view('game_tables.index', compact('tables', 'status', 'sortBy', 'order'));
+        return view('game_tables.index', compact('tables', 'status', 'sortBy', 'order', 'macFilter'));
     }
 
     public function create()

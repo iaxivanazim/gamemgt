@@ -10,7 +10,7 @@ class CasinowarHistory extends Model
     protected $table = 'casinowar_history';
 
     protected $fillable = [
-        'shoe_no', 'table_id', 'tab_id', 'player_cards', 'dealer_cards',
+        'shoe_no', 'table_id', 'game_no', 'tab_id', 'player_cards', 'dealer_cards',
         'winner', 'side_win', 'bet_position', 'bet_amount',
         'win_amount', 'current_credit', 'date_time',
     ];

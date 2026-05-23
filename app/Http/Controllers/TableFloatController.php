@@ -8,9 +8,35 @@ use App\Models\TableFloat;
 use App\FormatsGameTable;
 
 
+use App\Models\BaccaratHistory;
+use App\Models\AndarbaharHistory;
+use App\Models\DragontigerHistory;
+use App\Models\ThreecardpokerHistory;
+use App\Models\BlackjackHistory;
+use App\Models\MiniflushHistory;
+use App\Models\CasinowarHistory;
+
 class TableFloatController extends Controller
 {
     use FormatsGameTable;
+
+    private array $gameMap = [
+        'BACCARAT'       => BaccaratHistory::class,
+        'BAC'            => BaccaratHistory::class,
+        'ANDARBAHAR'     => AndarbaharHistory::class,
+        'AB'             => AndarbaharHistory::class,
+        'DRAGONTIGER'    => DragontigerHistory::class,
+        'DT'             => DragontigerHistory::class,
+        'THREECARDPOKER' => ThreecardpokerHistory::class,
+        '3CP'            => ThreecardpokerHistory::class,
+        'BLACKJACK'      => BlackjackHistory::class,
+        'BJ'             => BlackjackHistory::class,
+        'MINIFLUSH'      => MiniflushHistory::class,
+        'MF'             => MiniflushHistory::class,
+        'CASINOWAR'      => CasinowarHistory::class,
+        'CW'             => CasinowarHistory::class,
+    ];
+
     public function open(Request $request, $id)
     {
         $request->validate([
@@ -45,6 +71,7 @@ class TableFloatController extends Controller
                     'success' => false,
                     'message' => "Table '{$gameTable->table_name}' is already open for today's gameday.",
                     'session' => $this->formatSession($existing),
+                    'last_game_no' => $this->getLastGameNo($gameTable),
                 ], 422);
             }
 
@@ -71,6 +98,7 @@ class TableFloatController extends Controller
                 'message' => "Table '{$gameTable->table_name}' opened successfully.",
                 'session' => $this->formatSession($session),
                 'table'   => $this->formatTableResponse($gameTable),
+                'last_game_no' => $this->getLastGameNo($gameTable),
             ], 201);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
@@ -179,6 +207,7 @@ class TableFloatController extends Controller
                 'success' => true,
                 'status'  => $session->status === 0 ? 'open' : 'closed',
                 'session' => $this->formatSession($session),
+                'last_game_no' => $this->getLastGameNo($gameTable),
             ], 200);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
@@ -186,6 +215,21 @@ class TableFloatController extends Controller
                 'message' => "Game table with ID {$id} not found.",
             ], 404);
         }
+    }
+
+    private function getLastGameNo(GameTable $table): ?string
+    {
+        $gameCode = strtoupper($table->gameType?->code);
+        if (!$gameCode || !isset($this->gameMap[$gameCode])) {
+            return null;
+        }
+
+        $model = $this->gameMap[$gameCode];
+        $latest = $model::where('table_id', $table->id)
+            ->orderBy('date_time', 'desc')
+            ->first();
+
+        return $latest ? $latest->game_no : null;
     }
 
     // ══════════════════════════════════════════════════════════════

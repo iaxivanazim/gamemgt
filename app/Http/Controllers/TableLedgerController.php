@@ -11,6 +11,52 @@ use App\Models\TableFloat;
 class TableLedgerController extends Controller
 {
     // ════════════════════════════════════════════════════════════════
+    // WEB: DISPLAY LEDGER INDEX
+    // GET /ledger
+    // ════════════════════════════════════════════════════════════════
+    public function index(Request $request)
+    {
+        $query = TableLedger::with('gameTable');
+
+        // Filters
+        if ($request->filled('txn_type')) {
+            $query->where('txn_type', $request->txn_type);
+        }
+
+        if ($request->filled('gameday')) {
+            $query->where('gameday', $request->gameday);
+        }
+
+        if ($request->filled('table_id')) {
+            $query->where('table_id', $request->table_id);
+        }
+
+        if ($request->filled('processed')) {
+            $query->where('processed', $request->processed);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('tab_id', 'like', "%{$search}%")
+                  ->orWhere('reference', 'like', "%{$search}%")
+                  ->orWhere('initiated_by', 'like', "%{$search}%")
+                  ->orWhere('txn_id', $search);
+            });
+        }
+
+        // Sorting
+        $sortOrder = $request->input('sort', 'desc');
+        $query->orderBy('txn_id', $sortOrder);
+
+        $ledgers = $query->paginate(25)->withQueryString();
+        $tables = GameTable::all();
+        $txnTypes = ['FILL','CREDIT','DROP','ADJUST','CASHOUT','BUYIN','PAYOUT','VOID','BET'];
+
+        return view('ledger.index', compact('ledgers', 'tables', 'txnTypes'));
+    }
+
+    // ════════════════════════════════════════════════════════════════
     // POST NEW TRANSACTION
     // POST /api/v1/ledger/txn
     // ════════════════════════════════════════════════════════════════
@@ -185,10 +231,10 @@ class TableLedgerController extends Controller
             $floatOpen  = (float) ($session?->float_open  ?? 0);
             $floatClose = (float) ($session?->float_close ?? 0);
             $fill       = (float) ($totals['FILL']['total']   ?? 0);
-            $credit     = (float) ($totals['CREDIT']['total'] ?? 0);
+            $credit     = (float) ($totals['CREDIT']['total'] ?? 0); //negative values included
             $drop       = (float) ($totals['DROP']['total']   ?? 0);
             $adjust     = (float) ($totals['ADJUST']['total'] ?? 0);
-            $cashout    = (float) ($totals['CASHOUT']['total']?? 0);
+            $cashout    = (float) ($totals['CASHOUT']['total']?? 0); //negative values included
             $buyin      = (float) ($totals['BUYIN']['total']  ?? 0);
             $payout     = (float) ($totals['PAYOUT']['total'] ?? 0);
             $void       = (float) ($totals['VOID']['total']   ?? 0);
