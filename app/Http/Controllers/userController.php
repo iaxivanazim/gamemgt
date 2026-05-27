@@ -143,4 +143,28 @@ class userController extends Controller
         return redirect()->route('users.index', ['status' => 1])
             ->with('success', 'User restored successfully.');
     }
+
+    // ══════════════════════════════════════════════════════
+    // API — Fetch all users with relationships
+    // GET /api/v1/users
+    // ══════════════════════════════════════════════════════
+    public function apiIndex(Request $request)
+    {
+        try {
+            $users = User::with(['role.permissions', 'roles.permissions'])
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'count'   => $users->count(),
+                'data'    => $users
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch users.',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
+    }
 }

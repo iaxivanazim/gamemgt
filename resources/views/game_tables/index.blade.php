@@ -283,9 +283,12 @@
                         </div>
 
                         {{-- ── RIGHT: Chip Preview ── --}}
-                        <div class="col-md-3 d-flex align-items-center justify-content-center p-3"
+                        <div class="col-md-3 d-flex flex-column align-items-center justify-content-center p-3"
                             style="border-left:1px solid #222; border-right:1px solid #222;">
                             @if ($chip)
+                                <div class="text-warning small mb-2 fw-bold" style="letter-spacing:0.05em; font-size:10px;">
+                                    {{ strtoupper($chip->preset_name) }}
+                                </div>
                                 <div class="d-flex align-items-center gap-1 flex-wrap justify-content-center">
                                     @foreach ($colors as $i => $color)
                                         @php $val = $chip->{'chip_'.($i+1).'_value'}; @endphp

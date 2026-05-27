@@ -88,7 +88,7 @@
                                         data-chips="{{ json_encode([$chip->chip_1_value, $chip->chip_2_value, $chip->chip_3_value, $chip->chip_4_value, $chip->chip_5_value]) }}"
                                         data-base="{{ $chip->base_value }}"
                                         {{ old('chip_preset_id') == $chip->id ? 'selected' : '' }}>
-                                        Preset #{{ $chip->id }}
+                                        {{ $chip->preset_name }}
                                     </option>
                                 @endforeach
                             </select>

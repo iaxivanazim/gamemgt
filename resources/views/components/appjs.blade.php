@@ -358,7 +358,8 @@ placeholder="Multiplier">
         const token = form.find('input[name="_token"]').val();
 
         const data = {
-            chip_1_value: form.find('[name="chip1"]').val()
+            preset_name: form.find('[name="preset_name"]').val()
+            , chip_1_value: form.find('[name="chip1"]').val()
             , chip_2_value: form.find('[name="chip2"]').val()
             , chip_3_value: form.find('[name="chip3"]').val()
             , chip_4_value: form.find('[name="chip4"]').val()

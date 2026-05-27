@@ -24,6 +24,7 @@ class ChipController extends Controller
     {
 
         $request->validate([
+            'preset_name' => 'required|string|unique:chips,preset_name',
             'chip_1_value' => 'required|numeric',
             'chip_2_value' => 'required|numeric',
             'chip_3_value' => 'required|numeric',
@@ -45,6 +46,7 @@ class ChipController extends Controller
     {
 
         $request->validate([
+            'preset_name' => 'required|string|unique:chips,preset_name,'.$id,
             'chip_1_value' => 'required|numeric',
             'chip_2_value' => 'required|numeric',
             'chip_3_value' => 'required|numeric',

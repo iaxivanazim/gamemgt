@@ -9,6 +9,7 @@ use App\Http\Controllers\GameTypeController;
 use App\Http\Controllers\TableFloatController;
 use App\Http\Controllers\TableLedgerController;
 use App\Http\Controllers\GameHistoryController;
+use App\Http\Controllers\userController;
 use App\Models\GameType;
 use App\Models\PayoutRule;
 
@@ -70,7 +71,8 @@ Route::prefix('v1')->group(function () {
     Route::get('/history/{game}/tab/{tabId}',  [GameHistoryController::class, 'byTab']);
     Route::get('/history/{game}/{recordId}', [GameHistoryController::class, 'show']);
 
-    
+    Route::get('/users', [userController::class, 'apiIndex']);
+
 });
 
 // https://documenter.getpostman.com/view/31035377/2sBXcEmMLA

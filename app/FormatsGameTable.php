@@ -50,8 +50,9 @@ trait FormatsGameTable
 
             // ── Chip Preset ─────────────────────────────
             'chip_preset' => $chip ? [
-                'id'         => $chip->id,
-                'base_value' => (float) $chip->base_value,
+                'id'          => $chip->id,
+                'preset_name' => $chip->preset_name,
+                'base_value'  => (float) $chip->base_value,
                 'chips'      => [
                     ['position' => 1, 'value' => (float) $chip->chip_1_value],
                     ['position' => 2, 'value' => (float) $chip->chip_2_value],

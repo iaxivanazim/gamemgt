@@ -25,9 +25,18 @@
         {{-- New Preset Card (hidden by default) --}}
         <div id="newPresetCard" class="card bg-black border-warning mb-4" style="display:none !important;">
             <div class="card-body">
-                <h6 class="text-warning mb-3">New Preset</h6>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="text-warning mb-0">New Preset</h6>
+                </div>
                 <form class="chipForm" data-id="">
                     @csrf
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <label class="text-warning small mb-1">PRESET NAME</label>
+                            <input type="text" name="preset_name" class="form-control bg-dark text-white border-warning" placeholder="e.g. VIP Table Presets" required>
+                        </div>
+                    </div>
+
                     <div class="row text-center align-items-center">
                         @php $colors = ['red','blue','green','purple','gold']; @endphp
                         @for($i = 1; $i <= 5; $i++)
@@ -70,9 +79,19 @@
     @forelse($chips as $chip)
     <div class="card bg-black border-warning mb-4 preset-card" id="preset-card-{{ $chip->id }}">
         <div class="card-body">
-            <h6 class="text-warning mb-3">Preset #{{ $chip->id }}</h6>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="text-warning mb-0">{{ $chip->preset_name }}</h6>
+                <span class="text-muted small">#{{ $chip->id }}</span>
+            </div>
             <form class="chipForm" data-id="{{ $chip->id }}">
                 @csrf
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <label class="text-warning small mb-1">PRESET NAME</label>
+                        <input type="text" name="preset_name" class="form-control bg-dark text-white border-warning" value="{{ $chip->preset_name }}" required {{ $chip->status == 0 ? 'disabled' : '' }}>
+                    </div>
+                </div>
+
                 <div class="row text-center align-items-center">
                     @for($i = 1; $i <= 5; $i++)
                         <div class="col-md-2">

@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('chips', function (Blueprint $table) {
             $table->id();
 
+            $table->string('preset_name')->unique();
             $table->decimal('chip_1_value', 10, 2);
             $table->decimal('chip_2_value', 10, 2);
             $table->decimal('chip_3_value', 10, 2);

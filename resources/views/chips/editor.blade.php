@@ -3,6 +3,13 @@
     <input type="hidden" name="id" value="{{$chip->id ?? ''}}">
 
 
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <label class="form-label">Preset Name</label>
+            <input type="text" name="preset_name" value="{{ $chip->preset_name ?? '' }}" class="form-control" required>
+        </div>
+    </div>
+
     <div class="row text-center">
 
 
