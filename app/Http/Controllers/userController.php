@@ -94,7 +94,6 @@ class userController extends Controller
         $request->validate([
             'name'      => 'required|string|max:255',
             'username'  => 'required|string|max:100|unique:users,username,' . $user->id,
-            'email'     => 'required|email|unique:users,email,' . $user->id,
             'password'  => 'nullable|min:6|confirmed',
             'role_id'   => 'required|exists:roles,id',
             'card_id'   => 'nullable|string|max:100|unique:users,card_id,' . $user->id,
@@ -104,7 +103,6 @@ class userController extends Controller
         $data = [
             'name'      => $request->name,
             'username'  => $request->username,
-            'email'     => $request->email,
             'role_id'   => $request->role_id,
             'card_id'   => $request->card_id,
             'status'    => $request->status,

@@ -371,11 +371,19 @@ placeholder="Multiplier">
         const url = id ? '/chips/' + id : '/chips';
 
         $.post(url, data, function(res) {
-            Swal.fire({
-                icon: 'success'
-                , title: res.message
-            }).then(() => location.reload());
-        });
+    Swal.fire({
+        icon: 'success',
+        title: res.message
+    }).then(() => location.reload());
+}).fail(function(xhr) {
+    if (xhr.status === 403) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Access Denied',
+            text: 'You do not have permission to perform this action.'
+        }).then(() => location.reload(true));
+    }
+});
     });
 
     // Delete a preset (soft delete → status 0)

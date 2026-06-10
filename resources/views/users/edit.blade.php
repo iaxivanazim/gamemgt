@@ -44,7 +44,8 @@
                         <label>Card ID</label>
                         <input type="text" name="card_id"
                             value="{{ $user->card_id }}"
-                            class="form-control bg-secondary text-white">
+                            class="form-control bg-secondary text-white"
+                            onkeydown="if(event.keyCode == 13) { event.preventDefault(); return false; }">
                     </div>
                 </div>
 

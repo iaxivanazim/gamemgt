@@ -51,7 +51,12 @@ class GameTable extends Model
     public function currentFloat()
     {
         return $this->hasOne(TableFloat::class, 'table_id')
-            ->where('status', 1); // status=1 = open
+            ->whereNull('closed_at');
+    }
+
+    public function isFloatOpen(): bool
+    {
+        return !is_null($this->currentFloat);
     }
 
     public function getLiveFloatAttribute(): ?float

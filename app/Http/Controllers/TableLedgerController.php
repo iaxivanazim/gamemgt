@@ -81,7 +81,7 @@ class TableLedgerController extends Controller
                 // 1. Validate open session exists for this gameday
                 $session = TableFloat::where('table_id', $request->table_id)
                                      ->where('gameday', $gameday)
-                                     ->where('status', 0) // 0=open
+                                     ->where('status', 1) // 1=open
                                      ->first();
 
                 if (!$session) {

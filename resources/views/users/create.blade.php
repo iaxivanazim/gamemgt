@@ -36,7 +36,8 @@
 
                     <div class="col-md-6">
                         <label>Card ID</label>
-                        <input type="text" name="card_id" class="form-control bg-secondary text-white">
+                        <input type="text" name="card_id" class="form-control bg-secondary text-white"
+                            onkeydown="if(event.keyCode == 13) { event.preventDefault(); return false; }">
                     </div>
                 </div>
 

@@ -172,6 +172,11 @@ class GameTableController extends Controller
 
     public function edit(GameTable $gameTable)
     {
+        if ($gameTable->isFloatOpen()) {
+            return redirect()->route('game_tables.index')
+                ->with('error', "Table '{$gameTable->table_name}' is currently OPEN. You must close the table float before editing its configuration.");
+        }
+
         $gameTable->load(['gameType', 'config.preset.chipPreset']);
         $gameTypes    = GameType::where('status', 1)->get();
         $chipPresets  = Chip::where('status', 1)->get();
@@ -198,6 +203,11 @@ class GameTableController extends Controller
 
     public function update(Request $request, GameTable $gameTable)
     {
+        if ($gameTable->isFloatOpen()) {
+            return redirect()->route('game_tables.index')
+                ->with('error', "Table '{$gameTable->table_name}' is currently OPEN. You must close the table float before updating its configuration.");
+        }
+
         $request->validate([
             'table_name'     => 'required|string|max:255|unique:game_tables,table_name,' . $gameTable->id,
             'game_type_id'   => 'required|exists:game_types,id',
@@ -275,6 +285,11 @@ class GameTableController extends Controller
 
     public function deactivate(GameTable $gameTable)
     {
+        if ($gameTable->isFloatOpen()) {
+            return redirect()->route('game_tables.index')
+                ->with('error', "Table '{$gameTable->table_name}' is currently OPEN. You must close the table float before deactivating it.");
+        }
+
         $gameTable->update(['status' => 0]);
 
         return redirect()

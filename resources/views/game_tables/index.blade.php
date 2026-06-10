@@ -317,10 +317,19 @@
                         {{-- ── FAR RIGHT: Actions ── --}}
                         <div class="col-md-2 d-flex flex-column align-items-center justify-content-center gap-2 p-3">
 
-                            <a href="{{ route('game_tables.edit', $table->id) }}"
-                                class="btn btn-sm btn-outline-warning w-100">
-                                <i class="bi bi-pencil-square me-1"></i>Edit
-                            </a>
+                            @php $isLocked = $table->isFloatOpen(); @endphp
+
+                            @if($isLocked)
+                                <button class="btn btn-sm btn-outline-secondary w-100 disabled" 
+                                    title="Table is currently open. Close float to edit.">
+                                    <i class="bi bi-lock-fill me-1"></i>Locked
+                                </button>
+                            @else
+                                <a href="{{ route('game_tables.edit', $table->id) }}"
+                                    class="btn btn-sm btn-outline-warning w-100">
+                                    <i class="bi bi-pencil-square me-1"></i>Edit
+                                </a>
+                            @endif
 
                             {{-- Unregister MAC --}}
                             @if ($table->active_mac)
@@ -328,6 +337,7 @@
                                     class="w-100">
                                     @csrf
                                     <button type="submit" class="btn btn-sm btn-outline-secondary w-100"
+                                        {{ $isLocked ? 'disabled' : '' }}
                                         onclick="return confirm('Unregister MAC {{ $table->active_mac }} from this table?')">
                                         <i class="bi bi-pc-display me-1"></i>Unregister MAC
                                     </button>
@@ -345,6 +355,7 @@
                                     class="w-100">
                                     @csrf
                                     <button type="submit" class="btn btn-sm btn-outline-danger w-100"
+                                        {{ $isLocked ? 'disabled' : '' }}
                                         onclick="return confirm('Deactivate this table?')">
                                         <i class="bi bi-pause-circle me-1"></i>Deactivate
                                     </button>

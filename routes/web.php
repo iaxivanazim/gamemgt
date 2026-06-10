@@ -11,6 +11,7 @@ use App\Http\Controllers\PayoutRuleController;
 use App\Http\Controllers\ChipController;
 use App\Http\Controllers\GameHistoryController;
 use App\Http\Controllers\TableLedgerController;
+use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -89,6 +90,7 @@ Route::middleware('auth')->group(function () {
     // Route::get('/history', [GameHistoryController::class, 'index'])->name('history.index')->middleware('permission:view-history');
     Route::get('/history',                  [GameHistoryController::class, 'index'])->name('history.index')->middleware('permission:view-history');
     Route::get('/ledger',                   [TableLedgerController::class, 'index'])->name('ledger.index')->middleware('permission:view-ledger');
+    Route::get('/reports',                  [ReportController::class, 'index'])->name('reports.index');
 });
 
 
