@@ -76,12 +76,12 @@ class TableFloatController extends Controller
             }
 
             // 4. If closed session exists for today, prevent re-opening
-            if ($existing && $existing->status === 0) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "Table '{$gameTable->table_name}' has already been opened and closed today. Cannot reopen.",
-                ], 422);
-            }
+            // if ($existing && $existing->status === 0) {
+            //     return response()->json([
+            //         'success' => false,
+            //         'message' => "Table '{$gameTable->table_name}' has already been opened and closed today. Cannot reopen.",
+            //     ], 422);
+            // }
 
             // 5. Open the table — float_open pulled from game_table
             $session = TableFloat::create([

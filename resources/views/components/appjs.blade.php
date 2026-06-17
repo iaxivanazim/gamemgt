@@ -549,8 +549,9 @@ syncJackpotSeeds();
     });
 }
 
-document.getElementById('tableName').addEventListener('input', function () {
-    document.getElementById('configName').value = this.value;
+document.getElementById('tableName')?.addEventListener('input', function () {
+    const configName = document.getElementById('configName');
+    if (configName) configName.value = this.value;
 });
 
 // ── Pipe value preview renderer ───────────────────────────────────────
@@ -590,7 +591,7 @@ const minMaxPairs = [
 ];
 
 // ── Pipe min/max cross validation on submit ───────────────────────────
-document.getElementById('masterForm').addEventListener('submit', function (e) {
+document.getElementById('masterForm')?.addEventListener('submit', function (e) {
     let hasError = false;
 
     // ── existing minMaxPairs validation (unchanged) ──
@@ -652,8 +653,27 @@ document.getElementById('masterForm').addEventListener('submit', function (e) {
 
 // ── Commission dropdown hint (both banker + B6) ───────────────────────
 document.getElementById('b6CommissionSelect')?.addEventListener('change', function () {
-    document.getElementById('bankerMultiplier').textContent = this.value == 1 ? '0.95x' : '1x';
-    document.getElementById('b6Multiplier').textContent     = this.value == 1 ? '0.95x' : '0.50x';
+    const val = this.value;
+    const bankerMult = val == 1 ? '0.95x' : '1x';
+    const b6Mult     = val == 1 ? '0.95x' : '0.50x';
+
+    const bankerHint = document.getElementById('bankerMultiplier');
+    const b6Hint     = document.getElementById('b6Multiplier');
+
+    if (bankerHint) bankerHint.textContent = bankerMult;
+    if (b6Hint)     b6Hint.textContent     = b6Mult;
+
+    // Update table rows
+    const bankerToggle = document.querySelector('.payout-toggle[data-position="B"]');
+    if (bankerToggle) {
+        const bankerCell = bankerToggle.closest('tr').querySelector('.text-warning.fw-bold');
+        if (bankerCell) bankerCell.textContent = bankerMult;
+    }
+    const b6Toggle = document.querySelector('.payout-toggle[data-position="B6"]');
+    if (b6Toggle) {
+        const b6Cell = b6Toggle.closest('tr').querySelector('.text-warning.fw-bold');
+        if (b6Cell) b6Cell.textContent = b6Mult;
+    }
 });
 
 // ── Sync B6 dropdown state from payout toggle ─────────────────────────
@@ -677,10 +697,25 @@ function syncB6State() {
         b6Badge.style.color      = '#6fcf97';
         b6Badge.style.border     = '1px solid #6fcf97';
 
-        // update both hints from current dropdown value
+        // update both hints and table values from current dropdown value
         const val = b6Select.value;
-        document.getElementById('bankerMultiplier').textContent = val == 1 ? '0.95x' : '1x';
-        document.getElementById('b6Multiplier').textContent     = val == 1 ? '0.95x' : '0.50x';
+        const bankerMult = val == 1 ? '0.95x' : '1x';
+        const b6Mult     = val == 1 ? '0.95x' : '0.50x';
+
+        if (document.getElementById('bankerMultiplier')) {
+            document.getElementById('bankerMultiplier').textContent = bankerMult;
+        }
+        if (document.getElementById('b6Multiplier')) {
+            document.getElementById('b6Multiplier').textContent = b6Mult;
+        }
+
+        const bankerToggle = document.querySelector('.payout-toggle[data-position="B"]');
+        if (bankerToggle) {
+            const bankerRowMultCell = bankerToggle.closest('tr').querySelector('.text-warning.fw-bold');
+            if (bankerRowMultCell) bankerRowMultCell.textContent = bankerMult;
+        }
+        const b6RowMultCell = b6Toggle.closest('tr').querySelector('.text-warning.fw-bold');
+        if (b6RowMultCell) b6RowMultCell.textContent = b6Mult;
     } else {
         b6Select.disabled        = true;
         b6Select.style.color     = '#555';
@@ -692,8 +727,22 @@ function syncB6State() {
         b6Badge.style.border     = '1px solid #eb5757';
 
         // reset hints
-        document.getElementById('bankerMultiplier').textContent = '—';
-        document.getElementById('b6Multiplier').textContent     = '—';
+        if (document.getElementById('bankerMultiplier')) {
+            document.getElementById('bankerMultiplier').textContent = '—';
+        }
+        if (document.getElementById('b6Multiplier')) {
+            document.getElementById('b6Multiplier').textContent = '—';
+        }
+
+        // When B6 is inactive, Banker always returns to standard 0.95x commission
+        const bankerToggle = document.querySelector('.payout-toggle[data-position="B"]');
+        if (bankerToggle) {
+            const bankerRowMultCell = bankerToggle.closest('tr').querySelector('.text-warning.fw-bold');
+            if (bankerRowMultCell) bankerRowMultCell.textContent = '0.95x';
+        }
+        // B6 row itself can show its base multiplier or '-' when inactive
+        const b6RowMultCell = b6Toggle.closest('tr').querySelector('.text-warning.fw-bold');
+        if (b6RowMultCell) b6RowMultCell.textContent = '0.95x'; // or whatever the default is
     }
 }
 

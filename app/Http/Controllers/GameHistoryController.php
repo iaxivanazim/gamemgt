@@ -116,9 +116,14 @@ class GameHistoryController extends Controller
 
         $gameNo = $request->input('game_no');
         
-        // If no game_no, get the latest one from the table
+        // If no game_no, get the latest one from the table that matches filters
         if (!$gameNo) {
-            $latest = $model::where('table_id', $id)->orderBy('date_time', 'desc')->first();
+            $latest = $model::where('table_id', $id)
+                ->when($request->tab_id, fn($q) => $q->where('tab_id', $request->tab_id))
+                ->when($request->date,   fn($q) => $q->whereDate('date_time', $request->date))
+                ->when($request->winner, fn($q) => $q->where('winner', $request->winner))
+                ->orderBy('date_time', 'desc')
+                ->first();
             $gameNo = $latest ? $latest->game_no : null;
         }
 
@@ -126,12 +131,16 @@ class GameHistoryController extends Controller
             ->when($gameNo, fn($q) => $q->where('game_no', $gameNo))
             ->when($request->tab_id, fn($q) => $q->where('tab_id', $request->tab_id))
             ->when($request->date,   fn($q) => $q->whereDate('date_time', $request->date))
+            ->when($request->winner, fn($q) => $q->where('winner', $request->winner))
             ->orderBy('date_time', 'desc');
 
         $data = $query->get();
 
-        // Get navigation list (distinct game_nos ordered by time)
+        // Get navigation list (distinct game_nos ordered by time) that match filters
         $gameNos = $model::where('table_id', $id)
+            ->when($request->tab_id, fn($q) => $q->where('tab_id', $request->tab_id))
+            ->when($request->date,   fn($q) => $q->whereDate('date_time', $request->date))
+            ->when($request->winner, fn($q) => $q->where('winner', $request->winner))
             ->select('game_no')
             ->groupBy('game_no')
             ->orderByRaw('MAX(date_time) DESC')

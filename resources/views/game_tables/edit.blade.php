@@ -51,7 +51,7 @@
                     <div class="row g-3">
                         <div class="col-md-4">
                             <label class="text-light small">Table Name</label>
-                            <input type="text" name="table_name"
+                            <input type="text" name="table_name" id="tableName"
                                 class="form-control bg-black text-white border-secondary"
                                 value="{{ old('table_name', $gameTable->table_name) }}" required>
                         </div>
@@ -514,7 +514,18 @@
                                         </td>
                                         <td class="text-light">{{ $rule->bet_position ?? '—' }}</td>
                                         <td class="text-warning fw-bold">
-                                            {{ $rule->payout_multiplier ? $rule->payout_multiplier . 'x' : '—' }}
+                                            @php
+                                                $multiplier = $rule->payout_multiplier;
+                                                if ($code === 'BAC') {
+                                                    $commission = old('config.baccarat_6_commission', $preset?->baccarat_6_commission ?? 1);
+                                                    if ($rule->bet_position === 'B') {
+                                                        $multiplier = $commission ? 0.95 : 1.0;
+                                                    } elseif ($rule->bet_position === 'B6') {
+                                                        $multiplier = $commission ? 0.95 : 0.5;
+                                                    }
+                                                }
+                                            @endphp
+                                            {{ $multiplier ? $multiplier . 'x' : '—' }}
                                         </td>
                                         <td>
                                             <div class="form-check form-switch d-flex justify-content-center">
@@ -587,3 +598,4 @@
         });
     </script>
 </x-app-layout>
+

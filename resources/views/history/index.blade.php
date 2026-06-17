@@ -42,10 +42,15 @@
               @endforeach
             </select>
           </div>
-          <div class="col-md-2">
+          <div class="col-md-1">
+            <label class="form-label text-secondary small mb-1">Game No</label>
+            <input type="text" name="game_no" value="{{ request('game_no') }}"
+              class="form-control form-control-sm bg-black text-white border-secondary" placeholder="G#...">
+          </div>
+          <div class="col-md-1">
             <label class="form-label text-secondary small mb-1">Tab ID</label>
             <input type="text" name="tab_id" value="{{ request('tab_id') }}"
-              class="form-control form-control-sm bg-black text-white border-secondary" placeholder="Player tab...">
+              class="form-control form-control-sm bg-black text-white border-secondary" placeholder="Tab...">
           </div>
           <div class="col-md-2">
             <label class="form-label text-secondary small mb-1">Date</label>
@@ -72,9 +77,9 @@
               @endforeach
             </select>
           </div>
-          <div class="col-md-2 d-flex gap-2">
+          <div class="col-md-2 d-flex gap-1">
             <button type="submit" class="btn btn-warning btn-sm flex-fill">
-              <i class="bi bi-search"></i> Search
+              <i class="bi bi-search"></i>
             </button>
             <a href="{{ route('history.index') }}" class="btn btn-outline-secondary btn-sm">
               <i class="bi bi-x"></i>
