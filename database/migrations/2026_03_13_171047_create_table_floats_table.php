@@ -25,7 +25,7 @@ return new class extends Migration
             $table->timestamps();
 
             // one active session per table per gameday
-            $table->unique(['table_id', 'gameday']);
+            // $table->unique(['table_id', 'gameday']);
         });
     }
 

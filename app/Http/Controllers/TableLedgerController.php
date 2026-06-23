@@ -215,6 +215,7 @@ class TableLedgerController extends Controller
 
             $session = TableFloat::where('table_id', $tableId)
                                   ->where('gameday', $gameday)
+                                  ->latest('float_id')
                                   ->first();
 
             $txns = TableLedger::where('table_id', $tableId)

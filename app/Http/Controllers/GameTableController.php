@@ -557,6 +557,7 @@ class GameTableController extends Controller
             // 1. Check active session for this gameday
             $session = TableFloat::where('table_id', $id)
                 ->where('gameday', $gameday)
+                ->latest('float_id')
                 ->first();
 
             if (!$session) {

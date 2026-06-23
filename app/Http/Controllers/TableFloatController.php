@@ -61,29 +61,21 @@ class TableFloatController extends Controller
                 ], 422);
             }
 
-            // 3. Check if already open today
-            $existing = TableFloat::where('table_id', $id)
-                ->where('gameday', $request->gameday)
+            $openSession = TableFloat::where('table_id', $id)
+                ->whereDate('gameday', $request->gameday)
+                ->where('status', 1)
                 ->first();
 
-            if ($existing && $existing->status === 1) {
+            if ($openSession) {
                 return response()->json([
                     'success' => false,
                     'message' => "Table '{$gameTable->table_name}' is already open for today's gameday.",
-                    'session' => $this->formatSession($existing),
+                    'session' => $this->formatSession($openSession),
                     'last_game_no' => $this->getLastGameNo($gameTable),
                 ], 422);
             }
 
-            // 4. If closed session exists for today, prevent re-opening
-            // if ($existing && $existing->status === 0) {
-            //     return response()->json([
-            //         'success' => false,
-            //         'message' => "Table '{$gameTable->table_name}' has already been opened and closed today. Cannot reopen.",
-            //     ], 422);
-            // }
-
-            // 5. Open the table — float_open pulled from game_table
+            // 4. Open the table (always create a new row/session)
             $session = TableFloat::create([
                 'table_id'   => $gameTable->id,
                 'float_open' => $request->float_open,
@@ -131,7 +123,7 @@ class TableFloatController extends Controller
 
             // 1. Find today's open session
             $session = TableFloat::where('table_id', $id)
-                ->where('gameday', $request->gameday)
+                ->whereDate('gameday', $request->gameday)
                 ->where('status', 1)
                 ->first();
 
@@ -191,7 +183,8 @@ class TableFloatController extends Controller
             $gameTable = GameTable::findOrFail($id);
 
             $session = TableFloat::where('table_id', $id)
-                ->where('gameday', $request->gameday)
+                ->whereDate('gameday', $request->gameday)
+                ->latest('float_id')
                 ->first();
 
             if (!$session) {
