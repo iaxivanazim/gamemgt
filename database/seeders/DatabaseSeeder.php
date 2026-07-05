@@ -21,7 +21,8 @@ class DatabaseSeeder extends Seeder
         PermissionSeeder::class,
         RolePermissionSeeder::class,
         GameTypeSeeder::class,
-        PayoutRuleSeeder::class
+        PayoutRuleSeeder::class,
+        ShoeTypeSeeder::class,
     ]);
 
         // User::factory()->create([

@@ -28,6 +28,12 @@ trait FormatsGameTable
             'float_reference' => (float) $table->float,
             'felt_color' => $table->felt_color,
 
+            // ── Shoe Type ───────────────────────────────
+            'shoe_type' => $table->shoeType ? [
+                'id'        => $table->shoeType->id,
+                'shoe_name' => $table->shoeType->shoe_name,
+            ] : null,
+
             // ── Game Type ───────────────────────────────
             'game_type' => $table->gameType ? [
                 'id'          => $table->gameType->id,

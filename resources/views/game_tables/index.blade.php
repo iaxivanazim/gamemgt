@@ -1,11 +1,78 @@
 <x-app-layout>
+@php
+    // Collect all tables that have been open for more than 25 hours and are not closed
+    $overdueAlerts = $tables->filter(function ($t) {
+        $float = $t->currentFloat;
+        if (!$float || !$float->opened_at) return false;
+        return \Carbon\Carbon::parse($float->opened_at)->diffInHours(now()) >= 25;
+    })->map(function ($t) {
+        $float   = $t->currentFloat;
+        $hours   = \Carbon\Carbon::parse($float->opened_at)->diffInHours(now());
+        $minutes = \Carbon\Carbon::parse($float->opened_at)->diffInMinutes(now()) % 60;
+        return [
+            'table_name' => $t->table_name,
+            'gameday'    => $float->gameday,
+            'opened_at'  => \Carbon\Carbon::parse($float->opened_at)->format('d M Y, h:i A'),
+            'duration'   => "{$hours}h {$minutes}m",
+        ];
+    })->values();
+@endphp
     <div class="content-wrapper p-4">
 
         {{-- Header --}}
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-            <h5 class="text-warning mb-0">
-                <i class="bi bi-grid-3x3-gap-fill me-2"></i>Game Tables
-            </h5>
+            <div class="d-flex align-items-center gap-3">
+                <h5 class="text-warning mb-0">
+                    <i class="bi bi-grid-3x3-gap-fill me-2"></i>Game Tables
+                </h5>
+
+                {{-- ── Overdue Notification Bell ── --}}
+                @if($overdueAlerts->isNotEmpty())
+                <div class="position-relative" id="notif-bell-wrapper">
+                    <button id="notif-bell-btn"
+                        class="btn p-0 border-0 position-relative notif-bell-btn"
+                        onclick="toggleNotifPanel()"
+                        title="{{ $overdueAlerts->count() }} table(s) open for over 25 hours">
+                        <i class="bi bi-bell-fill notif-bell-icon"></i>
+                        <span class="notif-badge" id="notif-badge">{{ $overdueAlerts->count() }}</span>
+                    </button>
+
+                    {{-- Dropdown Panel --}}
+                    <div id="notif-panel" class="notif-panel d-none">
+                        <div class="notif-panel-header">
+                            <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
+                            <span>Long-Running Sessions</span>
+                            <button class="notif-close-btn ms-auto" onclick="toggleNotifPanel()">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                        <div class="notif-panel-body">
+                            @foreach($overdueAlerts as $alert)
+                            <div class="notif-item">
+                                <div class="notif-item-header">
+                                    <i class="bi bi-table text-warning me-1" style="font-size:11px;"></i>
+                                    <span class="notif-table-name">{{ $alert['table_name'] }}</span>
+                                    <span class="notif-duration-badge">{{ $alert['duration'] }}</span>
+                                </div>
+                                <div class="notif-item-meta">
+                                    <span><i class="bi bi-calendar3 me-1"></i>{{ $alert['gameday'] }}</span>
+                                    <span><i class="bi bi-clock me-1"></i>Opened {{ $alert['opened_at'] }}</span>
+                                </div>
+                                <div class="notif-item-warning">
+                                    <i class="bi bi-exclamation-circle-fill me-1"></i>
+                                    Session unclosed for more than 25 hours. Please close this table.
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                        <div class="notif-panel-footer">
+                            <i class="bi bi-info-circle me-1"></i>
+                            {{ $overdueAlerts->count() }} session(s) require attention
+                        </div>
+                    </div>
+                </div>
+                @endif
+            </div>
             
             <div class="d-flex flex-wrap align-items-center gap-2">
                 {{-- Search & Sort --}}
@@ -152,6 +219,18 @@
                                         ● INACTIVE
                                     </span>
                                 @endif
+                                @php $isOpen = $table->isFloatOpen(); @endphp
+                                @if($isOpen)
+                                    <span class=""
+                                        style=" color:#ffffff;  font-size:15px;">
+                                        Game Day: <b>{{ $table->currentFloat->gameday }}</b>
+                                    </span>
+                                @else
+                                    <span class=""
+                                        style=" color:#ffffff;  font-size:10px;">
+                                        No Open Float
+                                    </span>
+                                @endif
                             </div>
 
                             <div class="d-flex flex-wrap gap-3 mt-2">
@@ -171,6 +250,12 @@
                                     <span class="text-secondary small">
                                         <i class="bi bi-cash-stack me-1"></i>Float:
                                         <span class="text-secondary">{{ number_format($table->float, 2) }}</span>
+                                    </span>
+                                @endif
+                                @if ($table->shoeType)
+                                    <span class="text-secondary small">
+                                        <i class="bi bi-stack me-1"></i>Shoe:
+                                        <span class="text-warning">{{ $table->shoeType->shoe_name }}</span>
                                     </span>
                                 @endif
                             </div>
@@ -492,3 +577,181 @@
 
     </div>
 </x-app-layout>
+
+{{-- ══════════════════════════════════════════
+     Overdue Session Bell — Styles & Script
+══════════════════════════════════════════ --}}
+<style>
+/* ── Bell button ── */
+.notif-bell-btn {
+    background: transparent;
+    cursor: pointer;
+    outline: none;
+    line-height: 1;
+}
+.notif-bell-icon {
+    font-size: 22px;
+    color: #ffc107;
+    animation: bellRing 1.4s ease-in-out infinite;
+    display: block;
+    filter: drop-shadow(0 0 6px #ffc10788);
+}
+@keyframes bellRing {
+    0%,100% { transform: rotate(0deg); }
+    10%      { transform: rotate(14deg); }
+    20%      { transform: rotate(-12deg); }
+    30%      { transform: rotate(10deg); }
+    40%      { transform: rotate(-8deg); }
+    50%      { transform: rotate(5deg); }
+    60%      { transform: rotate(0deg); }
+}
+
+/* ── Badge ── */
+.notif-badge {
+    position: absolute;
+    top: -5px;
+    right: -7px;
+    background: #e53935;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    min-width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 3px;
+    line-height: 1;
+    border: 1.5px solid #111;
+    box-shadow: 0 0 6px #e5393588;
+    pointer-events: none;
+}
+
+/* ── Panel ── */
+.notif-panel {
+    position: absolute;
+    top: calc(100% + 12px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 340px;
+    background: #141414;
+    border: 1px solid #ffc10744;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.7), 0 0 0 1px #ffc10722;
+    z-index: 1055;
+    animation: panelFadeIn 0.18s ease;
+    overflow: hidden;
+}
+@keyframes panelFadeIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(-6px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+.notif-panel-header {
+    display: flex;
+    align-items: center;
+    padding: 10px 14px;
+    border-bottom: 1px solid #2a2a2a;
+    font-size: 12px;
+    font-weight: 600;
+    color: #ffc107;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+.notif-close-btn {
+    background: transparent;
+    border: none;
+    color: #666;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    transition: color 0.2s;
+}
+.notif-close-btn:hover { color: #fff; }
+
+/* ── Panel body & items ── */
+.notif-panel-body {
+    max-height: 320px;
+    overflow-y: auto;
+    padding: 8px 0;
+}
+.notif-panel-body::-webkit-scrollbar { width: 4px; }
+.notif-panel-body::-webkit-scrollbar-track { background: transparent; }
+.notif-panel-body::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+
+.notif-item {
+    padding: 10px 14px;
+    border-bottom: 1px solid #1e1e1e;
+    transition: background 0.15s;
+}
+.notif-item:last-child { border-bottom: none; }
+.notif-item:hover { background: #1a1a1a; }
+
+.notif-item-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 5px;
+}
+.notif-table-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    flex: 1;
+}
+.notif-duration-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 20px;
+    background: #3b1a00;
+    color: #ff9800;
+    border: 1px solid #ff980055;
+    white-space: nowrap;
+}
+
+.notif-item-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 10px;
+    color: #777;
+    margin-bottom: 6px;
+}
+.notif-item-warning {
+    font-size: 10px;
+    color: #e57373;
+    background: #2e0d0d;
+    border: 1px solid #e5373333;
+    border-radius: 6px;
+    padding: 4px 8px;
+    line-height: 1.4;
+}
+
+/* ── Footer ── */
+.notif-panel-footer {
+    padding: 8px 14px;
+    border-top: 1px solid #2a2a2a;
+    font-size: 10px;
+    color: #666;
+    text-align: center;
+}
+</style>
+
+<script>
+function toggleNotifPanel() {
+    const panel = document.getElementById('notif-panel');
+    if (!panel) return;
+    panel.classList.toggle('d-none');
+}
+
+// Close panel when clicking outside
+document.addEventListener('click', function(e) {
+    const wrapper = document.getElementById('notif-bell-wrapper');
+    if (wrapper && !wrapper.contains(e.target)) {
+        const panel = document.getElementById('notif-panel');
+        if (panel) panel.classList.add('d-none');
+    }
+});
+</script>

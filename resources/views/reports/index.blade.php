@@ -15,10 +15,15 @@
         {{-- Filters --}}
         <div class="card bg-black border-warning mb-4 no-print">
             <div class="card-body">
-                <form method="GET" action="{{ route('reports.index') }}" class="row g-3 align-items-end">
+                <form method="GET" action="{{ route('reports.index') }}" class="row g-3 align-items-end"
+                    x-data="{
+                        reportType: '{{ $reportType }}',
+                        tableId: '{{ $tableId }}'
+                    }">
                     <div class="col-md-3">
                         <label class="text-light small">Report Type</label>
-                        <select name="type" class="form-select bg-black text-white border-secondary">
+                        <select name="type" class="form-select bg-black text-white border-secondary"
+                            x-model="reportType">
                             <option value="ledger" {{ $reportType == 'ledger' ? 'selected' : '' }}>Ledger Report</option>
                             <option value="float" {{ $reportType == 'float' ? 'selected' : '' }}>Table Float Report</option>
                             <option value="gameday" {{ $reportType == 'gameday' ? 'selected' : '' }}>Gaming Day Report</option>
@@ -40,7 +45,8 @@
                     @if($reportType == 'ledger' || $reportType == 'float')
                     <div class="col-md-3">
                         <label class="text-light small">Table (Optional)</label>
-                        <select name="table_id" class="form-select bg-black text-white border-secondary">
+                        <select name="table_id" class="form-select bg-black text-white border-secondary"
+                            x-model="tableId">
                             <option value="">-- All Tables --</option>
                             @foreach($tables as $table)
                                 <option value="{{ $table->id }}" {{ $tableId == $table->id ? 'selected' : '' }}>
@@ -48,6 +54,20 @@
                                 </option>
                             @endforeach
                         </select>
+                    </div>
+
+                    {{-- Tab ID filter: only for Ledger + specific table selected --}}
+                    <div class="col-md-2"
+                        x-show="reportType === 'ledger' && tableId !== ''"
+                        x-transition:enter="transition-tab-in"
+                        style="{{ ($reportType === 'ledger' && $tableId) ? '' : 'display:none;' }}">
+                        <label class="text-light small">Tab ID <span class="text-secondary">(Optional)</span></label>
+                        <input type="text"
+                            name="tab_id"
+                            value="{{ request('tab_id') }}"
+                            class="form-control bg-black text-white border-secondary"
+                            placeholder="e.g. T001"
+                            autocomplete="off">
                     </div>
                     @endif
 
@@ -65,7 +85,8 @@
                     <h4 class="text-warning">Report: {{ ucfirst($reportType) }}</h4>
                     <p class="text-light small">
                         Period: {{ $fromDate }} to {{ $toDate }}
-                        @if($tableId) | Table: {{ $tables->find($tableId)->table_name }} @endif
+                        @if($tableId) | Table: {{ $tables->find($tableId)->table_name ?? '' }} @endif
+                        @if(request('tab_id')) | Tab ID: {{ request('tab_id') }} @endif
                     </p>
                 </div>
 
@@ -76,6 +97,7 @@
                                 @if($reportType == 'ledger')
                                     <th>ID</th>
                                     <th>Table</th>
+                                    <th>Tab ID</th>
                                     <th>Type</th>
                                     <th>Amount</th>
                                     <th>Float Balance</th>
@@ -111,6 +133,16 @@
                                     @if($reportType == 'ledger')
                                         <td>{{ $row->txn_id }}</td>
                                         <td>{{ $row->gameTable->table_name ?? 'N/A' }}</td>
+                                        <td>
+                                            @if($row->tab_id)
+                                                <span class="badge rounded-pill"
+                                                    style="background:#1a1a2e; color:#a78bfa; border:1px solid #a78bfa55; font-size:10px; font-family:monospace;">
+                                                    {{ $row->tab_id }}
+                                                </span>
+                                            @else
+                                                <span class="text-muted">—</span>
+                                            @endif
+                                        </td>
                                         <td>
                                             @php
                                                 $badgeClass = match($row->txn_type) {

@@ -17,6 +17,7 @@ use App\Models\PayoutRule;
 use App\Models\GameTablePayoutRule;
 use App\Models\TableLedger;
 use App\Models\TableFloat;
+use App\Models\ShoeType;
 use App\Rules\PipeSeparatedNumbers;
 use Illuminate\Support\Facades\DB;
 
@@ -53,7 +54,7 @@ class GameTableController extends Controller
         if (!in_array($sortBy, $allowedSorts)) $sortBy = 'created_at';
         if (!in_array($order, ['asc', 'desc'])) $order = 'desc';
 
-        $query = GameTable::with(['gameType', 'config.preset.chipPreset', 'payoutRules.payoutRule', 'currentFloat'])
+        $query = GameTable::with(['gameType', 'shoeType', 'config.preset.chipPreset', 'payoutRules.payoutRule', 'currentFloat'])
             ->where('status', $status);
 
         if ($macFilter === 'bound') {
@@ -77,7 +78,8 @@ class GameTableController extends Controller
     {
         $gameTypes  = GameType::where('status', 1)->get();
         $chipPresets = Chip::where('status', 1)->get();
-        return view('game_tables.create', compact('gameTypes', 'chipPresets'));
+        $shoeTypes  = ShoeType::orderBy('id')->get();
+        return view('game_tables.create', compact('gameTypes', 'chipPresets', 'shoeTypes'));
     }
 
     public function store(Request $request)
@@ -88,6 +90,7 @@ class GameTableController extends Controller
             'active_mac'     => 'nullable|string|max:255',
             'float'          => 'nullable|numeric',
             'felt_color'     => 'nullable|string|max:50',
+            'shoe_type_id'   => 'nullable|exists:shoe_types,id',
             'chip_preset_id' => 'required|exists:chips,id',
             'config.name'    => 'required|string|max:255',
             'config.min_bet' => ['required', new PipeSeparatedNumbers],
@@ -109,6 +112,7 @@ class GameTableController extends Controller
                 'active_mac'   => $request->active_mac,
                 'float'        => $request->float,
                 'felt_color'   => $request->felt_color,
+                'shoe_type_id' => $request->shoe_type_id,
                 'status'       => 1,
             ]);
 
@@ -180,6 +184,7 @@ class GameTableController extends Controller
         $gameTable->load(['gameType', 'config.preset.chipPreset']);
         $gameTypes    = GameType::where('status', 1)->get();
         $chipPresets  = Chip::where('status', 1)->get();
+        $shoeTypes    = ShoeType::orderBy('id')->get();
 
         // Get global payout rules merged with this table's saved overrides
         $payoutRules = PayoutRule::where('game_type_id', $gameTable->game_type_id)
@@ -197,6 +202,7 @@ class GameTableController extends Controller
             'gameTable',
             'gameTypes',
             'chipPresets',
+            'shoeTypes',
             'payoutRules'
         ));
     }
@@ -214,6 +220,7 @@ class GameTableController extends Controller
             'active_mac'     => 'nullable|string|max:255',
             'float'          => 'nullable|numeric',
             'felt_color'     => 'nullable|string|max:50',
+            'shoe_type_id'   => 'nullable|exists:shoe_types,id',
             'chip_preset_id' => 'required|exists:chips,id',
             'config.name'    => 'required|string|max:255',
             'config.min_bet' => ['required', new PipeSeparatedNumbers],
@@ -229,10 +236,11 @@ class GameTableController extends Controller
 
             // 1. Update game table
             $gameTable->update([
-                'table_name' => $request->table_name,
-                'active_mac' => $request->active_mac,
-                'float'      => $request->float,
-                'felt_color' => $request->felt_color,
+                'table_name'   => $request->table_name,
+                'active_mac'   => $request->active_mac,
+                'float'        => $request->float,
+                'felt_color'   => $request->felt_color,
+                'shoe_type_id' => $request->shoe_type_id,
             ]);
 
             // 2. Update preset
@@ -390,6 +398,7 @@ class GameTableController extends Controller
         try {
             $tables = GameTable::with([
                 'gameType',
+                'shoeType',
                 'config.preset.chipPreset',
                 'payoutRules.payoutRule'
             ])
@@ -421,6 +430,7 @@ class GameTableController extends Controller
         try {
             $table = GameTable::with([
                 'gameType',
+                'shoeType',
                 'config.preset.chipPreset',
                 'payoutRules.payoutRule'
             ])

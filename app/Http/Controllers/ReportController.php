@@ -17,25 +17,26 @@ class ReportController extends Controller
         $fromDate = $request->input('from_date', now()->format('Y-m-d'));
         $toDate = $request->input('to_date', now()->format('Y-m-d'));
         $tableId = $request->input('table_id');
+        $tabId   = $request->input('tab_id');
 
         $tables = GameTable::where('status', 1)->get();
-        $data = $this->getReportData($reportType, $fromDate, $toDate, $tableId);
+        $data = $this->getReportData($reportType, $fromDate, $toDate, $tableId, $tabId);
 
         if ($request->has('export')) {
             return $this->exportReport($reportType, $data);
         }
 
-        return view('reports.index', compact('tables', 'data', 'reportType', 'fromDate', 'toDate', 'tableId'));
+        return view('reports.index', compact('tables', 'data', 'reportType', 'fromDate', 'toDate', 'tableId', 'tabId'));
     }
 
-    private function getReportData($type, $from, $to, $tableId = null)
+    private function getReportData($type, $from, $to, $tableId = null, $tabId = null)
     {
         return match ($type) {
-            'float' => $this->getFloatReport($from, $to, $tableId),
+            'float'   => $this->getFloatReport($from, $to, $tableId),
             'gameday' => $this->getGameDayReport($from, $to),
-            'ledger' => $this->getLedgerReport($from, $to, $tableId),
-            'table' => $this->getTableReport(),
-            default => collect(),
+            'ledger'  => $this->getLedgerReport($from, $to, $tableId, $tabId),
+            'table'   => $this->getTableReport(),
+            default   => collect(),
         };
     }
 
@@ -56,13 +57,18 @@ class ReportController extends Controller
         return GameDay::whereBetween('gaming_date', [$from, $to])->get();
     }
 
-    private function getLedgerReport($from, $to, $tableId)
+    private function getLedgerReport($from, $to, $tableId, $tabId = null)
     {
         $query = TableLedger::with('gameTable')
             ->whereBetween('gameday', [$from, $to]);
 
         if ($tableId) {
             $query->where('table_id', $tableId);
+
+            // Tab ID filter is only meaningful when scoped to a specific table
+            if ($tabId) {
+                $query->where('tab_id', $tabId);
+            }
         }
 
         return $query->get();

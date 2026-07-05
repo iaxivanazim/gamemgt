@@ -15,6 +15,7 @@ class GameTable extends Model
         'bet_index',
         'status',
         'felt_color',
+        'shoe_type_id',
     ];
 
     protected $casts = [
@@ -24,6 +25,11 @@ class GameTable extends Model
     public function gameType()
     {
         return $this->belongsTo(GameType::class);
+    }
+
+    public function shoeType()
+    {
+        return $this->belongsTo(ShoeType::class);
     }
 
     // public function theme()

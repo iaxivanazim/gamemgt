@@ -61,16 +61,22 @@ class TableFloatController extends Controller
                 ], 422);
             }
 
-            $openSession = TableFloat::where('table_id', $id)
-                ->whereDate('gameday', $request->gameday)
+            // 3a. Check if there is ANY open session (regardless of gameday)
+            $anyOpenSession = TableFloat::where('table_id', $id)
                 ->where('status', 1)
                 ->first();
 
-            if ($openSession) {
+            if ($anyOpenSession) {
+                $sameDay = \Carbon\Carbon::parse($anyOpenSession->gameday)->toDateString() === $request->gameday;
+
+                $message = $sameDay
+                    ? "Table '{$gameTable->table_name}' is already open for today's gameday."
+                    : "Table '{$gameTable->table_name}' has an unclosed session from gameday {$anyOpenSession->gameday}. Please close it before opening a new session.";
+
                 return response()->json([
                     'success' => false,
-                    'message' => "Table '{$gameTable->table_name}' is already open for today's gameday.",
-                    'session' => $this->formatSession($openSession),
+                    'message' => $message,
+                    'session' => $this->formatSession($anyOpenSession),
                     'last_game_no' => $this->getLastGameNo($gameTable),
                 ], 422);
             }

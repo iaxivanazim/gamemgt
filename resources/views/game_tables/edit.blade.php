@@ -123,6 +123,19 @@
                                 </span>
                             </div>
                         </div>
+                        <div class="col-md-4">
+                            <label class="text-light small">Shoe Type</label>
+                            <select name="shoe_type_id" id="shoeTypeSelect"
+                                class="form-select bg-black text-white border-secondary">
+                                <option value="">-- Select Shoe Type --</option>
+                                @foreach ($shoeTypes as $shoe)
+                                    <option value="{{ $shoe->id }}"
+                                        {{ old('shoe_type_id', $gameTable->shoe_type_id) == $shoe->id ? 'selected' : '' }}>
+                                        {{ $shoe->shoe_name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
                 </div>
             </div>
