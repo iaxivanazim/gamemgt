@@ -46,11 +46,25 @@ class GameHistoryController extends Controller
             $normalizedGame = $this->gameMap[strtoupper($selectedGame)][2];
         }
 
+        $tabIds = [];
+
         if ($selectedGame && $tableId) {
             $req = Request::create('', 'GET', $request->all());
             $response      = $this->byTable($req, $selectedGame, (int) $tableId);
             $records       = $response->getData(true);
             $selectedTable = GameTable::with('gameType')->find($tableId);
+
+            // Fetch distinct tab IDs for this table from the correct history table
+            if (isset($this->gameMap[strtoupper($selectedGame)])) {
+                $modelClass = $this->gameMap[strtoupper($selectedGame)][0];
+                $tabIds = $modelClass::where('table_id', $tableId)
+                    ->whereNotNull('tab_id')
+                    ->where('tab_id', '!=', '')
+                    ->distinct()
+                    ->orderBy('tab_id')
+                    ->pluck('tab_id')
+                    ->toArray();
+            }
         }
 
         return view('history.index', compact(
@@ -59,7 +73,8 @@ class GameHistoryController extends Controller
             'records',
             'selectedTable',
             'selectedGame',
-            'normalizedGame'
+            'normalizedGame',
+            'tabIds'
         ));
     }
 

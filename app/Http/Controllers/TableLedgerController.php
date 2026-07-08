@@ -431,7 +431,7 @@ class TableLedgerController extends Controller
             'CREDIT'  =>  $current + $amount,   // vault transfer (counted in float)
             'DROP'    =>  $current - $amount,   // cash removed to cashier
             'ADJUST'  =>  $current + $amount,   // can be +/- (send negative amount for deduction)
-            'CASHOUT' =>  $current - $amount,   // player takes cash out
+            'CASHOUT' =>  $current - abs($amount),   // player takes cash out
             'BUYIN'   =>  $current + $amount,   // player converts cash to chips
             'PAYOUT'  =>  $current,             // accounting only, no float change
             'VOID'    =>  $current,             // void doesn't change float (handled by opposite txn)
@@ -455,7 +455,7 @@ class TableLedgerController extends Controller
 
         return match($type) {
             'BUYIN'   => $currentTab + $amount,  // player adds credit
-            'CASHOUT' => $currentTab - $amount,  // player withdraws
+            'CASHOUT' => $currentTab - abs($amount),  // player withdraws
             'PAYOUT'  => $currentTab + $amount,  // winnings credited to tab
             'CREDIT'  => $currentTab + $amount,  // credit added to tab
             'VOID'    => $currentTab,             // void doesn't affect tab (handled by opposite txn)

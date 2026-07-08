@@ -62,12 +62,20 @@
                         x-transition:enter="transition-tab-in"
                         style="{{ ($reportType === 'ledger' && $tableId) ? '' : 'display:none;' }}">
                         <label class="text-light small">Tab ID <span class="text-secondary">(Optional)</span></label>
-                        <input type="text"
-                            name="tab_id"
-                            value="{{ request('tab_id') }}"
-                            class="form-control bg-black text-white border-secondary"
-                            placeholder="e.g. T001"
-                            autocomplete="off">
+                        @if(empty($tabIds))
+                            <select name="tab_id" class="form-select bg-black text-secondary border-secondary" disabled>
+                                <option>— Select Table —</option>
+                            </select>
+                        @else
+                            <select name="tab_id" class="form-select bg-black text-white border-secondary">
+                                <option value="">All Tabs</option>
+                                @foreach($tabIds as $tid)
+                                    <option value="{{ $tid }}" {{ $tabId == $tid ? 'selected' : '' }}>
+                                        {{ $tid }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        @endif
                     </div>
                     @endif
 

@@ -22,11 +22,23 @@ class ReportController extends Controller
         $tables = GameTable::where('status', 1)->get();
         $data = $this->getReportData($reportType, $fromDate, $toDate, $tableId, $tabId);
 
+        // Distinct tab IDs for the dropdown — only meaningful for ledger + specific table
+        $tabIds = [];
+        if ($reportType === 'ledger' && $tableId) {
+            $tabIds = TableLedger::where('table_id', $tableId)
+                ->whereNotNull('tab_id')
+                ->where('tab_id', '!=', '')
+                ->distinct()
+                ->orderBy('tab_id')
+                ->pluck('tab_id')
+                ->toArray();
+        }
+
         if ($request->has('export')) {
             return $this->exportReport($reportType, $data);
         }
 
-        return view('reports.index', compact('tables', 'data', 'reportType', 'fromDate', 'toDate', 'tableId', 'tabId'));
+        return view('reports.index', compact('tables', 'data', 'reportType', 'fromDate', 'toDate', 'tableId', 'tabId', 'tabIds'));
     }
 
     private function getReportData($type, $from, $to, $tableId = null, $tabId = null)

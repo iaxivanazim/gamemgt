@@ -91,6 +91,10 @@ class TableFloatController extends Controller
                 'opened_at'  => now(),
             ]);
 
+            $gameTable->update([
+                'float' => $request->float_open,
+            ]);
+
             return response()->json([
                 'success' => true,
                 'message' => "Table '{$gameTable->table_name}' opened successfully.",
@@ -146,6 +150,10 @@ class TableFloatController extends Controller
                 'closed_by'   => $request->closed_by,
                 'status'      => 0,
                 'closed_at'   => now(),
+            ]);
+
+            $gameTable->update([
+                'float' => $request->float_close,
             ]);
 
             // 3. Calculate variance

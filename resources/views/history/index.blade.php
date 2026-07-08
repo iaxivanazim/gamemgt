@@ -49,8 +49,20 @@
           </div>
           <div class="col-md-1">
             <label class="form-label text-secondary small mb-1">Tab ID</label>
-            <input type="text" name="tab_id" value="{{ request('tab_id') }}"
-              class="form-control form-control-sm bg-black text-white border-secondary" placeholder="Tab...">
+            @if(empty($tabIds))
+              <select name="tab_id" class="form-select form-select-sm bg-black text-secondary border-secondary" disabled>
+                <option>— Select Table —</option>
+              </select>
+            @else
+              <select name="tab_id" class="form-select form-select-sm bg-black text-white border-secondary">
+                <option value="">All Tabs</option>
+                @foreach($tabIds as $tid)
+                  <option value="{{ $tid }}" {{ request('tab_id') == $tid ? 'selected' : '' }}>
+                    {{ $tid }}
+                  </option>
+                @endforeach
+              </select>
+            @endif
           </div>
           <div class="col-md-2">
             <label class="form-label text-secondary small mb-1">Date</label>
