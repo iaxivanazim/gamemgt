@@ -461,6 +461,9 @@ class GameTableController extends Controller
 
     public function registerMac(Request $request, $id)
     {
+        // Force JSON responses regardless of the client's Accept header
+        $request->headers->set('Accept', 'application/json');
+
         $request->validate([
             'mac_address' => [
                 'required',
