@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\GameDay;
 use App\Models\TableFloat;
 use App\Models\TableLedger;
 use App\Models\GameTable;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
 
 class ReportController extends Controller
@@ -14,13 +14,14 @@ class ReportController extends Controller
     public function index(Request $request)
     {
         $reportType = $request->input('type', 'ledger');
-        $fromDate = $request->input('from_date', now()->format('Y-m-d'));
-        $toDate = $request->input('to_date', now()->format('Y-m-d'));
-        $tableId = $request->input('table_id');
-        $tabId   = $request->input('tab_id');
+        $fromDate   = $request->input('from_date', now()->format('Y-m-d'));
+        $toDate     = $request->input('to_date', now()->format('Y-m-d'));
+        $tableId    = $request->input('table_id');
+        $tabId      = $request->input('tab_id');
+        $gameday    = $request->input('gameday', now()->format('Y-m-d'));
 
         $tables = GameTable::where('status', 1)->get();
-        $data = $this->getReportData($reportType, $fromDate, $toDate, $tableId, $tabId);
+        $data   = $this->getReportData($reportType, $fromDate, $toDate, $tableId, $tabId, $gameday);
 
         // Distinct tab IDs for the dropdown — only meaningful for ledger + specific table
         $tabIds = [];
@@ -35,17 +36,20 @@ class ReportController extends Controller
         }
 
         if ($request->has('export')) {
-            return $this->exportReport($reportType, $data);
+            return $this->exportReport($reportType, $data, $gameday);
         }
 
-        return view('reports.index', compact('tables', 'data', 'reportType', 'fromDate', 'toDate', 'tableId', 'tabId', 'tabIds'));
+        return view('reports.index', compact(
+            'tables', 'data', 'reportType',
+            'fromDate', 'toDate', 'tableId', 'tabId', 'tabIds', 'gameday'
+        ));
     }
 
-    private function getReportData($type, $from, $to, $tableId = null, $tabId = null)
+    private function getReportData($type, $from, $to, $tableId = null, $tabId = null, $gameday = null)
     {
         return match ($type) {
             'float'   => $this->getFloatReport($from, $to, $tableId),
-            'gameday' => $this->getGameDayReport($from, $to),
+            'gameday' => $this->getGameDayReport($gameday),
             'ledger'  => $this->getLedgerReport($from, $to, $tableId, $tabId),
             'table'   => $this->getTableReport(),
             default   => collect(),
@@ -64,9 +68,62 @@ class ReportController extends Controller
         return $query->get();
     }
 
-    private function getGameDayReport($from, $to)
+    private function getGameDayReport($gameday)
     {
-        return GameDay::whereBetween('gaming_date', [$from, $to])->get();
+        // 1. Load all active game tables with their game type
+        $gameTables = GameTable::with('gameType')
+            ->where('status', 1)
+            ->orderBy('id')
+            ->get();
+
+        // 2. Load all float records for this gameday, keyed by table_id
+        $floatsByTable = TableFloat::where('gameday', $gameday)
+            ->get()
+            ->keyBy('table_id');
+
+        // 3. Aggregate ledger entries per (table_id, tab_id) for this gameday
+        $ledgerAggregates = DB::table('table_ledgers')
+            ->select(
+                'table_id',
+                'tab_id',
+                DB::raw("SUM(CASE WHEN txn_type = 'FILL'   THEN amount ELSE 0 END) AS total_fills"),
+                DB::raw("SUM(CASE WHEN txn_type = 'CREDIT' THEN amount ELSE 0 END) AS total_credits"),
+                DB::raw("SUM(CASE WHEN txn_type = 'BUYIN'  THEN amount ELSE 0 END) AS total_buy"),
+                DB::raw("SUM(CASE WHEN txn_type = 'CASHOUT' THEN amount ELSE 0 END) AS total_cashout")
+            )
+            ->where('gameday', $gameday)
+            ->whereNotNull('tab_id')
+            ->where('tab_id', '!=', '')
+            ->groupBy('table_id', 'tab_id')
+            ->get()
+            ->groupBy('table_id');
+
+        // 4. Build the structured result
+        $result = collect();
+
+        foreach ($gameTables as $table) {
+            $float = $floatsByTable->get($table->id);
+
+            // Only include tables that had activity on this gameday
+            $tabRows = $ledgerAggregates->get($table->id, collect())->values();
+
+            // Skip tables with no float and no ledger activity on this day
+            if (is_null($float) && $tabRows->isEmpty()) {
+                continue;
+            }
+
+            $result->push((object) [
+                'table_id'       => $table->id,
+                'table_name'     => $table->table_name,
+                'game_type'      => $table->gameType->name ?? 'N/A',
+                'opening_float'  => $float?->float_open,
+                'closing_float'  => $float?->float_close,
+                'float_status'   => $float ? ($float->closed_at ? 'Closed' : 'Open') : 'No Float',
+                'tabs'           => $tabRows,
+            ]);
+        }
+
+        return $result;
     }
 
     private function getLedgerReport($from, $to, $tableId, $tabId = null)
@@ -77,7 +134,6 @@ class ReportController extends Controller
         if ($tableId) {
             $query->where('table_id', $tableId);
 
-            // Tab ID filter is only meaningful when scoped to a specific table
             if ($tabId) {
                 $query->where('tab_id', $tabId);
             }
@@ -91,72 +147,105 @@ class ReportController extends Controller
         return GameTable::with('gameType')->get();
     }
 
-    private function exportReport($type, $data)
+    private function exportReport($type, $data, $gameday = null)
     {
         $filename = "report_{$type}_" . now()->format('Ymd_His') . ".csv";
-        $handle = fopen('php://output', 'w');
 
-        // Headers
         $headers = match ($type) {
-            'float' => ['ID', 'Table', 'Gameday', 'Open', 'Close', 'Opened At', 'Closed At'],
-            'gameday' => ['Date', 'Started At', 'Ended At', 'Duration', 'Status'],
-            'ledger' => ['ID', 'Table', 'Type', 'Amount', 'Float Balance', 'Gameday', 'Reference', 'At'],
-            'table' => ['ID', 'Name', 'Game Type', 'MAC Address', 'Status'],
-            default => [],
+            'float'   => ['Float ID', 'Table', 'Gameday', 'Opening Float', 'Closing Float', 'Opened At', 'Closed At'],
+            'gameday' => ['Table ID', 'Table Name', 'Game Type', 'Opening Float', 'Closing Float', 'Float Status',
+                          'Tab ID', 'Total Fills', 'Total Credits', 'Total Buy-In', 'Total Cash-Out'],
+            'ledger'  => ['Txn ID', 'Table', 'Tab ID', 'Type', 'Amount', 'Float Balance', 'Gameday', 'Reference', 'At'],
+            'table'   => ['ID', 'Name', 'Game Type', 'MAC Address', 'Status'],
+            default   => [],
         };
 
-        $callback = function() use ($type, $data, $headers) {
+        $callback = function () use ($type, $data, $headers, $gameday) {
             $file = fopen('php://output', 'w');
+
+            if ($type === 'gameday') {
+                fputcsv($file, ['Gaming Day Report — Date: ' . $gameday]);
+                fputcsv($file, []);
+            }
+
             fputcsv($file, $headers);
 
-            foreach ($data as $row) {
-                $line = match ($type) {
-                    'float' => [
-                        $row->float_id,
-                        $row->gameTable->table_name ?? 'N/A',
-                        $row->gameday->format('Y-m-d'),
-                        $row->float_open,
-                        $row->float_close ?? 'Open',
-                        $row->opened_at,
-                        $row->closed_at ?? 'N/A',
-                    ],
-                    'gameday' => [
-                        $row->gaming_date,
-                        $row->started_at,
-                        $row->ended_at ?? 'N/A',
-                        $row->duration_hours ?? 'N/A',
-                        $row->is_closed ? 'Closed' : 'Active',
-                    ],
-                    'ledger' => [
-                        $row->txn_id,
-                        $row->gameTable->table_name ?? 'N/A',
-                        $row->txn_type,
-                        $row->amount,
-                        $row->float_balance,
-                        $row->gameday->format('Y-m-d'),
-                        $row->reference,
-                        $row->created_at,
-                    ],
-                    'table' => [
-                        $row->id,
-                        $row->table_name,
-                        $row->gameType->name ?? 'N/A',
-                        $row->active_mac ?? 'N/A',
-                        $row->status ? 'Active' : 'Inactive',
-                    ],
-                    default => [],
-                };
-                fputcsv($file, $line);
+            if ($type === 'gameday') {
+                foreach ($data as $block) {
+                    if ($block->tabs->isEmpty()) {
+                        fputcsv($file, [
+                            $block->table_id,
+                            $block->table_name,
+                            $block->game_type,
+                            $block->opening_float ?? 'N/A',
+                            $block->closing_float ?? 'Open',
+                            $block->float_status,
+                            '— No Tab Activity —', '', '', '', '',
+                        ]);
+                    } else {
+                        foreach ($block->tabs as $tab) {
+                            fputcsv($file, [
+                                $block->table_id,
+                                $block->table_name,
+                                $block->game_type,
+                                $block->opening_float ?? 'N/A',
+                                $block->closing_float ?? 'Open',
+                                $block->float_status,
+                                $tab->tab_id,
+                                number_format((float) $tab->total_fills, 2),
+                                number_format((float) $tab->total_credits, 2),
+                                number_format((float) $tab->total_buy, 2),
+                                number_format((float) $tab->total_cashout, 2),
+                            ]);
+                        }
+                    }
+                    fputcsv($file, []); 
+                }
+            } else {
+                foreach ($data as $row) {
+                    $line = match ($type) {
+                        'float' => [
+                            $row->float_id,
+                            $row->gameTable->table_name ?? 'N/A',
+                            $row->gameday->format('Y-m-d'),
+                            $row->float_open,
+                            $row->float_close ?? 'Open',
+                            $row->opened_at,
+                            $row->closed_at ?? 'N/A',
+                        ],
+                        'ledger' => [
+                            $row->txn_id,
+                            $row->gameTable->table_name ?? 'N/A',
+                            $row->tab_id ?? '—',
+                            $row->txn_type,
+                            $row->amount,
+                            $row->float_balance,
+                            $row->gameday->format('Y-m-d'),
+                            $row->reference,
+                            $row->created_at,
+                        ],
+                        'table' => [
+                            $row->id,
+                            $row->table_name,
+                            $row->gameType->name ?? 'N/A',
+                            $row->active_mac ?? 'N/A',
+                            $row->status ? 'Active' : 'Inactive',
+                        ],
+                        default => [],
+                    };
+                    fputcsv($file, $line);
+                }
             }
+
             fclose($file);
         };
 
         return Response::stream($callback, 200, [
-            "Content-type"        => "text/csv",
-            "Content-Disposition" => "attachment; filename=$filename",
-            "Pragma"              => "no-cache",
-            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
-            "Expires"             => "0"
+            'Content-Type'        => 'text/csv',
+            'Content-Disposition' => "attachment; filename={$filename}",
+            'Pragma'              => 'no-cache',
+            'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires'             => '0',
         ]);
     }
 }
