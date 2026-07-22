@@ -147,13 +147,13 @@
                                 </div>
                                 <div class="d-flex gap-3 small text-light">
                                     <span>
-                                        <span class="text-secondary">Opening Float:</span>
+                                        <span class="text-secondary">Total Opening Float:</span>
                                         <span class="fw-semibold text-info">
                                             {{ $block->opening_float !== null ? number_format($block->opening_float, 2) : '—' }}
                                         </span>
                                     </span>
                                     <span>
-                                        <span class="text-secondary">Closing Float:</span>
+                                        <span class="text-secondary">Total Closing Float:</span>
                                         <span class="fw-semibold text-warning">
                                             {{ $block->closing_float !== null ? number_format($block->closing_float, 2) : '—' }}
                                         </span>
@@ -177,7 +177,7 @@
                                     <tbody>
                                         @forelse($block->tabs as $i => $tab)
                                         <tr>
-                                            <td class="ps-3 text-muted small">{{ $i + 1 }}</td>
+                                            <td class="ps-3 small">{{ $i + 1 }}</td>
                                             <td>
                                                 <span class="badge rounded-pill"
                                                     style="background:#1a1a2e; color:#a78bfa; border:1px solid #a78bfa55; font-size:11px; font-family:monospace; padding:4px 10px;">
@@ -185,28 +185,28 @@
                                                 </span>
                                             </td>
                                             <td class="text-end">
-                                                @if($tab->total_fills > 0)
+                                                @if($tab->total_fills != 0)
                                                     <span class="text-success fw-semibold">{{ number_format($tab->total_fills, 2) }}</span>
                                                 @else
                                                     <span class="text-muted">—</span>
                                                 @endif
                                             </td>
                                             <td class="text-end">
-                                                @if($tab->total_credits > 0)
+                                                @if($tab->total_credits != 0)
                                                     <span class="text-danger fw-semibold">{{ number_format($tab->total_credits, 2) }}</span>
                                                 @else
                                                     <span class="text-muted">—</span>
                                                 @endif
                                             </td>
                                             <td class="text-end">
-                                                @if($tab->total_buy > 0)
+                                                @if($tab->total_buy != 0)
                                                     <span class="text-info fw-semibold">{{ number_format($tab->total_buy, 2) }}</span>
                                                 @else
                                                     <span class="text-muted">—</span>
                                                 @endif
                                             </td>
                                             <td class="text-end pe-3">
-                                                @if($tab->total_cashout > 0)
+                                                @if($tab->total_cashout != 0)
                                                     <span class="fw-semibold" style="color:#f59e0b;">{{ number_format($tab->total_cashout, 2) }}</span>
                                                 @else
                                                     <span class="text-muted">—</span>

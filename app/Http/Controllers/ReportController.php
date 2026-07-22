@@ -76,8 +76,16 @@ class ReportController extends Controller
             ->orderBy('id')
             ->get();
 
-        // 2. Load all float records for this gameday, keyed by table_id
-        $floatsByTable = TableFloat::where('gameday', $gameday)
+        // 2. Aggregate float records per table for this gameday (sum across multiple open/close sessions)
+        $floatsByTable = DB::table('table_floats')
+            ->select(
+                'table_id',
+                DB::raw('SUM(float_open) AS total_opening_float'),
+                DB::raw('SUM(float_close) AS total_closing_float'),
+                DB::raw('MAX(CASE WHEN closed_at IS NULL THEN 1 ELSE 0 END) AS has_open_session')
+            )
+            ->where('gameday', $gameday)
+            ->groupBy('table_id')
             ->get()
             ->keyBy('table_id');
 
@@ -116,9 +124,11 @@ class ReportController extends Controller
                 'table_id'       => $table->id,
                 'table_name'     => $table->table_name,
                 'game_type'      => $table->gameType->name ?? 'N/A',
-                'opening_float'  => $float?->float_open,
-                'closing_float'  => $float?->float_close,
-                'float_status'   => $float ? ($float->closed_at ? 'Closed' : 'Open') : 'No Float',
+                'opening_float'  => $float ? $float->total_opening_float : null,
+                'closing_float'  => $float ? $float->total_closing_float : null,
+                'float_status'   => $float
+                    ? ($float->has_open_session ? 'Open' : 'Closed')
+                    : 'No Float',
                 'tabs'           => $tabRows,
             ]);
         }
