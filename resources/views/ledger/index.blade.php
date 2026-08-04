@@ -17,7 +17,8 @@
         {{-- Filters --}}
         <div class="card bg-black border-secondary mb-3">
             <div class="card-body py-2">
-                <form method="GET" action="{{ route('ledger.index') }}">
+                <form method="GET" action="{{ route('ledger.index') }}"
+                    x-data="{ txnType: '{{ request('txn_type') }}' }">
                     <div class="row g-2 align-items-end">
                         <div class="col-md-2">
                             <label class="form-label text-secondary small mb-1">Search</label>
@@ -27,11 +28,25 @@
 
                         <div class="col-md-2">
                             <label class="form-label text-secondary small mb-1">Type</label>
-                            <select name="txn_type" class="form-select form-select-sm bg-black text-white border-secondary">
+                            <select name="txn_type" class="form-select form-select-sm bg-black text-white border-secondary"
+                                x-model="txnType">
                                 <option value="">All Types</option>
                                 @foreach($txnTypes as $type)
                                     <option value="{{ $type }}" {{ request('txn_type') == $type ? 'selected' : '' }}>{{ $type }}</option>
                                 @endforeach
+                            </select>
+                        </div>
+
+                        {{-- Payment Medium: only relevant for BUYIN / DROP --}}
+                        <div class="col-md-2" x-show="txnType === 'BUYIN' || txnType === 'DROP'"
+                            style="{{ in_array(request('txn_type'), ['BUYIN','DROP']) ? '' : 'display:none;' }}">
+                            <label class="form-label text-secondary small mb-1">Medium</label>
+                            <select name="payment_medium" class="form-select form-select-sm bg-black text-white border-secondary">
+                                <option value="">All</option>
+                                <option value="CASH"  {{ request('payment_medium') == 'CASH'  ? 'selected' : '' }}>CASH</option>
+                                <option value="CHIPS" {{ request('payment_medium') == 'CHIPS' ? 'selected' : '' }}
+                                    x-show="txnType === 'BUYIN'"
+                                    style="{{ request('txn_type') === 'BUYIN' ? '' : 'display:none;' }}">CHIPS</option>
                             </select>
                         </div>
 
@@ -108,12 +123,12 @@
                             <th>Game Day</th>
                             <th>Table</th>
                             <th>Type</th>
+                            <th>Medium</th>
                             <th class="text-end">Amount</th>
                             <th class="text-end">Float Bal</th>
                             <th class="text-end">Tab Bal</th>
                             <th>Tab ID</th>
                             <th>Status</th>
-                            <th>Reference</th>
                             <th>Time</th>
                         </tr>
                     </thead>
@@ -137,6 +152,18 @@
                                         {{ $ledger->txn_type }}
                                     </span>
                                 </td>
+                                <td>
+                                    @if($ledger->payment_medium)
+                                        @php
+                                            $medColor = $ledger->payment_medium === 'CASH' ? 'warning' : 'info';
+                                        @endphp
+                                        <span class="badge bg-{{ $medColor }} text-dark" style="font-size:.7rem">
+                                            {{ $ledger->payment_medium }}
+                                        </span>
+                                    @else
+                                        <span class="text-warning small">—</span>
+                                    @endif
+                                </td>
                                 <td class="text-end fw-bold {{ $ledger->amount < 0 ? 'text-danger' : 'text-white' }}">
                                     {{ number_format($ledger->amount, 2) }}
                                 </td>
@@ -159,9 +186,6 @@
                                         };
                                     @endphp
                                     <span class="small fw-bold {{ $statusLabel['class'] }}">{{ $statusLabel['label'] }}</span>
-                                </td>
-                                <td class="text-secondary small text-truncate" style="max-width: 120px;">
-                                    {{ $ledger->reference ?: '—' }}
                                 </td>
                                 <td class="text-secondary small">
                                     {{ $ledger->created_at->format('H:i:s') }}

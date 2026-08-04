@@ -12,6 +12,7 @@ class TableLedger extends Model
         'table_id',
         'tab_id',
         'txn_type',
+        'payment_medium',
         'amount',
         'tab_balance',
         'float_balance',

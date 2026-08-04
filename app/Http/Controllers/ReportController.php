@@ -13,15 +13,17 @@ class ReportController extends Controller
 {
     public function index(Request $request)
     {
-        $reportType = $request->input('type', 'ledger');
-        $fromDate   = $request->input('from_date', now()->format('Y-m-d'));
-        $toDate     = $request->input('to_date', now()->format('Y-m-d'));
-        $tableId    = $request->input('table_id');
-        $tabId      = $request->input('tab_id');
-        $gameday    = $request->input('gameday', now()->format('Y-m-d'));
+        $reportType     = $request->input('type', 'ledger');
+        $fromDate       = $request->input('from_date', now()->format('Y-m-d'));
+        $toDate         = $request->input('to_date', now()->format('Y-m-d'));
+        $tableId        = $request->input('table_id');
+        $tabId          = $request->input('tab_id');
+        $gameday        = $request->input('gameday', now()->format('Y-m-d'));
+        $txnType        = $request->input('txn_type');
+        $paymentMedium  = $request->input('payment_medium');
 
         $tables = GameTable::where('status', 1)->get();
-        $data   = $this->getReportData($reportType, $fromDate, $toDate, $tableId, $tabId, $gameday);
+        $data   = $this->getReportData($reportType, $fromDate, $toDate, $tableId, $tabId, $gameday, $txnType, $paymentMedium);
 
         // Distinct tab IDs for the dropdown — only meaningful for ledger + specific table
         $tabIds = [];
@@ -41,16 +43,17 @@ class ReportController extends Controller
 
         return view('reports.index', compact(
             'tables', 'data', 'reportType',
-            'fromDate', 'toDate', 'tableId', 'tabId', 'tabIds', 'gameday'
+            'fromDate', 'toDate', 'tableId', 'tabId', 'tabIds', 'gameday',
+            'txnType', 'paymentMedium'
         ));
     }
 
-    private function getReportData($type, $from, $to, $tableId = null, $tabId = null, $gameday = null)
+    private function getReportData($type, $from, $to, $tableId = null, $tabId = null, $gameday = null, $txnType = null, $paymentMedium = null)
     {
         return match ($type) {
             'float'   => $this->getFloatReport($from, $to, $tableId),
             'gameday' => $this->getGameDayReport($gameday),
-            'ledger'  => $this->getLedgerReport($from, $to, $tableId, $tabId),
+            'ledger'  => $this->getLedgerReport($from, $to, $tableId, $tabId, $txnType, $paymentMedium),
             'table'   => $this->getTableReport(),
             default   => collect(),
         };
@@ -136,7 +139,7 @@ class ReportController extends Controller
         return $result;
     }
 
-    private function getLedgerReport($from, $to, $tableId, $tabId = null)
+    private function getLedgerReport($from, $to, $tableId, $tabId = null, $txnType = null, $paymentMedium = null)
     {
         $query = TableLedger::with('gameTable')
             ->whereBetween('gameday', [$from, $to]);
@@ -147,6 +150,14 @@ class ReportController extends Controller
             if ($tabId) {
                 $query->where('tab_id', $tabId);
             }
+        }
+
+        if ($txnType) {
+            $query->where('txn_type', $txnType);
+        }
+
+        if ($paymentMedium && in_array($txnType, ['DROP', 'BUYIN'])) {
+            $query->where('payment_medium', $paymentMedium);
         }
 
         return $query->get();
@@ -164,8 +175,8 @@ class ReportController extends Controller
         $headers = match ($type) {
             'float'   => ['Float ID', 'Table', 'Gameday', 'Opening Float', 'Closing Float', 'Opened At', 'Closed At'],
             'gameday' => ['Table ID', 'Table Name', 'Game Type', 'Opening Float', 'Closing Float', 'Float Status',
-                          'Tab ID', 'Total Fills', 'Total Credits', 'Total Buy-In', 'Total Cash-Out'],
-            'ledger'  => ['Txn ID', 'Table', 'Tab ID', 'Type', 'Amount', 'Float Balance', 'Gameday', 'Reference', 'At'],
+                          'Players', 'Total Fills', 'Total Credits', 'Total Buy-In', 'Total Cash-Out'],
+            'ledger'  => ['Txn ID', 'Table', 'Tab ID', 'Type', 'Medium', 'Amount', 'Float Balance', 'Gameday', 'Reference', 'At'],
             'table'   => ['ID', 'Name', 'Game Type', 'MAC Address', 'Status'],
             default   => [],
         };
@@ -174,7 +185,7 @@ class ReportController extends Controller
             $file = fopen('php://output', 'w');
 
             if ($type === 'gameday') {
-                fputcsv($file, ['Gaming Day Report — Date: ' . $gameday]);
+                fputcsv($file, ['Gaming Day Report - Date: ' . $gameday]);
                 fputcsv($file, []);
             }
 
@@ -201,7 +212,7 @@ class ReportController extends Controller
                                 $block->opening_float ?? 'N/A',
                                 $block->closing_float ?? 'Open',
                                 $block->float_status,
-                                $tab->tab_id,
+                                $tab->tab_id == 0 ? 'Dealer' : 'Player ' . $tab->tab_id,
                                 number_format((float) $tab->total_fills, 2),
                                 number_format((float) $tab->total_credits, 2),
                                 number_format((float) $tab->total_buy, 2),
@@ -228,6 +239,7 @@ class ReportController extends Controller
                             $row->gameTable->table_name ?? 'N/A',
                             $row->tab_id ?? '—',
                             $row->txn_type,
+                            $row->payment_medium ?? '—',
                             $row->amount,
                             $row->float_balance,
                             $row->gameday->format('Y-m-d'),

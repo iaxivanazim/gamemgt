@@ -26,6 +26,10 @@ return new class extends Migration
                 'VOID',
                 'BET',
             ]);
+            $table->enum('payment_medium',[
+                'CASH',
+                'CHIPS',
+            ])->nullable();
             $table->decimal('amount', 12, 2);
             $table->decimal('tab_balance', 12, 2)->default(0);   // running tab balance
             $table->decimal('float_balance', 12, 2);              // float after this txn

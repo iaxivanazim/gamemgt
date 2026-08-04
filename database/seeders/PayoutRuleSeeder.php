@@ -31,8 +31,8 @@ class PayoutRuleSeeder extends Seeder
 
             ['payout_id' => 9, 'game_type_id' => 2, 'bet_name' => 'Andar', 'bet_position' => 'A', 'payout_multiplier' => 1, 'is_active' => 1, 'is_jackpot' => 0],
             ['payout_id' => 10, 'game_type_id' => 2, 'bet_name' => 'Bahar', 'bet_position' => 'B', 'payout_multiplier' => 1, 'is_active' => 1, 'is_jackpot' => 0],
-            ['payout_id' => 11, 'game_type_id' => 2, 'bet_name' => 'Andar 1st Shot', 'bet_position' => 'A1', 'payout_multiplier' => 1.25, 'is_active' => 1, 'is_jackpot' => 0],
-            ['payout_id' => 12, 'game_type_id' => 2, 'bet_name' => 'Bahar 1st Shot', 'bet_position' => 'B1', 'payout_multiplier' => 1.25, 'is_active' => 1, 'is_jackpot' => 0],
+            ['payout_id' => 11, 'game_type_id' => 2, 'bet_name' => 'Andar 1st Shot', 'bet_position' => 'A1', 'payout_multiplier' => 0.25, 'is_active' => 1, 'is_jackpot' => 0],
+            ['payout_id' => 12, 'game_type_id' => 2, 'bet_name' => 'Bahar 1st Shot', 'bet_position' => 'B1', 'payout_multiplier' => 0.25, 'is_active' => 1, 'is_jackpot' => 0],
             ['payout_id' => 13, 'game_type_id' => 2, 'bet_name' => 'Super Andar', 'bet_position' => 'SA', 'payout_multiplier' => 11, 'is_active' => 1, 'is_jackpot' => 0],
             ['payout_id' => 14, 'game_type_id' => 2, 'bet_name' => 'Super Bahar', 'bet_position' => 'SB', 'payout_multiplier' => 11, 'is_active' => 1, 'is_jackpot' => 0],
 

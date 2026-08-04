@@ -18,7 +18,8 @@
                 <form method="GET" action="{{ route('reports.index') }}" class="row g-3 align-items-end"
                     x-data="{
                         reportType: '{{ $reportType }}',
-                        tableId: '{{ $tableId }}'
+                        tableId: '{{ $tableId }}',
+                        txnType: '{{ $txnType ?? '' }}'
                     }">
                     <div class="col-md-3">
                         <label class="text-light small">Report Type</label>
@@ -96,6 +97,34 @@
                         @endif
                     </div>
 
+                    {{-- Txn Type filter: only for Ledger --}}
+                    <div class="col-md-2"
+                        x-show="reportType === 'ledger'"
+                        style="{{ $reportType === 'ledger' ? '' : 'display:none;' }}">
+                        <label class="text-light small">Txn Type <span class="text-secondary">(Optional)</span></label>
+                        <select name="txn_type" class="form-select bg-black text-white border-secondary"
+                            x-model="txnType">
+                            <option value="">All Types</option>
+                            @foreach(['FILL','CREDIT','DROP','ADJUST','CASHOUT','BUYIN','PAYOUT','VOID','BET'] as $t)
+                                <option value="{{ $t }}" {{ ($txnType ?? '') == $t ? 'selected' : '' }}>{{ $t }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- Payment Medium filter: only for BUYIN / DROP --}}
+                    <div class="col-md-2"
+                        x-show="reportType === 'ledger' && (txnType === 'BUYIN' || txnType === 'DROP')"
+                        style="{{ ($reportType === 'ledger' && in_array($txnType ?? '', ['BUYIN','DROP'])) ? '' : 'display:none;' }}">
+                        <label class="text-light small">Medium <span class="text-secondary">(Optional)</span></label>
+                        <select name="payment_medium" class="form-select bg-black text-white border-secondary">
+                            <option value="">All</option>
+                            <option value="CASH"  {{ ($paymentMedium ?? '') == 'CASH'  ? 'selected' : '' }}>CASH</option>
+                            <option value="CHIPS" {{ ($paymentMedium ?? '') == 'CHIPS' ? 'selected' : '' }}
+                                x-show="txnType === 'BUYIN'"
+                                style="{{ ($txnType ?? '') === 'BUYIN' ? '' : 'display:none;' }}">CHIPS</option>
+                        </select>
+                    </div>
+
                     <div class="col-md-2">
                         <button type="submit" class="btn btn-warning w-100">Generate</button>
                     </div>
@@ -167,7 +196,7 @@
                                     <thead style="background:#1a1a00;">
                                         <tr class="text-warning small">
                                             <th class="ps-3">#</th>
-                                            <th>Tab ID</th>
+                                            <th>Players</th>
                                             <th class="text-end">Total Fills</th>
                                             <th class="text-end">Total Credits</th>
                                             <th class="text-end">Total Buy-In</th>
@@ -181,7 +210,7 @@
                                             <td>
                                                 <span class="badge rounded-pill"
                                                     style="background:#1a1a2e; color:#a78bfa; border:1px solid #a78bfa55; font-size:11px; font-family:monospace; padding:4px 10px;">
-                                                    {{ $tab->tab_id }}
+                                                    {{ $tab->tab_id == 0 ? 'Dealer' : 'Player ' . $tab->tab_id }}
                                                 </span>
                                             </td>
                                             <td class="text-end">
@@ -251,6 +280,7 @@
                                         <th>Table</th>
                                         <th>Tab ID</th>
                                         <th>Type</th>
+                                        <th>Medium</th>
                                         <th>Amount</th>
                                         <th>Float Balance</th>
                                         <th>Gameday</th>
@@ -299,6 +329,16 @@
                                                     };
                                                 @endphp
                                                 <span class="badge {{ $badgeClass }}">{{ $row->txn_type }}</span>
+                                            </td>
+                                            <td>
+                                                @if($row->payment_medium)
+                                                    @php
+                                                        $medBadge = $row->payment_medium === 'CASH' ? 'bg-warning text-dark' : 'bg-info text-dark';
+                                                    @endphp
+                                                    <span class="badge {{ $medBadge }}">{{ $row->payment_medium }}</span>
+                                                @else
+                                                    <span class="text-muted">—</span>
+                                                @endif
                                             </td>
                                             <td class="fw-bold">{{ number_format($row->amount, 2) }}</td>
                                             <td class="text-warning">{{ number_format($row->float_balance, 2) }}</td>

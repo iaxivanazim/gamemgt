@@ -23,6 +23,10 @@ class TableLedgerController extends Controller
             $query->where('txn_type', $request->txn_type);
         }
 
+        if ($request->filled('payment_medium')) {
+            $query->where('payment_medium', $request->payment_medium);
+        }
+
         if ($request->filled('gameday')) {
             $query->where('gameday', $request->gameday);
         }
@@ -63,13 +67,29 @@ class TableLedgerController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'table_id'     => 'required|exists:game_tables,id',
-            'txn_type'     => 'required|in:FILL,CREDIT,DROP,ADJUST,CASHOUT,BUYIN,PAYOUT,VOID,BET',
-            'amount'       => 'required|numeric',
-            'gameday'      => 'required|date_format:Y-m-d',
-            'tab_id'       => 'nullable|string|max:255',
-            'reference'    => 'nullable|string|max:255',
-            'initiated_by' => 'nullable|string|max:255',
+            'table_id'       => 'required|exists:game_tables,id',
+            'txn_type'       => 'required|in:FILL,CREDIT,DROP,ADJUST,CASHOUT,BUYIN,PAYOUT,VOID,BET',
+            'payment_medium' => [
+                'nullable',
+                'in:CASH,CHIPS',
+                function ($attribute, $value, $fail) use ($request) {
+                    $type = $request->txn_type;
+                    if (in_array($type, ['DROP', 'BUYIN']) && empty($value)) {
+                        $fail('Payment medium is required for DROP and BUYIN transactions.');
+                    }
+                    if ($type === 'DROP' && $value === 'CHIPS') {
+                        $fail('DROP transactions only accept CASH as payment medium.');
+                    }
+                    if (!in_array($type, ['DROP', 'BUYIN']) && !empty($value)) {
+                        $fail('Payment medium is only applicable for DROP and BUYIN transactions.');
+                    }
+                },
+            ],
+            'amount'         => 'required|numeric',
+            'gameday'        => 'required|date_format:Y-m-d',
+            'tab_id'         => 'nullable|string|max:255',
+            'reference'      => 'nullable|string|max:255',
+            'initiated_by'   => 'nullable|string|max:255',
         ]);
 
         try {
@@ -120,16 +140,17 @@ class TableLedgerController extends Controller
 
                 // 5. Store transaction
                 $txn = TableLedger::create([
-                    'table_id'     => $request->table_id,
-                    'tab_id'       => $request->tab_id,
-                    'txn_type'     => $request->txn_type,
-                    'amount'       => $request->amount,
-                    'tab_balance'  => $tabBalance,
-                    'float_balance'=> $newFloat,
-                    'gameday'      => $gameday,
-                    'processed'    => 0,
-                    'reference'    => $request->reference,
-                    'initiated_by' => $request->initiated_by,
+                    'table_id'       => $request->table_id,
+                    'tab_id'         => $request->tab_id,
+                    'txn_type'       => $request->txn_type,
+                    'payment_medium' => in_array($request->txn_type, ['DROP', 'BUYIN']) ? $request->payment_medium : null,
+                    'amount'         => $request->amount,
+                    'tab_balance'    => $tabBalance,
+                    'float_balance'  => $newFloat,
+                    'gameday'        => $gameday,
+                    'processed'      => 0,
+                    'reference'      => $request->reference,
+                    'initiated_by'   => $request->initiated_by,
                 ]);
 
                 return response()->json([
@@ -467,19 +488,20 @@ class TableLedgerController extends Controller
     private function formatTxn(TableLedger $txn): array
     {
         return [
-            'txn_id'        => $txn->txn_id,
-            'table_id'      => $txn->table_id,
-            'tab_id'        => $txn->tab_id,
-            'txn_type'      => $txn->txn_type,
-            'amount'        => (float) $txn->amount,
-            'tab_balance'   => (float) $txn->tab_balance,
-            'float_balance' => (float) $txn->float_balance,
-            'gameday'       => $txn->gameday->toDateString(),
-            'processed'     => $txn->processed,
+            'txn_id'          => $txn->txn_id,
+            'table_id'        => $txn->table_id,
+            'tab_id'          => $txn->tab_id,
+            'txn_type'        => $txn->txn_type,
+            'payment_medium'  => $txn->payment_medium,
+            'amount'          => (float) $txn->amount,
+            'tab_balance'     => (float) $txn->tab_balance,
+            'float_balance'   => (float) $txn->float_balance,
+            'gameday'         => $txn->gameday->toDateString(),
+            'processed'       => $txn->processed,
             'processed_label' => $this->processedLabel($txn->processed),
-            'reference'     => $txn->reference,
-            'initiated_by'  => $txn->initiated_by,
-            'created_at'    => $txn->created_at?->toISOString(),
+            'reference'       => $txn->reference,
+            'initiated_by'    => $txn->initiated_by,
+            'created_at'      => $txn->created_at?->toISOString(),
         ];
     }
 
