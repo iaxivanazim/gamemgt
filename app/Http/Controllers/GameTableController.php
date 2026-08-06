@@ -63,7 +63,15 @@ class GameTableController extends Controller
             $query->whereNull('active_mac');
         }
 
-        $query->orderBy($sortBy, $order);
+        // Primary sort: tables with an open float (closed_at IS NULL) come first.
+        // Secondary sort: user-selected column / direction.
+        $query->orderByRaw('
+            CASE WHEN EXISTS (
+                SELECT 1 FROM table_floats
+                WHERE table_floats.table_id = game_tables.id
+                  AND table_floats.closed_at IS NULL
+            ) THEN 0 ELSE 1 END ASC
+        ')->orderBy($sortBy, $order);
 
         if ($request->search) {
             $query->where('table_name', 'like', "%{$request->search}%");
