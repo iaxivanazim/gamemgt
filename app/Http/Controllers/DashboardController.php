@@ -57,20 +57,29 @@ class DashboardController extends Controller
                 ? ($lastTxn ? (float) $lastTxn->float_balance : (float) ($float->float_open ?? 0))
                 : null;
 
-            $totalBuyin   = (float) $txns->where('txn_type', 'BUYIN')->sum('amount');
-            $totalCashout = (float) $txns->where('txn_type', 'CASHOUT')->sum('amount');
-            $totalFill    = (float) $txns->where('txn_type', 'FILL')->sum('amount');
-            $totalDrop    = (float) $txns->where('txn_type', 'DROP')->sum('amount');
-            $totalPayout  = (float) $txns->where('txn_type', 'PAYOUT')->sum('amount');
-            $txnCount     = $txns->count();
+            $totalBuyin      = (float) $txns->where('txn_type', 'BUYIN')->sum('amount');                          // all buy-ins
+            $totalBuyinChips = (float) $txns->where('txn_type', 'BUYIN')->where('payment_medium', 'CHIPS')->sum('amount'); // chips buy-ins
+            $totalBuyinCash  = (float) $txns->where('txn_type', 'BUYIN')->where('payment_medium', 'CASH')->sum('amount');  // cash buy-ins (Drop)
+            $totalCashout    = (float) $txns->where('txn_type', 'CASHOUT')->sum('amount');
+            $totalFill       = (float) $txns->where('txn_type', 'FILL')->sum('amount');
+            $totalCredit     = (float) $txns->where('txn_type', 'CREDIT')->sum('amount');
+            $totalDrop       = (float) $txns->where('txn_type', 'DROP')->sum('amount');
+            $totalPayout     = (float) $txns->where('txn_type', 'PAYOUT')->sum('amount');
+            $txnCount        = $txns->count();
+
+            // Stat 1: Float = opening_float + buyin(CHIPS) + fills - credits
+            $openingFloat = $isOpen ? (float) ($float->float_open ?? 0) : 0;
+            $statFloat    = $openingFloat + $totalBuyinChips + $totalFill - $totalCredit;
 
             // Recent transactions (last 5) for activity feed
             $recentTxns = $txns->sortByDesc('txn_id')->take(5)->map(fn($t) => [
-                'txn_id'   => $t->txn_id,
-                'txn_type' => $t->txn_type,
-                'amount'   => (float) $t->amount,
-                'tab_id'   => $t->tab_id,
-                'at'       => $t->created_at?->format('H:i:s'),
+                'txn_id'       => $t->txn_id,
+                'txn_type'     => $t->txn_type,
+                // BUYIN+CASH displayed as DROP everywhere
+                'display_type' => ($t->txn_type === 'BUYIN' && $t->payment_medium === 'CASH') ? 'DROP' : $t->txn_type,
+                'amount'       => (float) $t->amount,
+                'tab_id'       => $t->tab_id,
+                'at'           => $t->created_at?->format('H:i:s'),
             ])->values();
 
             // Simulate 6 player seats with activity derived from tabs
@@ -99,25 +108,29 @@ class DashboardController extends Controller
             });
 
             return [
-                'id'            => $table->id,
-                'name'          => $table->table_name,
-                'game_type'     => $table->gameType?->name ?? 'Unknown',
-                'game_code'     => $table->gameType?->code ?? '??',
-                'felt_color'    => $table->felt_color ?? '#1a5c2e',
-                'is_open'       => $isOpen,
-                'float_open'    => $isOpen ? (float) ($float->float_open ?? 0) : null,
-                'float_current' => $currentFloat,
-                'opened_at'     => $isOpen ? $float->opened_at?->format('H:i') : null,
-                'txn_count'     => $txnCount,
-                'total_buyin'   => $totalBuyin,
-                'total_cashout' => $totalCashout,
-                'total_fill'    => $totalFill,
-                'total_drop'    => $totalDrop,
-                'total_payout'  => $totalPayout,
-                'net_revenue'   => round($totalDrop - $totalFill, 2),
-                'recent_txns'   => $recentTxns,
-                'players'       => $players,
-                'active_players'=> $activeTabs->count(),
+                'id'              => $table->id,
+                'name'            => $table->table_name,
+                'game_type'       => $table->gameType?->name ?? 'Unknown',
+                'game_code'       => $table->gameType?->code ?? '??',
+                'felt_color'      => $table->felt_color ?? '#1a5c2e',
+                'is_open'         => $isOpen,
+                'float_open'      => $isOpen ? (float) ($float->float_open ?? 0) : null,
+                'float_current'   => $currentFloat,
+                'opened_at'       => $isOpen ? $float->opened_at?->format('H:i') : null,
+                'txn_count'       => $txnCount,
+                // ── Stats bar fields ──────────────────────────────────────────
+                'stat_float'      => $isOpen ? round($statFloat, 2) : null,    // opening + chip buyins + fills - credits
+                'total_buyin'     => round($totalBuyin, 2),                    // all buy-ins (cash + chips)
+                'total_drop'      => round($totalBuyinCash, 2),                // cash buy-ins only
+                // ── Other financials ─────────────────────────────────────────
+                'total_cashout'   => $totalCashout,
+                'total_fill'      => $totalFill,
+                'total_credit'    => $totalCredit,
+                'total_payout'    => $totalPayout,
+                'net_revenue'     => round($totalDrop - $totalFill, 2),
+                'recent_txns'     => $recentTxns,
+                'players'         => $players,
+                'active_players'  => $activeTabs->count(),
             ];
         });
 

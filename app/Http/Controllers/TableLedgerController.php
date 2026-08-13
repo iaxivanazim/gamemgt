@@ -19,11 +19,16 @@ class TableLedgerController extends Controller
         $query = TableLedger::with('gameTable');
 
         // Filters
+        // DROP is represented as BUYIN with payment_medium=CASH
         if ($request->filled('txn_type')) {
-            $query->where('txn_type', $request->txn_type);
+            if ($request->txn_type === 'DROP') {
+                $query->where('txn_type', 'BUYIN')->where('payment_medium', 'CASH');
+            } else {
+                $query->where('txn_type', $request->txn_type);
+            }
         }
 
-        if ($request->filled('payment_medium')) {
+        if ($request->filled('payment_medium') && $request->txn_type !== 'DROP') {
             $query->where('payment_medium', $request->payment_medium);
         }
 
@@ -55,6 +60,7 @@ class TableLedgerController extends Controller
 
         $ledgers = $query->paginate(25)->withQueryString();
         $tables = GameTable::all();
+        // DROP is no longer a separate txn_type — it is BUYIN(CASH). Keep in list for filter UI only.
         $txnTypes = ['FILL','CREDIT','DROP','ADJUST','CASHOUT','BUYIN','PAYOUT','VOID','BET'];
 
         return view('ledger.index', compact('ledgers', 'tables', 'txnTypes'));
@@ -68,20 +74,18 @@ class TableLedgerController extends Controller
     {
         $request->validate([
             'table_id'       => 'required|exists:game_tables,id',
-            'txn_type'       => 'required|in:FILL,CREDIT,DROP,ADJUST,CASHOUT,BUYIN,PAYOUT,VOID,BET',
+            // DROP is no longer a valid txn_type; cash buy-ins are stored as BUYIN with payment_medium=CASH
+            'txn_type'       => 'required|in:FILL,CREDIT,ADJUST,CASHOUT,BUYIN,PAYOUT,VOID,BET',
             'payment_medium' => [
                 'nullable',
                 'in:CASH,CHIPS',
                 function ($attribute, $value, $fail) use ($request) {
                     $type = $request->txn_type;
-                    if (in_array($type, ['DROP', 'BUYIN']) && empty($value)) {
-                        $fail('Payment medium is required for DROP and BUYIN transactions.');
+                    if ($type === 'BUYIN' && empty($value)) {
+                        $fail('Payment medium (CASH or CHIPS) is required for BUYIN transactions.');
                     }
-                    if ($type === 'DROP' && $value === 'CHIPS') {
-                        $fail('DROP transactions only accept CASH as payment medium.');
-                    }
-                    if (!in_array($type, ['DROP', 'BUYIN']) && !empty($value)) {
-                        $fail('Payment medium is only applicable for DROP and BUYIN transactions.');
+                    if ($type !== 'BUYIN' && !empty($value)) {
+                        $fail('Payment medium is only applicable for BUYIN transactions.');
                     }
                 },
             ],
@@ -143,7 +147,7 @@ class TableLedgerController extends Controller
                     'table_id'       => $request->table_id,
                     'tab_id'         => $request->tab_id,
                     'txn_type'       => $request->txn_type,
-                    'payment_medium' => in_array($request->txn_type, ['DROP', 'BUYIN']) ? $request->payment_medium : null,
+                    'payment_medium' => $request->txn_type === 'BUYIN' ? $request->payment_medium : null,
                     'amount'         => $request->amount,
                     'tab_balance'    => $tabBalance,
                     'float_balance'  => $newFloat,
@@ -190,7 +194,12 @@ class TableLedgerController extends Controller
                 $query->where('gameday', $request->gameday);
             }
             if ($request->txn_type) {
-                $query->where('txn_type', $request->txn_type);
+                // DROP filter → BUYIN with CASH medium
+                if ($request->txn_type === 'DROP') {
+                    $query->where('txn_type', 'BUYIN')->where('payment_medium', 'CASH');
+                } else {
+                    $query->where('txn_type', $request->txn_type);
+                }
             }
             if ($request->tab_id) {
                 $query->where('tab_id', $request->tab_id);
@@ -253,14 +262,15 @@ class TableLedgerController extends Controller
             $floatOpen  = (float) ($session?->float_open  ?? 0);
             $floatClose = (float) ($session?->float_close ?? 0);
             $fill       = (float) ($totals['FILL']['total']   ?? 0);
-            $credit     = (float) ($totals['CREDIT']['total'] ?? 0); //negative values included
-            $drop       = (float) ($totals['DROP']['total']   ?? 0);
+            $credit     = (float) ($totals['CREDIT']['total'] ?? 0);
             $adjust     = (float) ($totals['ADJUST']['total'] ?? 0);
-            $cashout    = (float) ($totals['CASHOUT']['total']?? 0); //negative values included
+            $cashout    = (float) ($totals['CASHOUT']['total']?? 0);
             $buyin      = (float) ($totals['BUYIN']['total']  ?? 0);
             $payout     = (float) ($totals['PAYOUT']['total'] ?? 0);
             $void       = (float) ($totals['VOID']['total']   ?? 0);
             $bet        = (float) ($totals['BET']['total']    ?? 0);
+            // DROP = BUYIN with payment_medium CASH
+            $drop = (float) $txns->where('txn_type', 'BUYIN')->where('payment_medium', 'CASH')->sum('amount');
 
             $expectedClose = $floatOpen + $buyin - $cashout + $fill + $credit + $adjust;
             $variance      = $floatClose > 0 ? round($floatClose - $expectedClose, 2) : null;
@@ -293,7 +303,8 @@ class TableLedgerController extends Controller
                 'breakdown' => [
                     'FILL'    => ['count' => $totals['FILL']['count']   ?? 0, 'total' => $fill],
                     'CREDIT'  => ['count' => $totals['CREDIT']['count'] ?? 0, 'total' => $credit],
-                    'DROP'    => ['count' => $totals['DROP']['count']   ?? 0, 'total' => $drop],
+                    // DROP = BUYIN(CASH) — count/total derived from BUYIN filtered by payment_medium
+                    'DROP'    => ['count' => $txns->where('txn_type','BUYIN')->where('payment_medium','CASH')->count(), 'total' => $drop],
                     'ADJUST'  => ['count' => $totals['ADJUST']['count'] ?? 0, 'total' => $adjust],
                     'CASHOUT' => ['count' => $totals['CASHOUT']['count']?? 0, 'total' => $cashout],
                     'BUYIN'   => ['count' => $totals['BUYIN']['count']  ?? 0, 'total' => $buyin],
@@ -447,16 +458,16 @@ class TableLedgerController extends Controller
     // ════════════════════════════════════════════════════════════════
     private function calculateFloatBalance(float $current, string $type, float $amount): float
     {
+        // Note: DROP is no longer a txn_type. Cash buy-ins are BUYIN+CASH and increase float like any BUYIN.
         return match($type) {
-            'FILL'    =>  $current + $amount,   // cash added to table
-            'CREDIT'  =>  $current + $amount,   // vault transfer (counted in float)
-            'DROP'    =>  $current - $amount,   // cash removed to cashier
-            'ADJUST'  =>  $current + $amount,   // can be +/- (send negative amount for deduction)
+            'FILL'    =>  $current + $amount,        // cash added to table
+            'CREDIT'  =>  $current + $amount,        // vault transfer
+            'ADJUST'  =>  $current + $amount,        // +/- adjustment
             'CASHOUT' =>  $current - abs($amount),   // player takes cash out
-            'BUYIN'   =>  $current + $amount,   // player converts cash to chips
-            'PAYOUT'  =>  $current,             // accounting only, no float change
-            'VOID'    =>  $current,             // void doesn't change float (handled by opposite txn)
-            'BET'     =>  $current,             // bets don't change float until resolved (handled by payout)
+            'BUYIN'   =>  $current + $amount,        // player buy-in (cash or chips)
+            'PAYOUT'  =>  $current,                  // accounting only
+            'VOID'    =>  $current,                  // handled by opposite txn
+            'BET'     =>  $current,                  // resolved via payout
             default   =>  $current,
         };
     }
@@ -487,11 +498,17 @@ class TableLedgerController extends Controller
 
     private function formatTxn(TableLedger $txn): array
     {
+        // BUYIN with payment_medium=CASH is displayed as DROP
+        $displayType = ($txn->txn_type === 'BUYIN' && $txn->payment_medium === 'CASH')
+            ? 'DROP'
+            : $txn->txn_type;
+
         return [
             'txn_id'          => $txn->txn_id,
             'table_id'        => $txn->table_id,
             'tab_id'          => $txn->tab_id,
-            'txn_type'        => $txn->txn_type,
+            'txn_type'        => $txn->txn_type,        // raw stored value
+            'display_type'    => $displayType,          // DROP for BUYIN+CASH, else same as txn_type
             'payment_medium'  => $txn->payment_medium,
             'amount'          => (float) $txn->amount,
             'tab_balance'     => (float) $txn->tab_balance,

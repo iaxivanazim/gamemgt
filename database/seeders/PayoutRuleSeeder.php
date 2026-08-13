@@ -50,14 +50,14 @@ class PayoutRuleSeeder extends Seeder
             ['payout_id' => 19, 'game_type_id' => 4, 'bet_name' => 'Play', 'bet_position' => 'PB', 'payout_multiplier' => 1, 'is_active' => 1, 'is_jackpot' => 0],
 
             ['payout_id' => 20, 'game_type_id' => 4, 'bet_name' => 'Ante Bonus Mini Royale', 'bet_position' => 'A*MR', 'payout_multiplier' => 5, 'is_active' => 1, 'is_jackpot' => 0],
-            ['payout_id' => 21, 'game_type_id' => 4, 'bet_name' => 'Ante Bonus Straight Flush', 'bet_position' => 'A*SF', 'payout_multiplier' => 4, 'is_active' => 1, 'is_jackpot' => 0],
-            ['payout_id' => 22, 'game_type_id' => 4, 'bet_name' => 'Ante Bonus Three of a Kind', 'bet_position' => 'A*TK', 'payout_multiplier' => 3, 'is_active' => 1, 'is_jackpot' => 0],
+            ['payout_id' => 21, 'game_type_id' => 4, 'bet_name' => 'Ante Bonus Straight Flush', 'bet_position' => 'A*SF', 'payout_multiplier' => 5, 'is_active' => 1, 'is_jackpot' => 0],
+            ['payout_id' => 22, 'game_type_id' => 4, 'bet_name' => 'Ante Bonus Three of a Kind', 'bet_position' => 'A*TK', 'payout_multiplier' => 4, 'is_active' => 1, 'is_jackpot' => 0],
             ['payout_id' => 23, 'game_type_id' => 4, 'bet_name' => 'Ante Bonus Straight', 'bet_position' => 'A*S', 'payout_multiplier' => 1, 'is_active' => 1, 'is_jackpot' => 0],
 
-            ['payout_id' => 24, 'game_type_id' => 4, 'bet_name' => 'Pair Plus Mini Royale', 'bet_position' => 'PP*MR', 'payout_multiplier' => 40, 'is_active' => 1, 'is_jackpot' => 0],
+            ['payout_id' => 24, 'game_type_id' => 4, 'bet_name' => 'Pair Plus Mini Royale', 'bet_position' => 'PP*MR', 'payout_multiplier' => 50, 'is_active' => 1, 'is_jackpot' => 0],
             ['payout_id' => 25, 'game_type_id' => 4, 'bet_name' => 'Pair Plus Straight Flush', 'bet_position' => 'PP*SF', 'payout_multiplier' => 40, 'is_active' => 1, 'is_jackpot' => 0],
             ['payout_id' => 26, 'game_type_id' => 4, 'bet_name' => 'Pair Plus Three of a Kind', 'bet_position' => 'PP*TK', 'payout_multiplier' => 30, 'is_active' => 1, 'is_jackpot' => 0],
-            ['payout_id' => 27, 'game_type_id' => 4, 'bet_name' => 'Pair Plus Straight', 'bet_position' => 'PP*S', 'payout_multiplier' => 5, 'is_active' => 1, 'is_jackpot' => 0],
+            ['payout_id' => 27, 'game_type_id' => 4, 'bet_name' => 'Pair Plus Straight', 'bet_position' => 'PP*S', 'payout_multiplier' => 6, 'is_active' => 1, 'is_jackpot' => 0],
             ['payout_id' => 28, 'game_type_id' => 4, 'bet_name' => 'Pair Plus Flush', 'bet_position' => 'PP*F', 'payout_multiplier' => 4, 'is_active' => 1, 'is_jackpot' => 0],
             ['payout_id' => 29, 'game_type_id' => 4, 'bet_name' => 'Pair Plus Pair', 'bet_position' => 'PP*P', 'payout_multiplier' => 1, 'is_active' => 1, 'is_jackpot' => 0],
             ['payout_id' => 30, 'game_type_id' => 4, 'bet_name' => '6 Card Bonus', 'bet_position' => null, 'payout_multiplier' => null, 'is_active' => 1, 'is_jackpot' => 1],

@@ -1,4 +1,4 @@
-﻿<x-app-layout>
+<x-app-layout>
 
 <style>
     
@@ -83,6 +83,9 @@
                 <div class="skeleton" style="width:260px;height:155px;border-radius:50% 50% 8px 8px;margin:auto;"></div>
             </div>
             <div class="table-stats-bar">
+                <div class="stat-cell"><div class="skeleton" style="height:32px;"></div></div>
+                <div class="stat-cell"><div class="skeleton" style="height:32px;"></div></div>
+                <div class="stat-cell"><div class="skeleton" style="height:32px;"></div></div>
                 <div class="stat-cell"><div class="skeleton" style="height:32px;"></div></div>
                 <div class="stat-cell"><div class="skeleton" style="height:32px;"></div></div>
                 <div class="stat-cell"><div class="skeleton" style="height:32px;"></div></div>
@@ -203,9 +206,10 @@
         var rh='';
         if(t.recent_txns&&t.recent_txns.length){
             t.recent_txns.forEach(function(tx){
-                var out=tx.txn_type==='DROP'||tx.txn_type==='CASHOUT';
+                var dtype=tx.display_type||tx.txn_type;
+                var out=dtype==='DROP'||dtype==='CASHOUT';
                 rh+='<div class="feed-row">'
-                    +'<span class="txn-pill txn-'+tx.txn_type+'">'+tx.txn_type+'</span>'
+                    +'<span class="txn-pill txn-'+dtype+'">'+dtype+'</span>'
                     +'<span style="color:#8899aa;overflow:hidden;max-width:70px;text-overflow:ellipsis;">'+(tx.tab_id?tx.tab_id.slice(-7):'Table')+'</span>'
                     +'<span style="color:#667788;font-size:.68rem;">'+(tx.at||'')+'</span>'
                     +'<span class="feed-amount" style="color:'+(out?'#fc8181':'#68d391')+';">'+(out?'-':'+')+fmt(tx.amount)+'</span>'
@@ -218,11 +222,19 @@
             +'<div class="d-flex align-items-center gap-2"><span class="card-game-badge">'+t.game_code+'</span>'
             +'<span class="status-pill '+(t.is_open?'open':'closed')+'">'+(t.is_open?'<span class="live-dot"></span>':'')+(t.is_open?'Open':'Closed')+'</span></div></div>'
             +'<div class="casino-table-wrap">'+buildSVG(t)+'</div>'
-            +'<div class="table-stats-bar">'
-            +'<div class="stat-cell"><div class="sc-label">Float</div><div class="sc-val" style="color:'+fc+';">'+(t.is_open&&t.float_current!=null?fmt(t.float_current):'&mdash;')+'</div></div>'
-            +'<div class="stat-cell"><div class="sc-label">TXNs</div><div class="sc-val" style="color:#90cdf4;">'+fmtI(t.txn_count)+'</div></div>'
-            +'<div class="stat-cell"><div class="sc-label">Buy-ins</div><div class="sc-val" style="color:#fbd38d;">'+fmt(t.total_buyin)+'</div></div>'
-            +'</div>'
+            +(function(){
+                var floatClr=(t.is_open&&t.float_current!=null&&(t.float_current+t.total_fill)<t.float_open)?'#fc8181':'#68d391';
+                return '<div class="table-stats-bar">'
+                +'<div class="stat-cell"><div class="sc-label">Float</div><div class="sc-val" style="color:'+floatClr+';">'
+                +(t.is_open&&t.stat_float!=null?fmt(t.stat_float):'&mdash;')
+                +'</div><div class="sc-sub">open&thinsp;+&thinsp;chips&thinsp;+&thinsp;fills&thinsp;&minus;&thinsp;credits</div></div>'
+                +'<div class="stat-cell"><div class="sc-label">Buy-in</div><div class="sc-val" style="color:#fbd38d;">'+fmt(t.total_buyin)+'</div><div class="sc-sub">cash &amp; chips</div></div>'
+                +'<div class="stat-cell"><div class="sc-label">Drop</div><div class="sc-val" style="color:#90cdf4;">'+fmt(t.total_drop)+'</div><div class="sc-sub">cash only</div></div>'
+                +'<div class="stat-cell"><div class="sc-label">Cash Out</div><div class="sc-val" style="color:#fc8181;">'+fmt(t.total_cashout)+'</div><div class="sc-sub">total cashout</div></div>'
+                +'<div class="stat-cell"><div class="sc-label">Fills</div><div class="sc-val" style="color:#b794f4;">'+fmt(t.total_fill)+'</div><div class="sc-sub">total fills</div></div>'
+                +'<div class="stat-cell"><div class="sc-label">Credits</div><div class="sc-val" style="color:#f6ad55;">'+fmt(t.total_credit)+'</div><div class="sc-sub">total credits</div></div>'
+                +'</div>';
+            })()
             +'<div class="activity-feed"><div class="feed-title"><i class="bi bi-activity me-1"></i>Recent Activity'+(ap>0?' <span style="color:#68d391;font-size:.68rem;margin-left:8px;">&middot; '+ap+' active player'+(ap!==1?'s':'')+'</span>':'')+'</div>'+rh+'</div>';
         return el;
     }

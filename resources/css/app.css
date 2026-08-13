@@ -309,7 +309,7 @@ footer {
 
 .kpi-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 16px;
     margin-bottom: 28px;
 }
@@ -609,6 +609,14 @@ footer {
     font-size: .88rem;
     font-weight: 700;
     margin-top: 2px;
+}
+
+.stat-cell .sc-sub {
+    font-size: .58rem;
+    color: var(--txt-muted);
+    margin-top: 3px;
+    opacity: .7;
+    letter-spacing: .03em;
 }
 
 .activity-feed {

@@ -37,17 +37,23 @@
                             </select>
                         </div>
 
-                        {{-- Payment Medium: only relevant for BUYIN / DROP --}}
-                        <div class="col-md-2" x-show="txnType === 'BUYIN' || txnType === 'DROP'"
-                            style="{{ in_array(request('txn_type'), ['BUYIN','DROP']) ? '' : 'display:none;' }}">
+                        {{-- Payment Medium: only for BUYIN (not DROP, since DROP implies CASH) --}}
+                        <div class="col-md-2" x-show="txnType === 'BUYIN'"
+                            style="{{ request('txn_type') === 'BUYIN' ? '' : 'display:none;' }}">
                             <label class="form-label text-secondary small mb-1">Medium</label>
                             <select name="payment_medium" class="form-select form-select-sm bg-black text-white border-secondary">
                                 <option value="">All</option>
                                 <option value="CASH"  {{ request('payment_medium') == 'CASH'  ? 'selected' : '' }}>CASH</option>
-                                <option value="CHIPS" {{ request('payment_medium') == 'CHIPS' ? 'selected' : '' }}
-                                    x-show="txnType === 'BUYIN'"
-                                    style="{{ request('txn_type') === 'BUYIN' ? '' : 'display:none;' }}">CHIPS</option>
+                                <option value="CHIPS" {{ request('payment_medium') == 'CHIPS' ? 'selected' : '' }}>CHIPS</option>
                             </select>
+                        </div>
+                        {{-- When DROP is selected, medium is implicitly CASH -- show info badge --}}
+                        <div class="col-md-2" x-show="txnType === 'DROP'"
+                            style="{{ request('txn_type') === 'DROP' ? '' : 'display:none;' }}">
+                            <label class="form-label text-secondary small mb-1">Medium</label>
+                            <div class="form-control form-control-sm bg-black border-secondary text-warning" style="font-size:.75rem;">
+                                <i class="bi bi-lock-fill me-1"></i>CASH only
+                            </div>
                         </div>
 
                         <div class="col-md-2">
@@ -139,18 +145,23 @@
                                 <td class="text-white">{{ $ledger->gameday->format('d/m/Y') }}</td>
                                 <td class="text-warning fw-bold">{{ $ledger->gameTable->table_name }}</td>
                                 <td>
-                                    @php
-                                        $typeColor = match($ledger->txn_type) {
-                                            'FILL', 'BUYIN', 'CREDIT' => 'success',
-                                            'DROP', 'CASHOUT' => 'danger',
-                                            'PAYOUT' => 'primary',
-                                            'VOID' => 'warning',
-                                            default => 'secondary'
-                                        };
-                                    @endphp
-                                    <span class="badge bg-{{ $typeColor }} {{ $ledger->txn_type == 'VOID' ? 'text-dark' : '' }}" style="font-size:.7rem">
-                                        {{ $ledger->txn_type }}
-                                    </span>
+                                @php
+                                    // BUYIN with payment_medium=CASH is displayed as DROP
+                                    $displayType = ($ledger->txn_type === 'BUYIN' && $ledger->payment_medium === 'CASH')
+                                        ? 'DROP'
+                                        : $ledger->txn_type;
+
+                                    $typeColor = match($displayType) {
+                                        'FILL', 'BUYIN', 'CREDIT' => 'success',
+                                        'DROP', 'CASHOUT' => 'danger',
+                                        'PAYOUT' => 'primary',
+                                        'VOID' => 'warning',
+                                        default => 'secondary'
+                                    };
+                                @endphp
+                                <span class="badge bg-{{ $typeColor }} {{ $displayType == 'VOID' ? 'text-dark' : '' }}" style="font-size:.7rem">
+                                    {{ $displayType }}
+                                </span>
                                 </td>
                                 <td>
                                     @if($ledger->payment_medium)
