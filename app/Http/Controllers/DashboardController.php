@@ -82,15 +82,16 @@ class DashboardController extends Controller
                 'at'           => $t->created_at?->format('H:i:s'),
             ])->values();
 
-            // Simulate 6 player seats with activity derived from tabs
-            $activeTabs = $txns->whereNotNull('tab_id')
+            // Build 6 player seats mapped by tab_id number directly to seat position.
+            // tab_id is numeric (1–6); each player sits at the seat matching their tab number,
+            // so tab_id 3 always occupies seat 3 regardless of transaction order.
+            $activeTabMap = $txns->whereNotNull('tab_id')
                 ->pluck('tab_id')
                 ->unique()
-                ->values()
-                ->take(6);
+                ->mapWithKeys(fn($tab) => [(int) $tab => $tab]); // key by numeric tab_id
 
-            $players = collect(range(1, 6))->map(function ($seat) use ($activeTabs, $txns) {
-                $tab = $activeTabs->get($seat - 1);
+            $players = collect(range(1, 6))->map(function ($seat) use ($activeTabMap, $txns) {
+                $tab = $activeTabMap->get($seat); // seat == tab_id number
                 if (!$tab) {
                     return ['seat' => $seat, 'active' => false, 'tab_id' => null, 'balance' => null, 'last_action' => null];
                 }
@@ -130,7 +131,7 @@ class DashboardController extends Controller
                 'net_revenue'     => round($totalDrop - $totalFill, 2),
                 'recent_txns'     => $recentTxns,
                 'players'         => $players,
-                'active_players'  => $activeTabs->count(),
+                'active_players'  => $activeTabMap->count(),
             ];
         });
 

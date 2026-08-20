@@ -441,7 +441,7 @@ placeholder="Multiplier">
     const chipPresetSelect = document.getElementById('chipPresetSelect');
 
     // ── Game type change ──────────────────────────────────────────────────
-    gameTypeSelect.addEventListener('change', function() {
+    if (gameTypeSelect) gameTypeSelect.addEventListener('change', function() {
         const code = this.options[this.selectedIndex] ? this.options[this.selectedIndex].dataset.code : null;
 console.log('Selected game type code:', code);
         // hide all game field panels
@@ -464,7 +464,7 @@ console.log('Selected game type code:', code);
     });
 
     // ── Chip preset preview ───────────────────────────────────────────────
-    chipPresetSelect.addEventListener('change', function() {
+    if (chipPresetSelect) chipPresetSelect.addEventListener('change', function() {
         const opt = this.options[this.selectedIndex];
         const chips = JSON.parse(opt.dataset.chips || '[]');
         const base = opt.dataset.base || '—';

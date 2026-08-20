@@ -519,11 +519,22 @@
                                                         style="width:1px; height:12px; background:#333; margin:0 3px;"></span>
 
                                                     {{-- Multiplier or seed --}}
-                                                    @if ($rule->payout_multiplier)
+                                                    @php
+                                                        $displayMultiplier = $rule->payout_multiplier;
+                                                        if ($table->gameType?->code === 'BAC' && $preset) {
+                                                            $commission = $preset->baccarat_6_commission ?? 1;
+                                                            if ($rule->bet_position === 'B') {
+                                                                $displayMultiplier = $commission ? 0.95 : 1.0;
+                                                            } elseif ($rule->bet_position === 'B6') {
+                                                                $displayMultiplier = $commission ? 0.95 : 0.5;
+                                                            }
+                                                        }
+                                                    @endphp
+                                                    @if ($displayMultiplier)
                                                         <span
                                                             style="font-size:11px; font-weight:bold;
                                      color:{{ $tableRule->is_active ? '#ffc107' : '#444' }};">
-                                                            {{ $rule->payout_multiplier }}x
+                                                            {{ $displayMultiplier }}x
                                                         </span>
                                                     @else
                                                         <span
