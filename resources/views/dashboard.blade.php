@@ -204,15 +204,24 @@
         el.id='tc-'+t.id;
         var fc=t.is_open?'#68d391':'#8899aa';
         var rh='';
-        if(t.recent_txns&&t.recent_txns.length){
-            t.recent_txns.forEach(function(tx){
+        var allowedTypes=['BUYIN','DROP','CASHOUT'];
+        var visibleTxns=t.recent_txns?t.recent_txns.filter(function(tx){
+            var dtype=tx.display_type||tx.txn_type;
+            return allowedTypes.indexOf(dtype)!==-1;
+        }):[];
+        if(visibleTxns.length){
+            visibleTxns.forEach(function(tx){
                 var dtype=tx.display_type||tx.txn_type;
                 var out=dtype==='DROP'||dtype==='CASHOUT';
+                var amt=tx.amount||0;
+                var negative=(out&&amt>0)||((!out)&&amt<0);
+                var sign=negative?'-':'+';
+                var amtClr=negative?'#fc8181':'#68d391';
                 rh+='<div class="feed-row">'
                     +'<span class="txn-pill txn-'+dtype+'">'+dtype+'</span>'
                     +'<span style="color:#8899aa;overflow:hidden;max-width:70px;text-overflow:ellipsis;">'+(tx.tab_id?tx.tab_id.slice(-7):'Table')+'</span>'
                     +'<span style="color:#667788;font-size:.68rem;">'+(tx.at||'')+'</span>'
-                    +'<span class="feed-amount" style="color:'+(out?'#fc8181':'#68d391')+';">'+(out?'-':'+')+fmt(tx.amount)+'</span>'
+                    +'<span class="feed-amount" style="color:'+amtClr+';">'+sign+fmt(Math.abs(amt))+'</span>'
                     +'</div>';
             });
         } else { rh='<div class="feed-empty">No transactions today.</div>'; }
@@ -223,11 +232,15 @@
             +'<span class="status-pill '+(t.is_open?'open':'closed')+'">'+(t.is_open?'<span class="live-dot"></span>':'')+(t.is_open?'Open':'Closed')+'</span></div></div>'
             +'<div class="casino-table-wrap">'+buildSVG(t)+'</div>'
             +(function(){
-                var floatClr=(t.is_open&&t.float_current!=null&&(t.float_current+t.total_fill)<t.float_open)?'#fc8181':'#68d391';
+                var floatClr=(t.is_open&&t.float_current!=null&&t.float_current<t.float_open)?'#fc8181':'#68d391';
                 return '<div class="table-stats-bar">'
                 +'<div class="stat-cell"><div class="sc-label">Float</div><div class="sc-val" style="color:'+floatClr+';">'
                 +(t.is_open&&t.stat_float!=null?fmt(t.stat_float):'&mdash;')
-                +'</div><div class="sc-sub">open&thinsp;+&thinsp;chips&thinsp;+&thinsp;fills&thinsp;&minus;&thinsp;credits</div></div>'
+                +'</div>'
+                +'<div class="sc-sub" style="display:flex;flex-direction:column;gap:1px;">'
+                +'<span>Open: '+(t.is_open&&t.float_open!=null?fmt(t.float_open):'&mdash;')+'</span>'
+                +'<span>Current: '+(t.is_open&&t.float_current!=null?fmt(t.float_current):'&mdash;')+'</span>'
+                +'</div></div>'
                 +'<div class="stat-cell"><div class="sc-label">Buy-in</div><div class="sc-val" style="color:#fbd38d;">'+fmt(t.total_buyin)+'</div><div class="sc-sub">cash &amp; chips</div></div>'
                 +'<div class="stat-cell"><div class="sc-label">Drop</div><div class="sc-val" style="color:#90cdf4;">'+fmt(t.total_drop)+'</div><div class="sc-sub">cash only</div></div>'
                 +'<div class="stat-cell"><div class="sc-label">Cash Out</div><div class="sc-val" style="color:#fc8181;">'+fmt(t.total_cashout)+'</div><div class="sc-sub">total cashout</div></div>'

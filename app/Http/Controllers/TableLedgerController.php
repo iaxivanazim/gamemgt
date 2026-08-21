@@ -127,10 +127,12 @@ class TableLedgerController extends Controller
                     : (float) $session->float_open;
 
                 // 3. Calculate new float balance based on txn_type
+                // For BUYIN: only CHIPS affect the float; CASH (DROP) goes to drop box
                 $newFloat = $this->calculateFloatBalance(
                     $currentFloat,
                     $request->txn_type,
-                    (float) $request->amount
+                    (float) $request->amount,
+                    $request->payment_medium
                 );
 
                 // 4. Calculate tab balance (per tab_id per gameday)
@@ -456,18 +458,19 @@ class TableLedgerController extends Controller
     // ════════════════════════════════════════════════════════════════
     // Helpers
     // ════════════════════════════════════════════════════════════════
-    private function calculateFloatBalance(float $current, string $type, float $amount): float
+    private function calculateFloatBalance(float $current, string $type, float $amount, ?string $paymentMedium = null): float
     {
-        // Note: DROP is no longer a txn_type. Cash buy-ins are BUYIN+CASH and increase float like any BUYIN.
         return match($type) {
-            'FILL'    =>  $current + $amount,        // cash added to table
-            'CREDIT'  =>  $current + $amount,        // vault transfer
-            'ADJUST'  =>  $current + $amount,        // +/- adjustment
-            'CASHOUT' =>  $current - abs($amount),   // player takes cash out
-            'BUYIN'   =>  $current + $amount,        // player buy-in (cash or chips)
-            'PAYOUT'  =>  $current,                  // accounting only
-            'VOID'    =>  $current,                  // handled by opposite txn
-            'BET'     =>  $current,                  // resolved via payout
+            'FILL'    =>  $current + $amount,               // chips added to table from vault
+            'CREDIT'  =>  $current + $amount,               // amount is signed: negative = deduction from float
+            'ADJUST'  =>  $current + $amount,               // +/- signed adjustment
+            'CASHOUT' =>  $current - abs($amount),          // player takes cash out
+            'BUYIN'   =>  $paymentMedium === 'CASH'         // DROP = cash goes in drop box, NOT float
+                            ? $current                      //   cash buy-in: float unchanged
+                            : $current + $amount,           //   chip buy-in: chips go on float
+            'PAYOUT'  =>  $current,                         // accounting only
+            'VOID'    =>  $current,                         // handled by opposite txn
+            'BET'     =>  $current,                         // resolved via payout
             default   =>  $current,
         };
     }

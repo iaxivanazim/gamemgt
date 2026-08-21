@@ -41,24 +41,31 @@ class DashboardController extends Controller
             ')
             ->get();
 
-        $gameday = $today;
+        // Collect all gamedates for currently-open floats (may include past dates)
+        $openGamedays = $tables
+            ->map(fn($t) => $t->currentFloat?->gameday?->toDateString())
+            ->filter()
+            ->unique()
+            ->values()
+            ->toArray();
 
-        $tableData = $tables->map(function ($table) use ($gameday) {
+        // Fall back to today if no open tables exist
+        $globalGamedays = count($openGamedays) ? $openGamedays : [$today];
+
+        $tableData = $tables->map(function ($table) use ($today) {
             $float = $table->currentFloat;
             $isOpen = !is_null($float);
 
-            // Ledger summary for today
+            // Use the gameday from the table's own open float, not today's date
+            $gameday = $isOpen ? $float->gameday->toDateString() : $today;
+
+            // Ledger summary for this table's gameday
             $txns = TableLedger::where('table_id', $table->id)
                 ->where('gameday', $gameday)
                 ->get();
 
-            $lastTxn = $txns->sortByDesc('txn_id')->first();
-            $currentFloat = $isOpen
-                ? ($lastTxn ? (float) $lastTxn->float_balance : (float) ($float->float_open ?? 0))
-                : null;
-
             $totalBuyin      = (float) $txns->where('txn_type', 'BUYIN')->sum('amount');                          // all buy-ins
-            $totalBuyinChips = (float) $txns->where('txn_type', 'BUYIN')->where('payment_medium', 'CHIPS')->sum('amount'); // chips buy-ins
+            $totalBuyinChips = (float) $txns->where('txn_type', 'BUYIN')->where('payment_medium', 'CHIPS')->sum('amount'); // chips buy-ins only
             $totalBuyinCash  = (float) $txns->where('txn_type', 'BUYIN')->where('payment_medium', 'CASH')->sum('amount');  // cash buy-ins (Drop)
             $totalCashout    = (float) $txns->where('txn_type', 'CASHOUT')->sum('amount');
             $totalFill       = (float) $txns->where('txn_type', 'FILL')->sum('amount');
@@ -67,9 +74,17 @@ class DashboardController extends Controller
             $totalPayout     = (float) $txns->where('txn_type', 'PAYOUT')->sum('amount');
             $txnCount        = $txns->count();
 
-            // Stat 1: Float = opening_float + buyin(CHIPS) + fills - credits
+            // Float = open + chip_buyins + fills + credits (signed: negative credit = deduction)
+            // Cash buyins (DROP) go in the drop box and do NOT affect the table float.
+            // $totalCredit is signed (e.g. -10,000 means chips left the table),
+            // so use + $totalCredit, NOT - $totalCredit (which would double-negate).
             $openingFloat = $isOpen ? (float) ($float->float_open ?? 0) : 0;
-            $statFloat    = $openingFloat + $totalBuyinChips + $totalFill - $totalCredit;
+            $liveFloat    = round($openingFloat + $totalBuyinChips + $totalFill + $totalCredit, 2);
+
+            // Use the recalculated value — do NOT read float_balance from DB,
+            // as stored values may include cash buyins erroneously.
+            $currentFloat = $isOpen ? $liveFloat : null;
+            $statFloat    = $liveFloat;
 
             // Recent transactions (last 5) for activity feed
             $recentTxns = $txns->sortByDesc('txn_id')->take(5)->map(fn($t) => [
@@ -121,7 +136,7 @@ class DashboardController extends Controller
                 'txn_count'       => $txnCount,
                 // ── Stats bar fields ──────────────────────────────────────────
                 'stat_float'      => $isOpen ? round($statFloat, 2) : null,    // opening + chip buyins + fills - credits
-                'total_buyin'     => round($totalBuyin, 2),                    // all buy-ins (cash + chips)
+                'total_buyin'     => round($totalBuyinChips, 2),               // chips buy-ins only (cash shown in Drop)
                 'total_drop'      => round($totalBuyinCash, 2),                // cash buy-ins only
                 // ── Other financials ─────────────────────────────────────────
                 'total_cashout'   => $totalCashout,
@@ -137,7 +152,7 @@ class DashboardController extends Controller
 
         // ── Global KPIs ────────────────────────────────────────────────────────
         $openTables    = $tables->filter(fn($t) => !is_null($t->currentFloat))->count();
-        $allTxnsToday  = TableLedger::where('gameday', $gameday)->get();
+        $allTxnsToday  = TableLedger::whereIn('gameday', $globalGamedays)->get();
         $totalFloat    = $tableData->sum('float_current');
         $totalRevenue  = $tableData->sum('net_revenue');
         $totalTxns     = $allTxnsToday->count();
@@ -145,7 +160,7 @@ class DashboardController extends Controller
         $pendingTxns   = (int)   $allTxnsToday->where('processed', 0)->count();
 
         // Hourly transaction volume (last 12 hours)
-        $hourlyVolume = TableLedger::where('gameday', $gameday)
+        $hourlyVolume = TableLedger::whereIn('gameday', $globalGamedays)
             ->select(DB::raw('HOUR(created_at) as hour'), DB::raw('COUNT(*) as count'), DB::raw('SUM(amount) as volume'))
             ->groupBy('hour')
             ->orderBy('hour')
@@ -156,7 +171,7 @@ class DashboardController extends Controller
         return response()->json([
             'success'    => true,
             'timestamp'  => now()->toISOString(),
-            'gameday'    => $gameday,
+            'gameday'    => count($globalGamedays) === 1 ? $globalGamedays[0] : $globalGamedays,
             'kpis'       => [
                 'open_tables'   => $openTables,
                 'total_tables'  => $tables->count(),
