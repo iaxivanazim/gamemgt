@@ -74,12 +74,14 @@ class DashboardController extends Controller
             $totalPayout     = (float) $txns->where('txn_type', 'PAYOUT')->sum('amount');
             $txnCount        = $txns->count();
 
-            // Float = open + chip_buyins + fills + credits (signed: negative credit = deduction)
+            // Float = open + chip_buyins + fills + credits - cashouts (signed: negative credit = deduction)
             // Cash buyins (DROP) go in the drop box and do NOT affect the table float.
             // $totalCredit is signed (e.g. -10,000 means chips left the table),
             // so use + $totalCredit, NOT - $totalCredit (which would double-negate).
+            // CASHOUT always reduces the float (chips leave the table); use abs() to
+            // handle both positive and negative stored values consistently.
             $openingFloat = $isOpen ? (float) ($float->float_open ?? 0) : 0;
-            $liveFloat    = round($openingFloat + $totalBuyinChips + $totalFill + $totalCredit, 2);
+            $liveFloat    = round($openingFloat + $totalBuyinChips + $totalFill + $totalCredit - abs($totalCashout), 2);
 
             // Use the recalculated value — do NOT read float_balance from DB,
             // as stored values may include cash buyins erroneously.

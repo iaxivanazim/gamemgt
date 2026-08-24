@@ -184,7 +184,11 @@
         var glow=isOpen?('<path d="M '+(cx-rx)+' '+cy+' A '+rx+' '+ry+' 0 0 1 '+(cx+rx)+' '+cy+'" fill="none" stroke="#68d391" stroke-width="2.5" opacity="0.45"/>'):'';
 
         return '<svg class="casino-table-svg" viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg">'
-            +'<defs><radialGradient id="fg'+uid+'" cx="50%" cy="70%" r="60%"><stop offset="0%" stop-color="'+lighten(fc,18)+'"/><stop offset="100%" stop-color="'+fc+'"/></radialGradient></defs>'
+            +'<defs>'
+            +'<radialGradient id="fg'+uid+'" cx="50%" cy="70%" r="60%"><stop offset="0%" stop-color="'+lighten(fc,18)+'"/><stop offset="100%" stop-color="'+fc+'"/></radialGradient>'
+            +'<radialGradient id="bg'+uid+'" cx="50%" cy="60%" r="70%"><stop offset="0%" stop-color="'+fc+'" stop-opacity="0.18"/><stop offset="100%" stop-color="'+fc+'" stop-opacity="0.04"/></radialGradient>'
+            +'</defs>'
+            +'<rect width="'+W+'" height="'+H+'" fill="url(#bg'+uid+')" rx="12"/>'
             +'<ellipse cx="'+cx+'" cy="'+(cy+8)+'" rx="'+(rx+6)+'" ry="18" fill="rgba(0,0,0,.45)"/>'
             +'<path d="M '+(cx-rx-8)+' '+cy+' A '+(rx+8)+' '+(ry+8)+' 0 0 1 '+(cx+rx+8)+' '+cy+' L '+(cx+rx+8)+' '+(cy+38)+' L '+(cx-rx-8)+' '+(cy+38)+' Z" fill="#7a5600"/>'
             +'<path d="M '+(cx-rx)+' '+cy+' A '+rx+' '+ry+' 0 0 1 '+(cx+rx)+' '+cy+' L '+(cx+rx)+' '+(cy+32)+' L '+(cx-rx)+' '+(cy+32)+' Z" fill="url(#fg'+uid+')"/>'
@@ -212,16 +216,18 @@
         if(visibleTxns.length){
             visibleTxns.forEach(function(tx){
                 var dtype=tx.display_type||tx.txn_type;
+                // CASHOUT and DROP are always outgoing (chips/cash leave the table).
+                // Use type semantics for the sign, not the raw stored amount value,
+                // because CASHOUT may be stored as a negative number (e.g. -20000).
                 var out=dtype==='DROP'||dtype==='CASHOUT';
-                var amt=tx.amount||0;
-                var negative=(out&&amt>0)||((!out)&&amt<0);
-                var sign=negative?'-':'+';
-                var amtClr=negative?'#fc8181':'#68d391';
+                var absAmt=Math.abs(tx.amount||0);
+                var sign=out?'-':'+';
+                var amtClr=out?'#fc8181':'#68d391';
                 rh+='<div class="feed-row">'
                     +'<span class="txn-pill txn-'+dtype+'">'+dtype+'</span>'
                     +'<span style="color:#8899aa;overflow:hidden;max-width:70px;text-overflow:ellipsis;">'+(tx.tab_id?tx.tab_id.slice(-7):'Table')+'</span>'
                     +'<span style="color:#667788;font-size:.68rem;">'+(tx.at||'')+'</span>'
-                    +'<span class="feed-amount" style="color:'+amtClr+';">'+sign+fmt(Math.abs(amt))+'</span>'
+                    +'<span class="feed-amount" style="color:'+amtClr+';">'+sign+fmt(absAmt)+'</span>'
                     +'</div>';
             });
         } else { rh='<div class="feed-empty">No transactions today.</div>'; }
