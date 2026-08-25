@@ -174,7 +174,7 @@
                                         {{ $block->float_status }}
                                     </span>
                                 </div>
-                                <div class="d-flex gap-3 small text-light">
+                                <div class="d-flex gap-3 small text-light flex-wrap">
                                     <span>
                                         <span class="text-secondary">Total Opening Float:</span>
                                         <span class="fw-semibold text-info">
@@ -182,10 +182,23 @@
                                         </span>
                                     </span>
                                     <span>
+                                        {{-- Closing = Opening + Fills - Credits + BuyIn(cash+chips) - Cashout --}}
                                         <span class="text-secondary">Total Closing Float:</span>
                                         <span class="fw-semibold text-warning">
                                             {{ $block->closing_float !== null ? number_format($block->closing_float, 2) : '—' }}
                                         </span>
+                                    </span>
+                                    <span>
+                                        {{-- Result = Closing Float - Opening Float --}}
+                                        <span class="text-secondary">Result:</span>
+                                        @if($block->result !== null)
+                                            @php $resultPositive = $block->result >= 0; @endphp
+                                            <span class="fw-semibold {{ $resultPositive ? 'text-success' : 'text-danger' }}">
+                                                {{ ($resultPositive ? '+' : '') . number_format($block->result, 2) }}
+                                            </span>
+                                        @else
+                                            <span class="text-muted">—</span>
+                                        @endif
                                     </span>
                                 </div>
                             </div>
@@ -230,6 +243,14 @@
                                             <td class="text-end">
                                                 @if($tab->total_buy != 0)
                                                     <span class="text-info fw-semibold">{{ number_format($tab->total_buy, 2) }}</span>
+                                                    <div class="text-muted" style="font-size:10px; line-height:1.2;">
+                                                        @if($tab->total_buy_cash != 0)
+                                                            <span>Cash: {{ number_format($tab->total_buy_cash, 2) }}</span>
+                                                        @endif
+                                                        @if($tab->total_buy_chips != 0)
+                                                            <span class="{{ $tab->total_buy_cash != 0 ? 'ms-1' : '' }}">Chips: {{ number_format($tab->total_buy_chips, 2) }}</span>
+                                                        @endif
+                                                    </div>
                                                 @else
                                                     <span class="text-muted">—</span>
                                                 @endif

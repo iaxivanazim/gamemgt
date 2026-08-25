@@ -80,11 +80,11 @@ class ReportController extends Controller
             ->get();
 
         // 2. Aggregate float records per table for this gameday (sum across multiple open/close sessions)
+        //    total_opening_float = SUM of all float_open values (table opened multiple times)
         $floatsByTable = DB::table('table_floats')
             ->select(
                 'table_id',
                 DB::raw('SUM(float_open) AS total_opening_float'),
-                DB::raw('SUM(float_close) AS total_closing_float'),
                 DB::raw('MAX(CASE WHEN closed_at IS NULL THEN 1 ELSE 0 END) AS has_open_session')
             )
             ->where('gameday', $gameday)
@@ -93,6 +93,9 @@ class ReportController extends Controller
             ->keyBy('table_id');
 
         // 3. Aggregate ledger entries per (table_id, tab_id) for this gameday
+        //    total_buy = ALL BUYIN txns (cash + chips), matching ledger behaviour
+        //    total_buy_cash  = BUYIN with payment_medium = CASH (i.e. DROP / cash buy-in)
+        //    total_buy_chips = BUYIN with payment_medium = CHIPS
         $ledgerAggregates = DB::table('table_ledgers')
             ->select(
                 'table_id',
@@ -100,6 +103,8 @@ class ReportController extends Controller
                 DB::raw("SUM(CASE WHEN txn_type = 'FILL'   THEN amount ELSE 0 END) AS total_fills"),
                 DB::raw("SUM(CASE WHEN txn_type = 'CREDIT' THEN amount ELSE 0 END) AS total_credits"),
                 DB::raw("SUM(CASE WHEN txn_type = 'BUYIN'  THEN amount ELSE 0 END) AS total_buy"),
+                DB::raw("SUM(CASE WHEN txn_type = 'BUYIN' AND payment_medium = 'CASH'  THEN amount ELSE 0 END) AS total_buy_cash"),
+                DB::raw("SUM(CASE WHEN txn_type = 'BUYIN' AND payment_medium = 'CHIPS' THEN amount ELSE 0 END) AS total_buy_chips"),
                 DB::raw("SUM(CASE WHEN txn_type = 'CASHOUT' THEN amount ELSE 0 END) AS total_cashout")
             )
             ->where('gameday', $gameday)
@@ -109,11 +114,26 @@ class ReportController extends Controller
             ->get()
             ->groupBy('table_id');
 
-        // 4. Build the structured result
+        // 4. Aggregate ledger totals at table level for closing float & result calculation
+        $ledgerTotalsByTable = DB::table('table_ledgers')
+            ->select(
+                'table_id',
+                DB::raw("SUM(CASE WHEN txn_type = 'FILL'   THEN amount ELSE 0 END) AS total_fills"),
+                DB::raw("SUM(CASE WHEN txn_type = 'CREDIT' THEN amount ELSE 0 END) AS total_credits"),
+                DB::raw("SUM(CASE WHEN txn_type = 'BUYIN'  THEN amount ELSE 0 END) AS total_buy"),
+                DB::raw("SUM(CASE WHEN txn_type = 'CASHOUT' THEN amount ELSE 0 END) AS total_cashout")
+            )
+            ->where('gameday', $gameday)
+            ->groupBy('table_id')
+            ->get()
+            ->keyBy('table_id');
+
+        // 5. Build the structured result
         $result = collect();
 
         foreach ($gameTables as $table) {
-            $float = $floatsByTable->get($table->id);
+            $float      = $floatsByTable->get($table->id);
+            $ledgerTots = $ledgerTotalsByTable->get($table->id);
 
             // Only include tables that had activity on this gameday
             $tabRows = $ledgerAggregates->get($table->id, collect())->values();
@@ -123,12 +143,30 @@ class ReportController extends Controller
                 continue;
             }
 
+            $openingFloat = $float ? (float) $float->total_opening_float : null;
+            $totalFills   = $ledgerTots ? (float) $ledgerTots->total_fills   : 0;
+            $totalCredits = $ledgerTots ? (float) $ledgerTots->total_credits : 0;
+            $totalBuy     = $ledgerTots ? (float) $ledgerTots->total_buy     : 0;
+            $totalCashout = $ledgerTots ? (float) $ledgerTots->total_cashout : 0;
+
+            // Closing Float = Total Opening + Total Fills - Total Credits + Total Buy-In (cash+chips) + Total Cashout
+            // NOTE: cashout amounts are stored as negative values in the DB, so we add (not subtract) here
+            $closingFloat = $openingFloat !== null
+                ? round($openingFloat + $totalFills - $totalCredits + $totalBuy + $totalCashout, 2)
+                : null;
+
+            // Result = Closing Float - Opening Float
+            $resultFloat = ($closingFloat !== null && $openingFloat !== null)
+                ? round($closingFloat - $openingFloat, 2)
+                : null;
+
             $result->push((object) [
                 'table_id'       => $table->id,
                 'table_name'     => $table->table_name,
                 'game_type'      => $table->gameType->name ?? 'N/A',
-                'opening_float'  => $float ? $float->total_opening_float : null,
-                'closing_float'  => $float ? $float->total_closing_float : null,
+                'opening_float'  => $openingFloat,
+                'closing_float'  => $closingFloat,
+                'result'         => $resultFloat,
                 'float_status'   => $float
                     ? ($float->has_open_session ? 'Open' : 'Closed')
                     : 'No Float',

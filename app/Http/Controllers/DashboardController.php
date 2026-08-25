@@ -138,7 +138,7 @@ class DashboardController extends Controller
                 'txn_count'       => $txnCount,
                 // ── Stats bar fields ──────────────────────────────────────────
                 'stat_float'      => $isOpen ? round($statFloat, 2) : null,    // opening + chip buyins + fills - credits
-                'total_buyin'     => round($totalBuyinChips, 2),               // chips buy-ins only (cash shown in Drop)
+                'total_buyin'     => round($totalBuyin, 2),                      // cash + chips buy-ins combined
                 'total_drop'      => round($totalBuyinCash, 2),                // cash buy-ins only
                 // ── Other financials ─────────────────────────────────────────
                 'total_cashout'   => $totalCashout,
