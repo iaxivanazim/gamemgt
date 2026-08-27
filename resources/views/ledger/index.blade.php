@@ -153,10 +153,11 @@
 
                                     $typeColor = match($displayType) {
                                         'FILL', 'BUYIN', 'CREDIT' => 'success',
-                                        'DROP', 'CASHOUT' => 'danger',
+                                        'DROP', 'CASHOUT', 'LOSS' => 'danger',
                                         'PAYOUT' => 'primary',
-                                        'VOID' => 'warning',
-                                        default => 'secondary'
+                                        'BET'    => 'warning',
+                                        'VOID'   => 'secondary',
+                                        default  => 'secondary'
                                     };
                                 @endphp
                                 <span class="badge bg-{{ $typeColor }} {{ $displayType == 'VOID' ? 'text-dark' : '' }}" style="font-size:.7rem">

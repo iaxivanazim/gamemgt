@@ -72,16 +72,19 @@ class DashboardController extends Controller
             $totalCredit     = (float) $txns->where('txn_type', 'CREDIT')->sum('amount');
             $totalDrop       = (float) $txns->where('txn_type', 'DROP')->sum('amount');
             $totalPayout     = (float) $txns->where('txn_type', 'PAYOUT')->sum('amount');
+            $totalLoss       = (float) $txns->where('txn_type', 'LOSS')->sum('amount');  // losing chips swept into tray
             $txnCount        = $txns->count();
 
-            // Float = open + chip_buyins + fills + credits - cashouts (signed: negative credit = deduction)
-            // Cash buyins (DROP) go in the drop box and do NOT affect the table float.
-            // $totalCredit is signed (e.g. -10,000 means chips left the table),
-            // so use + $totalCredit, NOT - $totalCredit (which would double-negate).
-            // CASHOUT always reduces the float (chips leave the table); use abs() to
-            // handle both positive and negative stored values consistently.
+            // Float formula mirrors calculateFloatBalance() in TableLedgerController:
+            //   + chip_buyins  : chips go onto the float when player buys in with chips
+            //   + fills        : chips added from vault
+            //   + credits      : signed; negative credit = chips removed from table
+            //   + losses       : losing chips swept from betting circle into float tray
+            //   - cashouts     : chips leave table (abs() handles any sign inconsistency)
+            //   - payouts      : winnings paid out from float tray to player
+            // Cash buyins (DROP) go in the drop box — they do NOT affect the float.
             $openingFloat = $isOpen ? (float) ($float->float_open ?? 0) : 0;
-            $liveFloat    = round($openingFloat + $totalBuyinChips + $totalFill + $totalCredit - abs($totalCashout), 2);
+            $liveFloat    = round($openingFloat + $totalBuyinChips + $totalFill + $totalCredit + $totalLoss - abs($totalCashout) - $totalPayout, 2);
 
             // Use the recalculated value — do NOT read float_balance from DB,
             // as stored values may include cash buyins erroneously.
@@ -145,6 +148,7 @@ class DashboardController extends Controller
                 'total_fill'      => $totalFill,
                 'total_credit'    => $totalCredit,
                 'total_payout'    => $totalPayout,
+                'total_loss'      => $totalLoss,
                 'net_revenue'     => round($totalDrop - $totalFill, 2),
                 'recent_txns'     => $recentTxns,
                 'players'         => $players,

@@ -61,7 +61,7 @@ class TableLedgerController extends Controller
         $ledgers = $query->paginate(25)->withQueryString();
         $tables = GameTable::all();
         // DROP is no longer a separate txn_type — it is BUYIN(CASH). Keep in list for filter UI only.
-        $txnTypes = ['FILL','CREDIT','DROP','ADJUST','CASHOUT','BUYIN','PAYOUT','VOID','BET'];
+        $txnTypes = ['FILL','CREDIT','DROP','ADJUST','CASHOUT','BUYIN','PAYOUT','VOID','BET','LOSS'];
 
         return view('ledger.index', compact('ledgers', 'tables', 'txnTypes'));
     }
@@ -75,7 +75,7 @@ class TableLedgerController extends Controller
         $request->validate([
             'table_id'       => 'required|exists:game_tables,id',
             // DROP is no longer a valid txn_type; cash buy-ins are stored as BUYIN with payment_medium=CASH
-            'txn_type'       => 'required|in:FILL,CREDIT,ADJUST,CASHOUT,BUYIN,PAYOUT,VOID,BET',
+            'txn_type'       => 'required|in:FILL,CREDIT,ADJUST,CASHOUT,BUYIN,PAYOUT,VOID,BET,LOSS',
             'payment_medium' => [
                 'nullable',
                 'in:CASH,CHIPS',
@@ -271,10 +271,12 @@ class TableLedgerController extends Controller
             $payout     = (float) ($totals['PAYOUT']['total'] ?? 0);
             $void       = (float) ($totals['VOID']['total']   ?? 0);
             $bet        = (float) ($totals['BET']['total']    ?? 0);
+            $loss       = (float) ($totals['LOSS']['total']   ?? 0);
             // DROP = BUYIN with payment_medium CASH
             $drop = (float) $txns->where('txn_type', 'BUYIN')->where('payment_medium', 'CASH')->sum('amount');
 
-            $expectedClose = $floatOpen + $buyin - $cashout + $fill + $credit + $adjust;
+            // Float formula: open + buyin(chips) + fills + credits + adjusts + losses(swept in) - cashouts - payouts(paid out)
+            $expectedClose = $floatOpen + $buyin - $cashout + $fill + $credit + $adjust + $loss - $payout;
             $variance      = $floatClose > 0 ? round($floatClose - $expectedClose, 2) : null;
 
             // Last float balance
@@ -313,6 +315,7 @@ class TableLedgerController extends Controller
                     'PAYOUT'  => ['count' => $totals['PAYOUT']['count'] ?? 0, 'total' => $payout],
                     'VOID'    => ['count' => $totals['VOID']['count']   ?? 0, 'total' => $void],
                     'BET'     => ['count' => $totals['BET']['count']    ?? 0, 'total' => $bet],
+                    'LOSS'    => ['count' => $totals['LOSS']['count']   ?? 0, 'total' => $loss],
                 ],
                 'total_txns' => $txns->count(),
             ], 200);
@@ -468,9 +471,10 @@ class TableLedgerController extends Controller
             'BUYIN'   =>  $paymentMedium === 'CASH'         // DROP = cash goes in drop box, NOT float
                             ? $current                      //   cash buy-in: float unchanged
                             : $current + $amount,           //   chip buy-in: chips go on float
-            'PAYOUT'  =>  $current,                         // accounting only
+            'PAYOUT'  =>  $current - abs($amount),          // winnings paid out from tray to player
+            'LOSS'    =>  $current + abs($amount),          // losing chips swept from betting circle into tray
             'VOID'    =>  $current,                         // handled by opposite txn
-            'BET'     =>  $current,                         // resolved via payout
+            'BET'     =>  $current,                         // betting circle chips are not in float tray
             default   =>  $current,
         };
     }
@@ -489,13 +493,14 @@ class TableLedgerController extends Controller
         $currentTab = $lastTabTxn ? (float) $lastTabTxn->tab_balance : 0;
 
         return match($type) {
-            'BUYIN'   => $currentTab + $amount,  // player adds credit
-            'CASHOUT' => $currentTab - abs($amount),  // player withdraws
-            'PAYOUT'  => $currentTab + $amount,  // winnings credited to tab
-            'CREDIT'  => $currentTab + $amount,  // credit added to tab
-            'VOID'    => $currentTab,             // void doesn't affect tab (handled by opposite txn)
-            'BET'     => $currentTab,             // bets don't affect tab until resolved (handled by payout)
-            default   => $currentTab,             // FILL, DROP, ADJUST don't affect tab
+            'BUYIN'   => $currentTab + $amount,             // player adds credit to tab
+            'CASHOUT' => $currentTab - abs($amount),        // player withdraws from tab
+            'PAYOUT'  => $currentTab + $amount,             // winnings credited to tab
+            'CREDIT'  => $currentTab + $amount,             // credit added to tab
+            'BET'     => $currentTab - abs($amount),        // stake leaves player's tab when bet is placed
+            'LOSS'    => $currentTab,                       // tab already reduced at BET time; no further change
+            'VOID'    => $currentTab,                       // void doesn't affect tab (handled by opposite txn)
+            default   => $currentTab,                       // FILL, DROP, ADJUST don't affect tab
         };
     }
 
