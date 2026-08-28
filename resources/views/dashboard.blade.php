@@ -62,13 +62,7 @@
             <div class="kpi-icon"><i class="bi bi-graph-up-arrow"></i></div>
             <div class="kpi-label">Net Revenue</div>
             <div class="kpi-value" id="kpi-revenue">&mdash;</div>
-            <div class="kpi-sub">drops minus fills</div>
-        </div>
-        <div class="kpi-card" style="--accent-color:#fc8181;--icon-bg:rgba(229,62,62,.1)">
-            <div class="kpi-icon"><i class="bi bi-hourglass-split"></i></div>
-            <div class="kpi-label">Pending TXNs</div>
-            <div class="kpi-value" id="kpi-pending">&mdash;</div>
-            <div class="kpi-sub">awaiting processing</div>
+            <div class="kpi-sub">closing minus opening float</div>
         </div>
     </div>
 
@@ -289,11 +283,15 @@
         document.getElementById('kpi-total-txns').textContent=fmtI(k.total_txns);
         document.getElementById('kpi-total-buyins').textContent=fmt(k.total_buyins);
         var re=document.getElementById('kpi-revenue');
-        re.textContent=fmt(k.total_revenue);
-        re.style.color=k.total_revenue>=0?'#68d391':'#fc8181';
-        document.getElementById('kpi-pending').textContent=k.pending_txns;
+        if(k.total_revenue===null||k.total_revenue===undefined){
+            re.textContent='\u2014';
+            re.style.color='';
+        } else {
+            re.textContent=fmt(k.total_revenue);
+            re.style.color=k.total_revenue>=0?'#68d391':'#fc8181';
+        }
         document.getElementById('gamedayLabel').textContent=gd;
-        document.getElementById('pendingBadge').textContent=k.pending_txns;
+        document.getElementById('pendingBadge').textContent=k.pending_txns||0;
     }
 
     function renderChart(hv){

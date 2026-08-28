@@ -447,6 +447,12 @@ console.log('Selected game type code:', code);
         // hide all game field panels
         document.querySelectorAll('.game-fields').forEach(el => el.style.display = 'none');
 
+        // swap burn card label for Andar Bahar
+        const burnCardLabel = document.getElementById('burnCardLabel');
+        if (burnCardLabel) {
+            burnCardLabel.textContent = code === 'AB' ? 'Reset Threshold' : 'Burn Card every round';
+        }
+
         if (code) {
             document.getElementById('gameConfigSection').style.display = 'block';
             document.getElementById('payoutSection').style.display = 'block';

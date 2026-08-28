@@ -152,7 +152,7 @@ class ReportController extends Controller
             // Closing Float = Total Opening + Total Fills - Total Credits + Total Buy-In (cash+chips) + Total Cashout
             // NOTE: cashout amounts are stored as negative values in the DB, so we add (not subtract) here
             $closingFloat = $openingFloat !== null
-                ? round($openingFloat + $totalFills - $totalCredits + $totalBuy + $totalCashout, 2)
+                ? round($openingFloat + $totalFills - abs($totalCredits) + $totalBuy - $totalCashout, 2)
                 : null;
 
             // Result = Closing Float - Opening Float
@@ -191,11 +191,16 @@ class ReportController extends Controller
         }
 
         if ($txnType) {
-            $query->where('txn_type', $txnType);
-        }
+            if ($txnType === 'DROP') {
+                // DROP is stored as BUYIN with payment_medium = CASH; no literal 'DROP' in the DB
+                $query->where('txn_type', 'BUYIN')->where('payment_medium', 'CASH');
+            } else {
+                $query->where('txn_type', $txnType);
 
-        if ($paymentMedium && in_array($txnType, ['DROP', 'BUYIN'])) {
-            $query->where('payment_medium', $paymentMedium);
+                if ($paymentMedium && $txnType === 'BUYIN') {
+                    $query->where('payment_medium', $paymentMedium);
+                }
+            }
         }
 
         return $query->get();

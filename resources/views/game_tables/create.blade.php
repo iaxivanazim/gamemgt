@@ -175,10 +175,10 @@
                             <div id="maxBetPreview" class="mt-1 d-flex flex-wrap gap-1"></div>
                         </div>
                         <div class="col-md-3">
-                            <label class="text-light small">Burn Card every round</label>
+                            <label class="text-light small" id="burnCardLabel">Burn Card every round</label>
                             <input type="number" name="config[burn_card]" id="burnCard"
                                 class="form-control bg-black text-white border-secondary"
-                                placeholder="Number of cards to burn" min="0" max="9">
+                                placeholder="Number of cards to burn" min="0" max="10">
                         </div>
 
                     </div>

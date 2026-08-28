@@ -275,8 +275,8 @@ class TableLedgerController extends Controller
             // DROP = BUYIN with payment_medium CASH
             $drop = (float) $txns->where('txn_type', 'BUYIN')->where('payment_medium', 'CASH')->sum('amount');
 
-            // Float formula: open + buyin(chips) + fills + credits + adjusts + losses(swept in) - cashouts - payouts(paid out)
-            $expectedClose = $floatOpen + $buyin - $cashout + $fill + $credit + $adjust + $loss - $payout;
+            // Float formula: open + buyin(chips) + fills + credits + adjusts + losses(swept in) - cashouts
+            $expectedClose = $floatOpen + $buyin - $cashout + $fill + $credit + $adjust + $loss;
             $variance      = $floatClose > 0 ? round($floatClose - $expectedClose, 2) : null;
 
             // Last float balance
@@ -471,7 +471,7 @@ class TableLedgerController extends Controller
             'BUYIN'   =>  $paymentMedium === 'CASH'         // DROP = cash goes in drop box, NOT float
                             ? $current                      //   cash buy-in: float unchanged
                             : $current + $amount,           //   chip buy-in: chips go on float
-            'PAYOUT'  =>  $current - abs($amount),          // winnings paid out from tray to player
+            'PAYOUT'  =>  $current,                         // accounting only — tab credited, float unchanged
             'LOSS'    =>  $current + abs($amount),          // losing chips swept from betting circle into tray
             'VOID'    =>  $current,                         // handled by opposite txn
             'BET'     =>  $current,                         // betting circle chips are not in float tray

@@ -81,10 +81,9 @@ class DashboardController extends Controller
             //   + credits      : signed; negative credit = chips removed from table
             //   + losses       : losing chips swept from betting circle into float tray
             //   - cashouts     : chips leave table (abs() handles any sign inconsistency)
-            //   - payouts      : winnings paid out from float tray to player
-            // Cash buyins (DROP) go in the drop box — they do NOT affect the float.
+            // PAYOUT and cash buyins (DROP) do NOT affect the float.
             $openingFloat = $isOpen ? (float) ($float->float_open ?? 0) : 0;
-            $liveFloat    = round($openingFloat + $totalBuyinChips + $totalFill + $totalCredit + $totalLoss - abs($totalCashout) - $totalPayout, 2);
+            $liveFloat    = round($openingFloat + $totalBuyinChips + $totalFill + $totalCredit + $totalLoss - abs($totalCashout), 2);
 
             // Use the recalculated value — do NOT read float_balance from DB,
             // as stored values may include cash buyins erroneously.
@@ -128,6 +127,14 @@ class DashboardController extends Controller
                 ];
             });
 
+            // Net revenue = closing float − opening float (result float).
+            // Only available after a session has been closed with a recorded float_close.
+            $fOpen  = $isOpen ? (float) ($float->float_open  ?? 0) : null;
+            $fClose = $isOpen ? ((float) ($float->float_close ?? 0) ?: null) : null;
+            $netRevenue = ($fClose !== null && $fOpen !== null)
+                ? round($fClose - $fOpen, 2)
+                : null;
+
             return [
                 'id'              => $table->id,
                 'name'            => $table->table_name,
@@ -149,7 +156,7 @@ class DashboardController extends Controller
                 'total_credit'    => $totalCredit,
                 'total_payout'    => $totalPayout,
                 'total_loss'      => $totalLoss,
-                'net_revenue'     => round($totalDrop - $totalFill, 2),
+                'net_revenue'     => $netRevenue,  // closing float − opening float; null while session is open
                 'recent_txns'     => $recentTxns,
                 'players'         => $players,
                 'active_players'  => $activeTabMap->count(),
@@ -160,10 +167,10 @@ class DashboardController extends Controller
         $openTables    = $tables->filter(fn($t) => !is_null($t->currentFloat))->count();
         $allTxnsToday  = TableLedger::whereIn('gameday', $globalGamedays)->get();
         $totalFloat    = $tableData->sum('float_current');
-        $totalRevenue  = $tableData->sum('net_revenue');
+        // Sum net_revenue only from tables with a recorded closing float; skip nulls (open sessions)
+        $totalRevenue  = $tableData->filter(fn($t) => $t['net_revenue'] !== null)->sum('net_revenue');
         $totalTxns     = $allTxnsToday->count();
         $totalBuyins   = (float) $allTxnsToday->where('txn_type', 'BUYIN')->sum('amount');
-        $pendingTxns   = (int)   $allTxnsToday->where('processed', 0)->count();
 
         // Hourly transaction volume (last 12 hours)
         $hourlyVolume = TableLedger::whereIn('gameday', $globalGamedays)
@@ -185,7 +192,6 @@ class DashboardController extends Controller
                 'total_revenue' => round($totalRevenue, 2),
                 'total_txns'    => $totalTxns,
                 'total_buyins'  => round($totalBuyins, 2),
-                'pending_txns'  => $pendingTxns,
             ],
             'hourly_volume' => $hourlyVolume,
             'tables'     => $tableData->values(),

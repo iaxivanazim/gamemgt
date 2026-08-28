@@ -235,10 +235,10 @@
                             <div id="maxBetPreview" class="mt-1 d-flex flex-wrap gap-1"></div>
                         </div>
                         <div class="col-md-3">
-                            <label class="text-light small">Burn Card every round</label>
+                            <label class="text-light small">{{ $code === 'AB' ? 'Reset Threshold' : 'Burn Card every round' }}</label>
                             <input type="number" name="config[burn_card]" id="burnCard"
                                 class="form-control bg-black text-white border-secondary" min="0"
-                                max="9" value="{{ old('config.burn_card', $preset?->burn_card) }}">
+                                max="10" value="{{ old('config.burn_card', $preset?->burn_card) }}">
                         </div>
 
                     </div>
