@@ -152,7 +152,7 @@ class ReportController extends Controller
             // Closing Float = Total Opening + Total Fills - Total Credits + Total Buy-In (cash+chips) + Total Cashout
             // NOTE: cashout amounts are stored as negative values in the DB, so we add (not subtract) here
             $closingFloat = $openingFloat !== null
-                ? round($openingFloat + $totalFills - abs($totalCredits) + $totalBuy - $totalCashout, 2)
+                ? round($openingFloat + $totalFills - abs($totalCredits) + $totalBuy - abs($totalCashout), 2)
                 : null;
 
             // Result = Closing Float - Opening Float
