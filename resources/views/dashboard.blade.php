@@ -1,7 +1,53 @@
 <x-app-layout>
 
 <style>
-    
+/* ── Winner seat – high balance (red) animations ──────────────────────── */
+
+/* Three expanding ripple rings that cascade outward and fade */
+.winner-ring {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: winner-ripple 1.5s ease-out infinite;
+}
+.winner-r2 { animation-delay: .5s;  }
+.winner-r3 { animation-delay: 1s; }
+
+@keyframes winner-ripple {
+    0%   { transform: scale(1);    opacity: .9; }
+    100% { transform: scale(2.4);  opacity: 0;  }
+}
+
+/* Slowly rotating dashed accent ring */
+.winner-spin {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: winner-rotate 2.8s linear infinite;
+}
+
+@keyframes winner-rotate {
+    from { transform: rotate(0deg);   }
+    to   { transform: rotate(360deg); }
+}
+
+/* Seat ring itself: glowing heartbeat with colour oscillation */
+.seat-ring.winner-active {
+    animation: winner-glow .85s ease-in-out infinite;
+}
+
+@keyframes winner-glow {
+    0%, 100% {
+        stroke-width: 2;
+        stroke-opacity: .85;
+        fill-opacity: .15;
+        filter: drop-shadow(0 0 4px #fc8181);
+    }
+    50% {
+        stroke-width: 4;
+        stroke-opacity: 1;
+        fill-opacity: .35;
+        filter: drop-shadow(0 0 14px #fc8181) drop-shadow(0 0 28px rgba(252,129,129,.45));
+    }
+}
 </style>
 
 <div class="dash-wrap" id="dashboardRoot">
@@ -178,14 +224,27 @@
             } else {
                 sc='#445566'; sf='rgba(30,40,60,.6)'; lc='#556677';
             }
-            var pulse=active?('<circle class="pulse-ring" cx="'+pos.x.toFixed(1)+'" cy="'+pos.y.toFixed(1)+'" r="19" fill="none" stroke="'+sc+'" stroke-width="1.5" opacity="0.5" style="animation-delay:'+(i*0.35)+'s"/>'):'';
+            var isWinner=active&&sc==='#fc8181';
+            var cx2=pos.x.toFixed(1),cy2=pos.y.toFixed(1);
+            // Winner (red) seat: triple cascading rings + rotating dashed accent
+            // All other active seats: single standard pulse ring
+            var pulse='';
+            if(isWinner){
+                pulse='<circle class="winner-ring"    cx="'+cx2+'" cy="'+cy2+'" r="19" fill="none" stroke="#fc8181" stroke-width="2.5"/>'
+                     +'<circle class="winner-ring winner-r2" cx="'+cx2+'" cy="'+cy2+'" r="19" fill="none" stroke="#fc8181" stroke-width="2.5"/>'
+                     +'<circle class="winner-ring winner-r3" cx="'+cx2+'" cy="'+cy2+'" r="19" fill="none" stroke="#fc8181" stroke-width="2.5"/>'
+                     +'<circle class="winner-spin" cx="'+cx2+'" cy="'+cy2+'" r="22" fill="none" stroke="#fc8181" stroke-width="1.5" stroke-dasharray="5 3" opacity="0.55"/>';
+            } else if(active){
+                pulse='<circle class="pulse-ring" cx="'+cx2+'" cy="'+cy2+'" r="19" fill="none" stroke="'+sc+'" stroke-width="1.5" opacity="0.5" style="animation-delay:'+(i*0.35)+'s"/>';
+            }
+            var seatCls='seat-ring '+(active?'active':'inactive')+(isWinner?' winner-active':'');
             sh+='<g class="player-seat" data-seat="'+sn+'" data-active="'+(active?1:0)+'" data-tab="'+tab+'" data-balance="'+bal+'" data-action="'+act+'" data-amount="'+amnt+'" data-at="'+at+'" onmouseenter="dashTTShow(event,this)" onmouseleave="dashTTHide()">';
             sh+=pulse;
-            sh+='<circle class="seat-ring '+(active?'active':'inactive')+'" cx="'+pos.x.toFixed(1)+'" cy="'+pos.y.toFixed(1)+'" r="17" style="stroke:'+sc+';fill:'+sf+';"/>';
-            sh+='<text x="'+pos.x.toFixed(1)+'" y="'+(pos.y+1).toFixed(1)+'" font-size="13" text-anchor="middle" dominant-baseline="middle">'+ico+'</text>';
-            sh+='<text x="'+pos.x.toFixed(1)+'" y="'+(pos.y+27).toFixed(1)+'" font-size="9" fill="'+lc+'" text-anchor="middle" dominant-baseline="middle" font-family="Outfit,sans-serif" font-weight="600">'+lbl+'</text>';
-            sh+='</g>';
+            sh+='<circle class="'+seatCls+'" cx="'+cx2+'" cy="'+cy2+'" r="17" style="stroke:'+sc+';fill:'+sf+';"/>';
+            sh+='<text x="'+cx2+'" y="'+(pos.y+1).toFixed(1)+'" font-size="13" text-anchor="middle" dominant-baseline="middle">'+ico+'</text>';
+            sh+='<text x="'+cx2+'" y="'+(pos.y+27).toFixed(1)+'" font-size="9" fill="'+lc+'" text-anchor="middle" dominant-baseline="middle" font-family="Outfit,sans-serif" font-weight="600">'+lbl+'</text>';
         });
+
 
         var dx=cx,dy=cy-22;
         var glow=isOpen?('<path d="M '+(cx-rx)+' '+cy+' A '+rx+' '+ry+' 0 0 1 '+(cx+rx)+' '+cy+'" fill="none" stroke="#68d391" stroke-width="2.5" opacity="0.45"/>'):'';
