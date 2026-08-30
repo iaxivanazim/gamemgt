@@ -143,16 +143,17 @@ class ReportController extends Controller
                 continue;
             }
 
-            $openingFloat = $float ? (float) $float->total_opening_float : null;
+            
             $totalFills   = $ledgerTots ? (float) $ledgerTots->total_fills   : 0;
             $totalCredits = $ledgerTots ? (float) $ledgerTots->total_credits : 0;
             $totalBuy     = $ledgerTots ? (float) $ledgerTots->total_buy     : 0;
             $totalCashout = $ledgerTots ? (float) $ledgerTots->total_cashout : 0;
+            $openingFloat = $float ? (float) $float->total_opening_float + $totalFills - abs($totalCredits) : null;
 
             // Closing Float = Total Opening + Total Fills - Total Credits + Total Buy-In (cash+chips) + Total Cashout
             // NOTE: cashout amounts are stored as negative values in the DB, so we add (not subtract) here
             $closingFloat = $openingFloat !== null
-                ? round($openingFloat + $totalFills - abs($totalCredits) + $totalBuy - abs($totalCashout), 2)
+                ? round($float->total_opening_float + $totalFills - abs($totalCredits) + $totalBuy - abs($totalCashout), 2)
                 : null;
 
             // Result = Closing Float - Opening Float
