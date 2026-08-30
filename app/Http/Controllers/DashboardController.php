@@ -81,9 +81,14 @@ class DashboardController extends Controller
             //   + credits      : signed; negative credit = chips removed from table
             //   + losses       : losing chips swept from betting circle into float tray
             //   - cashouts     : chips leave table (abs() handles any sign inconsistency)
-            // PAYOUT and cash buyins (DROP) do NOT affect the float.
+            // PAYOUT and cash buyins (DROP) do NOT affect the float display.
             $openingFloat = $isOpen ? (float) ($float->float_open ?? 0) : 0;
             $liveFloat    = round($openingFloat + $totalBuyinChips + $totalFill + $totalCredit + $totalLoss - abs($totalCashout), 2);
+
+            // Closing float as computed by the Gameday Report (ReportController::getGameDayReport):
+            //   opening + fills - |credits| + total_buyin(cash+chips) - |cashouts|
+            // This is the authoritative closing float used for net revenue / result calculation.
+            $gamedayClosingFloat = round($openingFloat + $totalFill - abs($totalCredit) + $totalBuyin - abs($totalCashout), 2);
 
             // Use the recalculated value — do NOT read float_balance from DB,
             // as stored values may include cash buyins erroneously.
@@ -127,13 +132,20 @@ class DashboardController extends Controller
                 ];
             });
 
-            // Net revenue = closing float − opening float (result float).
-            // Only available after a session has been closed with a recorded float_close.
+            // Net revenue for open sessions = gameday closing float − opening float (real-time P&L).
+            // Uses the same formula as the Gameday Report so numbers always match.
+            // For closed sessions = closing float − opening float.
             $fOpen  = $isOpen ? (float) ($float->float_open  ?? 0) : null;
             $fClose = $isOpen ? ((float) ($float->float_close ?? 0) ?: null) : null;
-            $netRevenue = ($fClose !== null && $fOpen !== null)
-                ? round($fClose - $fOpen, 2)
-                : null;
+            if ($isOpen && $fOpen !== null) {
+                // Live: use the gameday-report closing float formula for consistency
+                $netRevenue = round($gamedayClosingFloat - $fOpen, 2);
+            } elseif ($fClose !== null && $fOpen !== null) {
+                // Closed session with a recorded closing float
+                $netRevenue = round($fClose - $fOpen, 2);
+            } else {
+                $netRevenue = null;
+            }
 
             return [
                 'id'              => $table->id,
@@ -167,7 +179,7 @@ class DashboardController extends Controller
         $openTables    = $tables->filter(fn($t) => !is_null($t->currentFloat))->count();
         $allTxnsToday  = TableLedger::whereIn('gameday', $globalGamedays)->get();
         $totalFloat    = $tableData->sum('float_current');
-        // Sum net_revenue only from tables with a recorded closing float; skip nulls (open sessions)
+        // Sum net_revenue across all open (live P&L) and closed (closing-float) sessions.
         $totalRevenue  = $tableData->filter(fn($t) => $t['net_revenue'] !== null)->sum('net_revenue');
         $totalTxns     = $allTxnsToday->count();
         $totalBuyins   = (float) $allTxnsToday->where('txn_type', 'BUYIN')->sum('amount');

@@ -62,7 +62,7 @@
             <div class="kpi-icon"><i class="bi bi-graph-up-arrow"></i></div>
             <div class="kpi-label">Net Revenue</div>
             <div class="kpi-value" id="kpi-revenue">&mdash;</div>
-            <div class="kpi-sub">closing minus opening float</div>
+            <div class="kpi-sub">live across open tables</div>
         </div>
     </div>
 
@@ -155,20 +155,33 @@
         seats.forEach(function(pos,i){
             var p=players[i]||{active:false};
             var active=p.active&&isOpen;
-            var rCls=active?'active':'inactive';
             var sn=i+1;
             var lbl=active?(p.tab_id?p.tab_id.slice(-5):'P'+sn):'Empty';
-            var lc=active?'#68d391':'#556677';
             var ico=active?'\uD83D\uDC64':'\u25CC';
-            var pulse=active?('<circle class="pulse-ring" cx="'+pos.x.toFixed(1)+'" cy="'+pos.y.toFixed(1)+'" r="19" fill="none" stroke="#68d391" stroke-width="1.5" opacity="0.5" style="animation-delay:'+(i*0.35)+'s"/>'):'';
             var tab=(p.tab_id||'').replace(/"/g,'&quot;');
             var bal=p.balance!=null?p.balance:'';
             var act=(p.last_action||'').replace(/"/g,'&quot;');
             var amnt=p.last_amount!=null?p.last_amount:'';
             var at=(p.last_at||'').replace(/"/g,'&quot;');
+            // Balance-based colour thresholds (active seats only)
+            // < 200,000 → green | 200,000–400,000 → yellow | > 400,000 → red
+            var sc,sf,lc;
+            if(active){
+                var bv=p.balance!=null?parseFloat(p.balance):0;
+                if(bv<200000){
+                    sc='#68d391'; sf='rgba(56,161,105,.2)'; lc='#68d391';   // green
+                } else if(bv<=400000){
+                    sc='#f0c040'; sf='rgba(240,192,64,.2)';  lc='#f0c040';  // yellow
+                } else {
+                    sc='#fc8181'; sf='rgba(245,101,101,.2)'; lc='#fc8181';  // red
+                }
+            } else {
+                sc='#445566'; sf='rgba(30,40,60,.6)'; lc='#556677';
+            }
+            var pulse=active?('<circle class="pulse-ring" cx="'+pos.x.toFixed(1)+'" cy="'+pos.y.toFixed(1)+'" r="19" fill="none" stroke="'+sc+'" stroke-width="1.5" opacity="0.5" style="animation-delay:'+(i*0.35)+'s"/>'):'';
             sh+='<g class="player-seat" data-seat="'+sn+'" data-active="'+(active?1:0)+'" data-tab="'+tab+'" data-balance="'+bal+'" data-action="'+act+'" data-amount="'+amnt+'" data-at="'+at+'" onmouseenter="dashTTShow(event,this)" onmouseleave="dashTTHide()">';
             sh+=pulse;
-            sh+='<circle class="seat-ring '+rCls+'" cx="'+pos.x.toFixed(1)+'" cy="'+pos.y.toFixed(1)+'" r="17"/>';
+            sh+='<circle class="seat-ring '+(active?'active':'inactive')+'" cx="'+pos.x.toFixed(1)+'" cy="'+pos.y.toFixed(1)+'" r="17" style="stroke:'+sc+';fill:'+sf+';"/>';
             sh+='<text x="'+pos.x.toFixed(1)+'" y="'+(pos.y+1).toFixed(1)+'" font-size="13" text-anchor="middle" dominant-baseline="middle">'+ico+'</text>';
             sh+='<text x="'+pos.x.toFixed(1)+'" y="'+(pos.y+27).toFixed(1)+'" font-size="9" fill="'+lc+'" text-anchor="middle" dominant-baseline="middle" font-family="Outfit,sans-serif" font-weight="600">'+lbl+'</text>';
             sh+='</g>';
