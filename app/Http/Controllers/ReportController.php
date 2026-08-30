@@ -62,13 +62,73 @@ class ReportController extends Controller
     private function getFloatReport($from, $to, $tableId)
     {
         $query = TableFloat::with('gameTable')
-            ->whereBetween('gameday', [$from, $to]);
+            ->whereBetween('gameday', [$from, $to])
+            ->orderBy('gameday')
+            ->orderBy('float_id');
 
         if ($tableId) {
             $query->where('table_id', $tableId);
         }
 
-        return $query->get();
+        $floats = $query->get();
+
+        // Pre-fetch ledger aggregates for all relevant (table_id, gameday) pairs,
+        // keyed by "table_id|gameday" so we can look them up per float row.
+        // Each float session is one open/close period within a gameday; totals
+        // are shared across sessions on the same gameday (matching gameday report).
+        $tableGamedays = $floats
+            ->map(fn($f) => ['table_id' => $f->table_id, 'gameday' => $f->gameday->toDateString()])
+            ->unique(fn($r) => $r['table_id'] . '|' . $r['gameday']);
+
+        // Build a flat collection of [table_id, gameday, totals] rows
+        $ledgerTotals = collect();
+        foreach ($tableGamedays as $pair) {
+            $row = DB::table('table_ledgers')
+                ->select(
+                    DB::raw("SUM(CASE WHEN txn_type = 'FILL'    THEN amount ELSE 0 END) AS total_fills"),
+                    DB::raw("SUM(CASE WHEN txn_type = 'CREDIT'  THEN amount ELSE 0 END) AS total_credits"),
+                    DB::raw("SUM(CASE WHEN txn_type = 'BUYIN'   THEN amount ELSE 0 END) AS total_buy"),
+                    DB::raw("SUM(CASE WHEN txn_type = 'CASHOUT' THEN amount ELSE 0 END) AS total_cashout"),
+                )
+                ->where('table_id', $pair['table_id'])
+                ->where('gameday', $pair['gameday'])
+                ->first();
+
+            $ledgerTotals->put(
+                $pair['table_id'] . '|' . $pair['gameday'],
+                $row
+            );
+        }
+
+        // Enrich each float row with computed values using the gameday report formula:
+        //   openingFloat  = float_open + fills − |credits|
+        //   closingFloat  = float_open + fills − |credits| + totalBuy − |cashout|
+        //   result        = closingFloat − openingFloat  =  totalBuy − |cashout|
+        return $floats->map(function ($f) use ($ledgerTotals) {
+            $key    = $f->table_id . '|' . $f->gameday->toDateString();
+            $totals = $ledgerTotals->get($key);
+
+            $rawOpen      = (float) $f->float_open;
+            $totalFills   = $totals ? (float) $totals->total_fills   : 0;
+            $totalCredits = $totals ? (float) $totals->total_credits  : 0;
+            $totalBuy     = $totals ? (float) $totals->total_buy      : 0;
+            $totalCashout = $totals ? (float) $totals->total_cashout  : 0;
+
+            // Gameday report formula
+            $openingFloat  = round($rawOpen + $totalFills - abs($totalCredits), 2);
+            $closingFloat  = round($rawOpen + $totalFills - abs($totalCredits) + $totalBuy - abs($totalCashout), 2);
+            $result        = round($totalBuy - abs($totalCashout), 2);  // simplification of closingFloat − openingFloat
+
+            $isOpen = is_null($f->closed_at);
+
+            // Attach computed fields directly onto the model instance
+            $f->computed_opening_float = $openingFloat;
+            $f->computed_closing_float = $isOpen ? null : $closingFloat;  // only meaningful once closed
+            $f->computed_result        = $isOpen ? null : $result;
+            $f->is_open                = $isOpen;
+
+            return $f;
+        });
     }
 
     private function getGameDayReport($gameday)
@@ -217,7 +277,7 @@ class ReportController extends Controller
         $filename = "report_{$type}_" . now()->format('Ymd_His') . ".csv";
 
         $headers = match ($type) {
-            'float'   => ['Float ID', 'Table', 'Gameday', 'Opening Float', 'Closing Float', 'Opened At', 'Closed At'],
+            'float'   => ['Float ID', 'Table', 'Gameday', 'Status', 'Opening Float', 'Closing Float', 'Result', 'Opened At', 'Closed At'],
             'gameday' => ['Table ID', 'Table Name', 'Game Type', 'Opening Float', 'Closing Float', 'Float Status',
                           'Players', 'Total Fills', 'Total Credits', 'Total Buy-In', 'Total Cash-Out'],
             'ledger'  => ['Txn ID', 'Table', 'Tab ID', 'Type', 'Medium', 'Amount', 'Float Balance', 'Gameday', 'Reference', 'At'],
@@ -273,10 +333,12 @@ class ReportController extends Controller
                             $row->float_id,
                             $row->gameTable->table_name ?? 'N/A',
                             $row->gameday->format('Y-m-d'),
-                            $row->float_open,
-                            $row->float_close ?? 'Open',
-                            $row->opened_at,
-                            $row->closed_at ?? 'N/A',
+                            $row->is_open ? 'Open' : 'Closed',
+                            number_format($row->computed_opening_float, 2),
+                            $row->computed_closing_float !== null ? number_format($row->computed_closing_float, 2) : 'Open',
+                            $row->computed_result !== null ? number_format($row->computed_result, 2) : '—',
+                            $row->opened_at->format('Y-m-d H:i'),
+                            $row->closed_at ? $row->closed_at->format('Y-m-d H:i') : 'N/A',
                         ],
                         'ledger' => [
                             $row->txn_id,

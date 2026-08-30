@@ -311,8 +311,10 @@
                                         <th>ID</th>
                                         <th>Table</th>
                                         <th>Gameday</th>
-                                        <th>Open</th>
-                                        <th>Close</th>
+                                        <th>Status</th>
+                                        <th class="text-end">Opening Float</th>
+                                        <th class="text-end">Closing Float</th>
+                                        <th class="text-end">Result</th>
                                         <th>Opened At</th>
                                         <th>Closed At</th>
                                     @elseif($reportType == 'table')
@@ -370,9 +372,27 @@
                                             <td>{{ $row->float_id }}</td>
                                             <td>{{ $row->gameTable->table_name ?? 'N/A' }}</td>
                                             <td>{{ $row->gameday->format('Y-m-d') }}</td>
-                                            <td>{{ number_format($row->float_open, 2) }}</td>
-                                            <td class="{{ $row->float_close ? '' : 'text-muted fst-italic' }}">
-                                                {{ $row->float_close ? number_format($row->float_close, 2) : 'Open' }}
+                                            <td>
+                                                @if($row->is_open)
+                                                    <span class="badge bg-warning text-dark">Open</span>
+                                                @else
+                                                    <span class="badge bg-success">Closed</span>
+                                                @endif
+                                            </td>
+                                            <td class="text-end text-info fw-semibold">
+                                                {{ number_format($row->computed_opening_float, 2) }}
+                                            </td>
+                                            <td class="text-end fw-semibold {{ $row->is_open ? 'text-muted fst-italic' : 'text-warning' }}">
+                                                {{ $row->computed_closing_float !== null ? number_format($row->computed_closing_float, 2) : '—' }}
+                                            </td>
+                                            <td class="text-end fw-semibold">
+                                                @if($row->computed_result !== null)
+                                                    <span class="{{ $row->computed_result >= 0 ? 'text-success' : 'text-danger' }}">
+                                                        {{ ($row->computed_result >= 0 ? '+' : '') . number_format($row->computed_result, 2) }}
+                                                    </span>
+                                                @else
+                                                    <span class="text-muted">—</span>
+                                                @endif
                                             </td>
                                             <td class="small">{{ $row->opened_at->format('H:i') }}</td>
                                             <td class="small">{{ $row->closed_at ? $row->closed_at->format('H:i') : '—' }}</td>
