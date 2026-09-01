@@ -59,10 +59,19 @@ class DashboardController extends Controller
             // Use the gameday from the table's own open float, not today's date
             $gameday = $isOpen ? $float->gameday->toDateString() : $today;
 
-            // Ledger summary for this table's gameday
-            $txns = TableLedger::where('table_id', $table->id)
-                ->where('gameday', $gameday)
-                ->get();
+            // Ledger summary scoped to the current float session only (dashboard-only behaviour).
+            // For open tables: restrict to transactions created at or after the current float's
+            // opened_at so that only the LATEST session's data is shown when a table is
+            // opened, closed, and re-opened multiple times within the same gameday.
+            // For closed tables: fall back to all transactions on the gameday (no open float).
+            $txnQuery = TableLedger::where('table_id', $table->id)
+                ->where('gameday', $gameday);
+
+            if ($isOpen && $float->opened_at) {
+                $txnQuery->where('created_at', '>=', $float->opened_at);
+            }
+
+            $txns = $txnQuery->get();
 
             $totalBuyin      = (float) $txns->where('txn_type', 'BUYIN')->sum('amount');                          // all buy-ins
             $totalBuyinChips = (float) $txns->where('txn_type', 'BUYIN')->where('payment_medium', 'CHIPS')->sum('amount'); // chips buy-ins only
@@ -182,10 +191,24 @@ class DashboardController extends Controller
         $openTables    = $tables->filter(fn($t) => !is_null($t->currentFloat))->count();
         $allTxnsToday  = TableLedger::whereIn('gameday', $globalGamedays)->get();
         $totalFloat    = $tableData->sum('float_current');
-        // Sum net_revenue across all open (live P&L) and closed (closing-float) sessions.
-        $totalRevenue  = $tableData->filter(fn($t) => $t['net_revenue'] !== null)->sum('net_revenue');
+        // Live net_revenue: open sessions only (current float scoped).
+        $totalRevenue  = $tableData->filter(fn($t) => $t['is_open'] && $t['net_revenue'] !== null)->sum('net_revenue');
         $totalTxns     = $allTxnsToday->count();
         $totalBuyins   = (float) $allTxnsToday->where('txn_type', 'BUYIN')->sum('amount');
+
+        // ── Gameday totals (all float sessions, including previously closed ones) ──
+        // These mirror how total_buyins already covers the entire gameday.
+        $allFloatsToday  = TableFloat::whereIn('gameday', $globalGamedays)->get();
+        $closedToday     = $allFloatsToday->filter(fn($f) => !is_null($f->closed_at));
+
+        // Day total float = closing balance of all closed sessions + live balance of open sessions
+        $totalFloatDay   = round((float) $closedToday->sum('float_close') + (float) $totalFloat, 2);
+
+        // Day net revenue = (float_close − float_open) for every closed session
+        //                 + live net revenue for currently open sessions
+        $closedRevDay    = (float) $closedToday->sum(fn($f) => ((float) ($f->float_close ?? 0)) - (float) $f->float_open);
+        $openRevDay      = (float) $tableData->filter(fn($t) => $t['is_open'] && $t['net_revenue'] !== null)->sum('net_revenue');
+        $totalRevenueDay = round($closedRevDay + $openRevDay, 2);
 
         // Hourly transaction volume (last 12 hours)
         $hourlyVolume = TableLedger::whereIn('gameday', $globalGamedays)
@@ -201,12 +224,14 @@ class DashboardController extends Controller
             'timestamp'  => now()->toISOString(),
             'gameday'    => count($globalGamedays) === 1 ? $globalGamedays[0] : $globalGamedays,
             'kpis'       => [
-                'open_tables'   => $openTables,
-                'total_tables'  => $tables->count(),
-                'total_float'   => round($totalFloat, 2),
-                'total_revenue' => round($totalRevenue, 2),
-                'total_txns'    => $totalTxns,
-                'total_buyins'  => round($totalBuyins, 2),
+                'open_tables'       => $openTables,
+                'total_tables'      => $tables->count(),
+                'total_float'       => round($totalFloat, 2),      // live: sum of current open session floats
+                'total_float_day'   => $totalFloatDay,             // day: all closed closing floats + live
+                'total_revenue'     => round($totalRevenue, 2),    // live: open sessions net P&L
+                'total_revenue_day' => $totalRevenueDay,           // day: all sessions net P&L
+                'total_txns'        => $totalTxns,
+                'total_buyins'      => round($totalBuyins, 2),
             ],
             'hourly_volume' => $hourlyVolume,
             'tables'     => $tableData->values(),

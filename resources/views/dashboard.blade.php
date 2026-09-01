@@ -90,7 +90,7 @@
             <div class="kpi-icon"><i class="bi bi-cash-coin"></i></div>
             <div class="kpi-label">Total Float</div>
             <div class="kpi-value" id="kpi-total-float">&mdash;</div>
-            <div class="kpi-sub">live across all tables</div>
+            <div class="kpi-sub" id="kpi-float-sub">live across all tables</div>
         </div>
         <div class="kpi-card" style="--accent-color:#90cdf4;--icon-bg:rgba(49,130,206,.1)">
             <div class="kpi-icon"><i class="bi bi-arrow-left-right"></i></div>
@@ -108,7 +108,7 @@
             <div class="kpi-icon"><i class="bi bi-graph-up-arrow"></i></div>
             <div class="kpi-label">Net Revenue</div>
             <div class="kpi-value" id="kpi-revenue">&mdash;</div>
-            <div class="kpi-sub">live across open tables</div>
+            <div class="kpi-sub" id="kpi-revenue-sub">live across open tables</div>
         </div>
     </div>
 
@@ -351,10 +351,18 @@
     function renderKPIs(k,gd){
         document.getElementById('kpi-open-tables').textContent=k.open_tables;
         document.getElementById('kpi-total-tables').textContent='of '+k.total_tables+' configured';
+
+        // Total Float: main = live (current open sessions), sub = gameday total
         document.getElementById('kpi-total-float').textContent=fmt(k.total_float);
+        document.getElementById('kpi-float-sub').innerHTML=
+            'Live &nbsp;&middot;&nbsp; Day: <strong>'+fmt(k.total_float_day)+'</strong>';
+
         document.getElementById('kpi-total-txns').textContent=fmtI(k.total_txns);
         document.getElementById('kpi-total-buyins').textContent=fmt(k.total_buyins);
+
+        // Net Revenue: main = live (open sessions), sub = gameday total (coloured)
         var re=document.getElementById('kpi-revenue');
+        var reSub=document.getElementById('kpi-revenue-sub');
         if(k.total_revenue===null||k.total_revenue===undefined){
             re.textContent='\u2014';
             re.style.color='';
@@ -362,6 +370,10 @@
             re.textContent=fmt(k.total_revenue);
             re.style.color=k.total_revenue>=0?'#68d391':'#fc8181';
         }
+        var dayRevClr=(k.total_revenue_day!=null&&k.total_revenue_day<0)?'#fc8181':'#68d391';
+        reSub.innerHTML='Live &nbsp;&middot;&nbsp; Day: <strong style="color:'+dayRevClr+';">'+
+            (k.total_revenue_day!=null?fmt(k.total_revenue_day):'\u2014')+'</strong>';
+
         document.getElementById('gamedayLabel').textContent=gd;
         document.getElementById('pendingBadge').textContent=k.pending_txns||0;
     }
