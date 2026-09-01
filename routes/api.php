@@ -57,7 +57,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/tables/{id}/session', [TableFloatController::class, 'currentSession']);
     Route::get('/tables/{id}/history', [TableFloatController::class, 'history']);
 
-    Route::post('/ledger/txn',                        [TableLedgerController::class, 'store']);
+    Route::post('/ledger/txn',                        [TableLedgerController::class, 'store'])->middleware('idempotent');
     Route::get('/ledger/table/{table_id}',            [TableLedgerController::class, 'byTable']);
     Route::get('/ledger/table/{table_id}/summary',    [TableLedgerController::class, 'summary']);
     Route::get('/ledger/tab/{tab_id}',                [TableLedgerController::class, 'byTab']);

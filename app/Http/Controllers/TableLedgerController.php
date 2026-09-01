@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use App\Models\TableLedger;
 use App\Models\GameTable;
 use App\Models\TableFloat;
@@ -96,8 +97,22 @@ class TableLedgerController extends Controller
             'initiated_by'   => 'nullable|string|max:255',
         ]);
 
+        // ── Per-table atomic lock ──────────────────────────────────────────────
+        // Ensures only ONE request at a time progresses through the balance
+        // calculation + INSERT for a given table.  Simultaneous duplicates will
+        // wait up to 5 s, then receive a 429 rather than silently double-writing.
+        $lockKey = 'ledger_txn_lock:table_' . $request->table_id;
+        $lock    = Cache::lock($lockKey, 10); // holds for max 10 s (auto-release)
+
+        if (!$lock->block(5)) {             // wait up to 5 s to acquire
+            return response()->json([
+                'success' => false,
+                'message' => 'Table is busy processing another transaction. Please retry in a moment.',
+            ], 429);
+        }
+
         try {
-            return DB::transaction(function () use ($request) {
+            return DB::transaction(function () use ($request, $lock) {
 
                 $table   = GameTable::findOrFail($request->table_id);
                 $gameday = $request->gameday;
@@ -109,19 +124,41 @@ class TableLedgerController extends Controller
                                      ->first();
 
                 if (!$session) {
+                    $lock->release();
                     return response()->json([
                         'success' => false,
                         'message' => "No open session for table '{$table->table_name}' on gameday {$gameday}. Open the table first.",
                     ], 422);
                 }
 
-                // 2. Get current float balance
-                //    (last txn's float_balance, or float_open if no txns yet)
+                // ── Duplicate-detection window (5 s) ──────────────────────────
+                // Inside the lock, check whether the most recent ledger entry for
+                // this table is byte-for-byte identical AND was created within the
+                // last 5 seconds.  This catches the case where the consumer retries
+                // without an Idempotency-Key and the first request already committed.
                 $lastTxn = TableLedger::where('table_id', $request->table_id)
                                       ->where('gameday', $gameday)
                                       ->latest('txn_id')
                                       ->first();
 
+                if ($lastTxn &&
+                    $lastTxn->created_at->diffInSeconds(now()) <= 5 &&
+                    $lastTxn->txn_type        === $request->txn_type &&
+                    (float) $lastTxn->amount  === (float) $request->amount &&
+                    $lastTxn->tab_id          === $request->tab_id &&
+                    $lastTxn->payment_medium  === ($request->txn_type === 'BUYIN' ? $request->payment_medium : null)
+                ) {
+                    $lock->release();
+                    return response()->json([
+                        'success'    => false,
+                        'message'    => 'Duplicate transaction detected. An identical transaction was recorded within the last 5 seconds.',
+                        'duplicate_of' => $lastTxn->txn_id,
+                        'txn'        => $this->formatTxn($lastTxn),
+                    ], 409);
+                }
+
+                // 2. Get current float balance
+                //    (last txn's float_balance, or float_open if no txns yet)
                 $currentFloat = $lastTxn
                     ? (float) $lastTxn->float_balance
                     : (float) $session->float_open;
@@ -159,6 +196,8 @@ class TableLedgerController extends Controller
                     'initiated_by'   => $request->initiated_by,
                 ]);
 
+                $lock->release();
+
                 return response()->json([
                     'success' => true,
                     'message' => "{$request->txn_type} transaction recorded successfully.",
@@ -172,6 +211,7 @@ class TableLedgerController extends Controller
             });
 
         } catch (\Exception $e) {
+            $lock->release();
             return response()->json([
                 'success' => false,
                 'message' => 'Transaction failed.',
