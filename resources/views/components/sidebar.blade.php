@@ -73,5 +73,14 @@
             </a>
         </li>
 
+        @if(auth()->user()?->hasPermission('manage-resets'))
+        <li class="nav-item mt-2">
+            <a href="{{ route('utilities.reset') }}" class="nav-link text-warning">
+                <i class="bi bi-arrow-counterclockwise"></i>
+                <span class="link-text">Reset Utility</span>
+            </a>
+        </li>
+        @endif
+
     </ul>
 </div>

@@ -56,6 +56,8 @@ class PermissionSeeder extends Seeder
             ['name' => 'view-history', 'slug' => 'view-history', 'module' => 'history'],
 
             ['name' => 'view-ledger', 'slug' => 'view-ledger', 'module' => 'ledger'],
+
+            ['name' => 'manage-resets', 'slug' => 'manage-resets', 'module' => 'utilities'],
         ]);
     }
 }

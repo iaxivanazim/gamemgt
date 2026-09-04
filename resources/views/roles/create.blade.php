@@ -14,20 +14,31 @@
                     <div class="col-md-6">
                         <label>Name</label>
                         <input type="text" name="name"
-                            class="form-control bg-secondary text-white">
+                            value="{{ old('name') }}"
+                            class="form-control bg-secondary text-white @error('name') is-invalid @enderror">
+                        @error('name')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
 
                     <div class="col-md-6">
                         <label>Slug</label>
                         <input type="text" name="slug"
-                            class="form-control bg-secondary text-white">
+                            value="{{ old('slug') }}"
+                            class="form-control bg-secondary text-white @error('slug') is-invalid @enderror">
+                        @error('slug')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                 </div>
 
                 <div class="mb-3">
                     <label>Description</label>
                     <textarea name="description"
-                        class="form-control bg-secondary text-white"></textarea>
+                        class="form-control bg-secondary text-white @error('description') is-invalid @enderror">{{ old('description') }}</textarea>
+                    @error('description')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
 
                 <hr>
@@ -45,7 +56,8 @@
                                 <input type="checkbox"
                                     name="permissions[]"
                                     value="{{ $permission->id }}"
-                                    class="form-check-input">
+                                    class="form-check-input"
+                                    {{ in_array($permission->id, old('permissions', [])) ? 'checked' : '' }}>
 
                                 <label class="form-check-label">
                                     {{ $permission->name }}

@@ -13,6 +13,7 @@ use App\Http\Controllers\GameHistoryController;
 use App\Http\Controllers\TableLedgerController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ResetController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -91,6 +92,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/history',                  [GameHistoryController::class, 'index'])->name('history.index')->middleware('permission:view-history');
     Route::get('/ledger',                   [TableLedgerController::class, 'index'])->name('ledger.index')->middleware('permission:view-ledger');
     Route::get('/reports',                  [ReportController::class, 'index'])->name('reports.index');
+
+    // ── Reset Utility ──────────────────────────────────────────────────────────
+    Route::get('/utilities/reset',           [ResetController::class, 'index'])        ->name('utilities.reset')          ->middleware('permission:manage-resets');
+    Route::post('/utilities/reset/api-data', [ResetController::class, 'apiDataReset'])->name('utilities.reset.api-data')  ->middleware('permission:manage-resets');
+    Route::post('/utilities/reset/full-db',  [ResetController::class, 'fullDbReset']) ->name('utilities.reset.full-db')   ->middleware('permission:manage-resets');
 });
 
 
