@@ -1,0 +1,864 @@
+{
+  "info": {
+    "_postman_id": "xtable-api-collection-v1",
+    "name": "XTable Game Management API",
+    "description": "Complete API documentation for the XTable Game Management System (Laravel 12).\n\nBase URL: `{{base_url}}/api/v1`\n\n**Game Segments for History endpoints:**\n| URL Segment | Game |\n|---|---|\n| `baccarat` | Baccarat |\n| `andarbahar` | Andar Bahar |\n| `dragontiger` | Dragon Tiger |\n| `threecardpoker` | Three Card Poker |\n| `blackjack` | Blackjack |\n| `miniflush` | Mini Flush |\n| `casinowar` | Casino War |\n\n**Card Notation:** `Rank + Suit` e.g. `Ah` (Ace of Hearts), `Kd` (King of Diamonds), `10c` (10 of Clubs), `2s` (2 of Spades)\n\n**Ledger Transaction States:** `0`=new, `2`=claimed, `1`=complete",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url",  "value": "http://localhost",  "description": "Base URL (no trailing slash)" },
+    { "key": "table_id",  "value": "1",                 "description": "Default game table ID" },
+    { "key": "gameday",   "value": "2026-09-06",        "description": "Current gameday Y-m-d" },
+    { "key": "sanctum_token", "value": "",              "description": "Sanctum API token" }
+  ],
+  "item": [
+    {
+      "name": "1. Game Day",
+      "item": [
+        {
+          "name": "Get Current Game Day",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/v1/game-day/current", "host": ["{{base_url}}"], "path": ["api","v1","game-day","current"] },
+            "description": "Returns the active game day or `no_active_game_day` if none is open."
+          },
+          "response": [
+            {
+              "name": "Active",
+              "status": "OK", "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"status\":\"active\",\"data\":{\"id\":12,\"gaming_date\":\"2026-09-06\",\"started_at\":\"2026-09-06T08:00:00.000000Z\"}}"
+            },
+            {
+              "name": "No Active Game Day",
+              "status": "OK", "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"status\":\"no_active_game_day\"}"
+            }
+          ]
+        },
+        {
+          "name": "Start Game Day",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/v1/game-day/start", "host": ["{{base_url}}"], "path": ["api","v1","game-day","start"] },
+            "description": "Starts a new game day. Returns 400 if already active."
+          },
+          "response": [
+            {
+              "name": "Started",
+              "status": "OK", "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"message\":\"Game Day started successfully.\"}"
+            },
+            {
+              "name": "Already Active",
+              "status": "Bad Request", "code": 400,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"message\":\"A game day is already active.\"}"
+            }
+          ]
+        },
+        {
+          "name": "Close Game Day",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/v1/game-day/close", "host": ["{{base_url}}"], "path": ["api","v1","game-day","close"] },
+            "description": "Closes the current game day. Returns 400 if already closed."
+          },
+          "response": [
+            {
+              "name": "Closed",
+              "status": "OK", "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"message\":\"Game Day closed successfully.\"}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Game Tables",
+      "item": [
+        {
+          "name": "List All Active Game Tables",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/v1/game-tables", "host": ["{{base_url}}"], "path": ["api","v1","game-tables"] },
+            "description": "Returns all active (status=1) game tables with full nested config: game type, chip preset, payout rules, game-specific preset fields."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK", "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"success\": true,\n  \"count\": 1,\n  \"data\": [\n    {\n      \"table_id\": 1,\n      \"table_name\": \"Baccarat Table 1\",\n      \"status\": 1,\n      \"active_mac\": \"AA:BB:CC:DD:EE:FF\",\n      \"float_reference\": 50000.0,\n      \"felt_color\": \"green\",\n      \"shoe_type\": { \"id\": 1, \"shoe_name\": \"8-Deck\" },\n      \"game_type\": { \"id\": 1, \"name\": \"Baccarat\", \"code\": \"BAC\", \"description\": null },\n      \"config\": {\n        \"preset_id\": 1,\n        \"preset_name\": \"Standard Baccarat\",\n        \"min_bet\": [100.0, 500.0],\n        \"max_bet\": [5000.0, 25000.0],\n        \"burn_card\": 1,\n        \"side_min_bet\": 50.0,\n        \"side_max_bet\": 1000.0,\n        \"commission\": true,\n        \"banker_multiplier\": 0.95,\n        \"baccarat_6_commission\": false,\n        \"baccarat_6_multiplier\": 0.5\n      },\n      \"chip_preset\": {\n        \"id\": 1,\n        \"preset_name\": \"Standard\",\n        \"base_value\": 1.0,\n        \"chips\": [\n          { \"position\": 1, \"value\": 1.0 },\n          { \"position\": 2, \"value\": 5.0 },\n          { \"position\": 3, \"value\": 25.0 },\n          { \"position\": 4, \"value\": 100.0 },\n          { \"position\": 5, \"value\": 500.0 }\n        ]\n      },\n      \"payout_rules\": [\n        { \"payout_id\": 1, \"bet_name\": \"Player\", \"bet_position\": \"P\", \"payout_multiplier\": 1.0, \"is_jackpot\": false, \"seed_value\": null, \"is_active\": true },\n        { \"payout_id\": 2, \"bet_name\": \"Banker\", \"bet_position\": \"B\", \"payout_multiplier\": 0.95, \"is_jackpot\": false, \"seed_value\": null, \"is_active\": true }\n      ],\n      \"created_at\": \"2026-01-01T00:00:00.000000Z\",\n      \"updated_at\": \"2026-09-01T00:00:00.000000Z\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Game Table by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/v1/game-tables/{{table_id}}", "host": ["{{base_url}}"], "path": ["api","v1","game-tables","{{table_id}}"] },
+            "description": "Returns a single table by numeric ID. Route constraint: `whereNumber('id')`."
+          },
+          "response": [
+            {
+              "name": "Not Found",
+              "status": "Not Found", "code": 404,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"success\":false,\"message\":\"Game table with ID 99 not found.\"}"
+            }
+          ]
+        },
+        {
+          "name": "Get Active Tables (Open Float)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/v1/game-tables/active", "host": ["{{base_url}}"], "path": ["api","v1","game-tables","active"] },
+            "description": "Returns tables that currently have an open float session. Used by POS terminals on boot."
+          }
+        },
+        {
+          "name": "Get Table by MAC Address",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/v1/game-tables/by-mac/AA:BB:CC:DD:EE:FF", "host": ["{{base_url}}"], "path": ["api","v1","game-tables","by-mac","AA:BB:CC:DD:EE:FF"] },
+            "description": "Looks up which table is registered to a given MAC address."
+          }
+        },
+        {
+          "name": "Get Table Configuration",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/v1/game-tables/{{table_id}}/configuration", "host": ["{{base_url}}"], "path": ["api","v1","game-tables","{{table_id}}","configuration"] },
+            "description": "Returns the full game-specific preset configuration for a table."
+          }
+        },
+        {
+          "name": "Register MAC Address",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mac_address\": \"AA:BB:CC:DD:EE:FF\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/v1/game-tables/{{table_id}}/register-mac", "host": ["{{base_url}}"], "path": ["api","v1","game-tables","{{table_id}}","register-mac"] },
+            "description": "Registers a POS device to a table by MAC. Three outcomes:\n- `MAC_REGISTERED` (200) — first-time binding\n- `MAC_ALREADY_REGISTERED` (200) — same device re-registering\n- `MAC_CONFLICT` (409) — table already bound to a different device"
+          },
+          "response": [
+            {
+              "name": "Registered",
+              "status": "OK", "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"success\":true,\"code\":\"MAC_REGISTERED\",\"message\":\"MAC address registered successfully for table 'Baccarat Table 1'.\",\"data\":{\"table_id\":1,\"table_name\":\"Baccarat Table 1\",\"active_mac\":\"AA:BB:CC:DD:EE:FF\",\"registered_at\":\"2026-09-06T12:00:00.000000Z\"}}"
+            },
+            {
+              "name": "Already Registered",
+              "status": "OK", "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"success\":true,\"code\":\"MAC_ALREADY_REGISTERED\",\"message\":\"This device is already registered to table 'Baccarat Table 1'.\",\"data\":{\"table_id\":1,\"table_name\":\"Baccarat Table 1\",\"active_mac\":\"AA:BB:CC:DD:EE:FF\"}}"
+            },
+            {
+              "name": "MAC Conflict",
+              "status": "Conflict", "code": 409,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"success\":false,\"code\":\"MAC_CONFLICT\",\"message\":\"Table 'Baccarat Table 1' is already bound to a different device.\",\"data\":{\"table_id\":1,\"registered_mac\":\"11:22:33:44:55:66\",\"incoming_mac\":\"AA:BB:CC:DD:EE:FF\"}}"
+            }
+          ]
+        },
+        {
+          "name": "Get Current Float Balance",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/game-tables/{{table_id}}/float?gameday={{gameday}}",
+              "host": ["{{base_url}}"],
+              "path": ["api","v1","game-tables","{{table_id}}","float"],
+              "query": [{ "key": "gameday", "value": "{{gameday}}", "description": "Required — Y-m-d" }]
+            },
+            "description": "Returns current float balance, session status, and movement totals (IN: FILL/CREDIT/BUYIN, OUT: DROP/CASHOUT) for a specific gameday."
+          },
+          "response": [
+            {
+              "name": "Float Fetched",
+              "status": "OK", "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"success\": true,\n  \"code\": \"FLOAT_FETCHED\",\n  \"data\": {\n    \"table_id\": 1,\n    \"table_name\": \"Baccarat Table 1\",\n    \"gameday\": \"2026-09-06\",\n    \"session_status\": \"open\",\n    \"float\": {\n      \"open\": 50000.0,\n      \"current\": 52500.0,\n      \"close\": null,\n      \"movement\": { \"total_in\": 5000.0, \"total_out\": 2500.0, \"net\": 2500.0 }\n    },\n    \"last_txn\": { \"txn_id\": 42, \"txn_type\": \"FILL\", \"amount\": 5000.0, \"at\": \"2026-09-06T10:30:00.000000Z\" }\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Bet Index",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/v1/game-tables/{{table_id}}/bet-index", "host": ["{{base_url}}"], "path": ["api","v1","game-tables","{{table_id}}","bet-index"] },
+            "description": "Returns the current active bet index and all available min/max pairs from the preset."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK", "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"table_id\":1,\"bet_index\":1,\"total_pairs\":2,\"active_range\":{\"min\":100.0,\"max\":5000.0},\"all_ranges\":[{\"index\":1,\"min\":100.0,\"max\":5000.0},{\"index\":2,\"min\":500.0,\"max\":25000.0}]}"
+            }
+          ]
+        },
+        {
+          "name": "Set Bet Index",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"bet_index\": 2\n}" },
+            "url": { "raw": "{{base_url}}/api/v1/game-tables/{{table_id}}/bet-index", "host": ["{{base_url}}"], "path": ["api","v1","game-tables","{{table_id}}","bet-index"] },
+            "description": "Sets the active bet index (1-based integer). Must be ≤ total number of min/max pairs in the preset."
+          },
+          "response": [
+            {
+              "name": "Updated",
+              "status": "OK", "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"success\":true,\"table_id\":1,\"bet_index\":2,\"active_range\":{\"min\":500.0,\"max\":25000.0}}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Table Float (Session)",
+      "item": [
+        {
+          "name": "Open Table Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"opened_by\": \"John Dealer\",\n  \"gameday\": \"2026-09-06\",\n  \"float_open\": 50000.00\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/v1/tables/{{table_id}}/open", "host": ["{{base_url}}"], "path": ["api","v1","tables","{{table_id}}","open"] },
+            "description": "Opens a new session for a game table. Creates a TableFloat record. Returns 422 if an open session already exists (same or different day)."
+          },
+          "response": [
+            {
+              "name": "Opened",
+              "status": "Created", "code": 201,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Table 'Baccarat Table 1' opened successfully.\",\n  \"session\": {\n    \"float_id\": 5,\n    \"table_id\": 1,\n    \"gameday\": \"2026-09-06\",\n    \"status\": \"open\",\n    \"float_open\": 50000.0,\n    \"float_close\": null,\n    \"variance\": null,\n    \"opened_by\": \"John Dealer\",\n    \"closed_by\": null,\n    \"opened_at\": \"2026-09-06T08:00:00.000000Z\",\n    \"closed_at\": null\n  },\n  \"table\": { \"table_id\": 1, \"table_name\": \"Baccarat Table 1\" },\n  \"last_game_no\": \"BAC-2026-0042\"\n}"
+            },
+            {
+              "name": "Already Open",
+              "status": "Unprocessable Content", "code": 422,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"success\":false,\"message\":\"Table 'Baccarat Table 1' is already open for today's gameday.\",\"session\":{\"float_id\":5,\"status\":\"open\"},\"last_game_no\":\"BAC-2026-0042\"}"
+            }
+          ]
+        },
+        {
+          "name": "Close Table Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"closed_by\": \"Jane Supervisor\",\n  \"float_close\": 49500.00\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/v1/tables/{{table_id}}/close", "host": ["{{base_url}}"], "path": ["api","v1","tables","{{table_id}}","close"] },
+            "description": "Closes the current open session. Calculates variance = float_close - float_open."
+          },
+          "response": [
+            {
+              "name": "Closed",
+              "status": "OK", "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Table 'Baccarat Table 1' closed successfully.\",\n  \"session\": {\n    \"float_id\": 5,\n    \"status\": \"closed\",\n    \"float_open\": 50000.0,\n    \"float_close\": 49500.0,\n    \"variance\": -500.0,\n    \"opened_by\": \"John Dealer\",\n    \"closed_by\": \"Jane Supervisor\",\n    \"opened_at\": \"2026-09-06T08:00:00.000000Z\",\n    \"closed_at\": \"2026-09-06T20:00:00.000000Z\"\n  },\n  \"summary\": {\n    \"float_open\": 50000.0,\n    \"float_close\": 49500.0,\n    \"variance\": -500.0,\n    \"variance_pct\": -1.0,\n    \"duration\": \"12 hours\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Current Session",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/tables/{{table_id}}/session?gameday={{gameday}}",
+              "host": ["{{base_url}}"],
+              "path": ["api","v1","tables","{{table_id}}","session"],
+              "query": [{ "key": "gameday", "value": "{{gameday}}", "description": "Y-m-d format" }]
+            },
+            "description": "Returns the current/most-recent session for a table on a given gameday."
+          },
+          "response": [
+            {
+              "name": "Open Session",
+              "status": "OK", "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"success\":true,\"status\":\"open\",\"session\":{\"float_id\":5,\"table_id\":1,\"gameday\":\"2026-09-06\",\"status\":\"open\",\"float_open\":50000.0,\"float_close\":null,\"variance\":null,\"opened_by\":\"John Dealer\",\"opened_at\":\"2026-09-06T08:00:00.000000Z\"},\"last_game_no\":\"BAC-2026-0042\"}"
+            },
+            {
+              "name": "Not Opened",
+              "status": "OK", "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"success\":true,\"status\":\"not_opened\",\"message\":\"Table 'Baccarat Table 1' has not been opened today.\",\"session\":null}"
+            }
+          ]
+        },
+        {
+          "name": "Get Session History",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/tables/{{table_id}}/history?from=2026-09-01&to=2026-09-06",
+              "host": ["{{base_url}}"],
+              "path": ["api","v1","tables","{{table_id}}","history"],
+              "query": [
+                { "key": "from", "value": "2026-09-01", "description": "Start date Y-m-d (optional)" },
+                { "key": "to",   "value": "2026-09-06", "description": "End date Y-m-d (optional)" }
+              ]
+            },
+            "description": "Returns paginated session history (20 per page), ordered by gameday descending."
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Ledger (Transactions)",
+      "description": "All financial transaction types. Requires an open session for the gameday.\n\n**Transaction Types & Float Impact:**\n| Type | Float Effect | Notes |\n|---|---|---|\n| FILL | +amount | Chips added from vault |\n| CREDIT | +/- signed amount | Pit credit or deduction |\n| ADJUST | +/- signed amount | Manual correction |\n| CASHOUT | -amount | Player withdraws chips |\n| BUYIN (CHIPS) | +amount | Chip purchase increases float |\n| BUYIN (CASH) / DROP | no change | Cash goes to drop box |\n| PAYOUT | no change | Accounting only |\n| LOSS | +amount | Losing chips swept to tray |\n| BET | no change | Chips in betting circle |\n| VOID | no change | Correction via opposite txn |",
+      "item": [
+        {
+          "name": "Post Transaction — FILL",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "fill-t1-001", "description": "Optional: prevents duplicate submissions" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"table_id\": 1,\n  \"txn_type\": \"FILL\",\n  \"amount\": 10000.00,\n  \"gameday\": \"2026-09-06\",\n  \"tab_id\": null,\n  \"reference\": \"FILL-2026-001\",\n  \"initiated_by\": \"Pit Boss\"\n}" },
+            "url": { "raw": "{{base_url}}/api/v1/ledger/txn", "host": ["{{base_url}}"], "path": ["api","v1","ledger","txn"] },
+            "description": "Chips added to table from vault. Float balance increases."
+          },
+          "response": [
+            {
+              "name": "Recorded",
+              "status": "Created", "code": 201,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"success\": true,\n  \"message\": \"FILL transaction recorded successfully.\",\n  \"txn\": {\n    \"txn_id\": 101,\n    \"table_id\": 1,\n    \"tab_id\": null,\n    \"txn_type\": \"FILL\",\n    \"display_type\": \"FILL\",\n    \"payment_medium\": null,\n    \"amount\": 10000.0,\n    \"tab_balance\": 0.0,\n    \"float_balance\": 60000.0,\n    \"gameday\": \"2026-09-06\",\n    \"processed\": 0,\n    \"processed_label\": \"new\",\n    \"reference\": \"FILL-2026-001\",\n    \"initiated_by\": \"Pit Boss\",\n    \"created_at\": \"2026-09-06T09:00:00.000000Z\"\n  },\n  \"balances\": { \"float_before\": 50000.0, \"float_after\": 60000.0, \"tab_balance\": 0.0 }\n}"
+            },
+            {
+              "name": "No Open Session",
+              "status": "Unprocessable Content", "code": 422,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"success\":false,\"message\":\"No open session for table 'Baccarat Table 1' on gameday 2026-09-06. Open the table first.\"}"
+            },
+            {
+              "name": "Duplicate Transaction",
+              "status": "Conflict", "code": 409,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"success\":false,\"message\":\"Duplicate transaction detected. An identical transaction was recorded within the last 5 seconds.\",\"duplicate_of\":100}"
+            },
+            {
+              "name": "Table Busy (Lock)",
+              "status": "Too Many Requests", "code": 429,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"success\":false,\"message\":\"Table is busy processing another transaction. Please retry in a moment.\"}"
+            }
+          ]
+        },
+        {
+          "name": "Post Transaction — CREDIT",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"table_id\": 1,\n  \"txn_type\": \"CREDIT\",\n  \"amount\": -5000.00,\n  \"gameday\": \"2026-09-06\",\n  \"reference\": \"CREDIT-OUT-001\",\n  \"initiated_by\": \"Pit Boss\"\n}" },
+            "url": { "raw": "{{base_url}}/api/v1/ledger/txn", "host": ["{{base_url}}"], "path": ["api","v1","ledger","txn"] },
+            "description": "Signed credit. Positive = add to float. Negative = deduct from float."
+          }
+        },
+        {
+          "name": "Post Transaction — ADJUST",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"table_id\": 1,\n  \"txn_type\": \"ADJUST\",\n  \"amount\": -250.00,\n  \"gameday\": \"2026-09-06\",\n  \"reference\": \"Manual correction by supervisor\",\n  \"initiated_by\": \"Supervisor\"\n}" },
+            "url": { "raw": "{{base_url}}/api/v1/ledger/txn", "host": ["{{base_url}}"], "path": ["api","v1","ledger","txn"] },
+            "description": "Manual signed float adjustment. Use positive or negative amounts."
+          }
+        },
+        {
+          "name": "Post Transaction — BUYIN (CHIPS)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"table_id\": 1,\n  \"txn_type\": \"BUYIN\",\n  \"payment_medium\": \"CHIPS\",\n  \"amount\": 2000.00,\n  \"gameday\": \"2026-09-06\",\n  \"tab_id\": \"TAB001\",\n  \"initiated_by\": \"Dealer\"\n}" },
+            "url": { "raw": "{{base_url}}/api/v1/ledger/txn", "host": ["{{base_url}}"], "path": ["api","v1","ledger","txn"] },
+            "description": "Player buys in with chips (chip-to-chip exchange). Float increases. `payment_medium` is REQUIRED for BUYIN."
+          }
+        },
+        {
+          "name": "Post Transaction — BUYIN/DROP (CASH)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"table_id\": 1,\n  \"txn_type\": \"BUYIN\",\n  \"payment_medium\": \"CASH\",\n  \"amount\": 1000.00,\n  \"gameday\": \"2026-09-06\",\n  \"tab_id\": \"TAB001\",\n  \"initiated_by\": \"Dealer\"\n}" },
+            "url": { "raw": "{{base_url}}/api/v1/ledger/txn", "host": ["{{base_url}}"], "path": ["api","v1","ledger","txn"] },
+            "description": "Cash buy-in (DROP). Cash goes into the drop box — float balance does NOT change. Displayed as `DROP` in API responses."
+          }
+        },
+        {
+          "name": "Post Transaction — CASHOUT",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"table_id\": 1,\n  \"txn_type\": \"CASHOUT\",\n  \"amount\": 3000.00,\n  \"gameday\": \"2026-09-06\",\n  \"tab_id\": \"TAB001\",\n  \"initiated_by\": \"Dealer\"\n}" },
+            "url": { "raw": "{{base_url}}/api/v1/ledger/txn", "host": ["{{base_url}}"], "path": ["api","v1","ledger","txn"] },
+            "description": "Player cashes out chips. Float balance decreases."
+          }
+        },
+        {
+          "name": "Post Transaction — PAYOUT",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"table_id\": 1,\n  \"txn_type\": \"PAYOUT\",\n  \"amount\": 475.00,\n  \"gameday\": \"2026-09-06\",\n  \"tab_id\": \"TAB001\",\n  \"reference\": \"ROUND-42-WIN\",\n  \"initiated_by\": \"Dealer\"\n}" },
+            "url": { "raw": "{{base_url}}/api/v1/ledger/txn", "host": ["{{base_url}}"], "path": ["api","v1","ledger","txn"] },
+            "description": "Winning chips paid to player. Tab balance increases. Float unchanged (accounting only)."
+          }
+        },
+        {
+          "name": "Post Transaction — BET",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"table_id\": 1,\n  \"txn_type\": \"BET\",\n  \"amount\": 500.00,\n  \"gameday\": \"2026-09-06\",\n  \"tab_id\": \"TAB001\",\n  \"reference\": \"ROUND-43\",\n  \"initiated_by\": \"Dealer\"\n}" },
+            "url": { "raw": "{{base_url}}/api/v1/ledger/txn", "host": ["{{base_url}}"], "path": ["api","v1","ledger","txn"] },
+            "description": "Stake placed. Deducted from player tab. Float unchanged (chips in betting circle, not tray)."
+          }
+        },
+        {
+          "name": "Post Transaction — LOSS",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"table_id\": 1,\n  \"txn_type\": \"LOSS\",\n  \"amount\": 500.00,\n  \"gameday\": \"2026-09-06\",\n  \"tab_id\": \"TAB001\",\n  \"reference\": \"ROUND-43\",\n  \"initiated_by\": \"Dealer\"\n}" },
+            "url": { "raw": "{{base_url}}/api/v1/ledger/txn", "host": ["{{base_url}}"], "path": ["api","v1","ledger","txn"] },
+            "description": "Losing chips swept from betting circle into tray. Float balance increases. Tab unchanged (already reduced at BET time)."
+          }
+        },
+        {
+          "name": "Post Transaction — VOID",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"table_id\": 1,\n  \"txn_type\": \"VOID\",\n  \"amount\": 500.00,\n  \"gameday\": \"2026-09-06\",\n  \"tab_id\": \"TAB001\",\n  \"reference\": \"VOIDS-TXN-101\",\n  \"initiated_by\": \"Supervisor\"\n}" },
+            "url": { "raw": "{{base_url}}/api/v1/ledger/txn", "host": ["{{base_url}}"], "path": ["api","v1","ledger","txn"] },
+            "description": "Void marker. Float/tab unchanged. Correction handled by the paired opposite transaction."
+          }
+        },
+        {
+          "name": "Get Transactions by Table",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ledger/table/{{table_id}}?gameday={{gameday}}&txn_type=FILL&tab_id=TAB001&processed=0",
+              "host": ["{{base_url}}"],
+              "path": ["api","v1","ledger","table","{{table_id}}"],
+              "query": [
+                { "key": "gameday",   "value": "{{gameday}}", "description": "Filter by date Y-m-d (optional)" },
+                { "key": "txn_type",  "value": "FILL",        "description": "FILL|CREDIT|DROP|ADJUST|CASHOUT|BUYIN|PAYOUT|VOID|BET|LOSS" },
+                { "key": "tab_id",    "value": "TAB001",       "description": "Filter by player tab (optional)" },
+                { "key": "processed", "value": "0",            "description": "0=new|2=claimed|1=complete (optional)" }
+              ]
+            },
+            "description": "Returns paginated (50/page) transactions for a table. `DROP` filter → `BUYIN + CASH medium`."
+          }
+        },
+        {
+          "name": "Get Table Gameday Summary",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ledger/table/{{table_id}}/summary?gameday={{gameday}}",
+              "host": ["{{base_url}}"],
+              "path": ["api","v1","ledger","table","{{table_id}}","summary"],
+              "query": [{ "key": "gameday", "value": "{{gameday}}", "description": "Required — Y-m-d" }]
+            },
+            "description": "Full financial summary for a gameday: session state, float movement, per-type breakdown, and variance calculation."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK", "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"success\": true,\n  \"table_id\": 1,\n  \"table_name\": \"Baccarat Table 1\",\n  \"gameday\": \"2026-09-06\",\n  \"session\": { \"status\": \"open\", \"float_open\": 50000.0, \"float_close\": null, \"opened_by\": \"John Dealer\", \"opened_at\": \"2026-09-06T08:00:00.000000Z\" },\n  \"float\": { \"open\": 50000.0, \"current\": 55000.0, \"expected_close\": 55000.0, \"actual_close\": null, \"variance\": null },\n  \"breakdown\": {\n    \"FILL\":    { \"count\": 1, \"total\": 10000.0 },\n    \"CREDIT\":  { \"count\": 0, \"total\": 0.0 },\n    \"DROP\":    { \"count\": 2, \"total\": 2000.0 },\n    \"ADJUST\":  { \"count\": 0, \"total\": 0.0 },\n    \"CASHOUT\": { \"count\": 1, \"total\": 5000.0 },\n    \"BUYIN\":   { \"count\": 3, \"total\": 6000.0 },\n    \"PAYOUT\":  { \"count\": 5, \"total\": 2375.0 },\n    \"VOID\":    { \"count\": 0, \"total\": 0.0 },\n    \"BET\":     { \"count\": 5, \"total\": 2500.0 },\n    \"LOSS\":    { \"count\": 3, \"total\": 1500.0 }\n  },\n  \"total_txns\": 20\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Transactions by Tab",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ledger/tab/TAB001?gameday={{gameday}}&table_id={{table_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api","v1","ledger","tab","TAB001"],
+              "query": [
+                { "key": "gameday",  "value": "{{gameday}}", "description": "Filter by gameday (optional)" },
+                { "key": "table_id", "value": "{{table_id}}", "description": "Filter by table (optional)" }
+              ]
+            },
+            "description": "Returns all transactions for a player tab with a running summary (total buyin, cashout, payout, net balance)."
+          }
+        },
+        {
+          "name": "Get Single Transaction",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/v1/ledger/txn/101", "host": ["{{base_url}}"], "path": ["api","v1","ledger","txn","101"] },
+            "description": "Retrieves a single transaction by txn_id."
+          }
+        },
+        {
+          "name": "Claim Transaction (Middleware)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/v1/ledger/txn/101/claim", "host": ["{{base_url}}"], "path": ["api","v1","ledger","txn","101","claim"] },
+            "description": "Marks a `new` (0) transaction as `claimed` (2) by the middleware. Fails with 422 if already claimed or complete."
+          }
+        },
+        {
+          "name": "Complete Transaction",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/v1/ledger/txn/101/complete", "host": ["{{base_url}}"], "path": ["api","v1","ledger","txn","101","complete"] },
+            "description": "Marks a transaction as `complete` (1). Fails with 422 if already complete."
+          }
+        },
+        {
+          "name": "Get Pending Transactions",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ledger/pending?table_id={{table_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api","v1","ledger","pending"],
+              "query": [{ "key": "table_id", "value": "{{table_id}}", "description": "Filter by table (optional)" }]
+            },
+            "description": "Returns all unprocessed (state=0) transactions. Polling endpoint for the middleware."
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Game History",
+      "description": "Record game rounds and query history per game type. Replace `{game}` in the URL with: `baccarat`, `andarbahar`, `dragontiger`, `threecardpoker`, `blackjack`, `miniflush`, or `casinowar`.",
+      "item": [
+        {
+          "name": "Store Round — Baccarat",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"shoe_no\": 5,\n  \"table_id\": 1,\n  \"tab_id\": \"TAB001\",\n  \"player_cards\": [\"Ah\", \"Kd\", \"3c\"],\n  \"banker_cards\": [\"2h\", \"9s\"],\n  \"winner\": \"banker\",\n  \"side_win\": \"player_pair\",\n  \"bet_position\": \"banker\",\n  \"bet_amount\": 500.00,\n  \"win_amount\": 475.00,\n  \"current_credit\": 9975.00,\n  \"date_time\": \"2026-09-06 14:32:10\"\n}" },
+            "url": { "raw": "{{base_url}}/api/v1/history/baccarat", "host": ["{{base_url}}"], "path": ["api","v1","history","baccarat"] },
+            "description": "**winner:** `player` | `banker` | `tie`\n**bet_position:** `player` | `banker` | `tie` | `player_pair` | `banker_pair` | `lucky6`\n**side_win:** comma-separated e.g. `\"player_pair,lucky6\"` or `null`\n**shoe_no:** nullable"
+          }
+        },
+        {
+          "name": "Store Round — Andar Bahar",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"table_id\": 2,\n  \"tab_id\": \"TAB002\",\n  \"joker_card\": \"7h\",\n  \"andar_cards\": [\"2c\", \"Kd\", \"7s\"],\n  \"bahar_cards\": [\"5h\", \"Jc\", \"9d\"],\n  \"winner\": \"andar\",\n  \"side_win\": null,\n  \"bet_position\": \"andar\",\n  \"bet_amount\": 200.00,\n  \"win_amount\": 200.00,\n  \"current_credit\": 5200.00,\n  \"date_time\": \"2026-09-06 14:35:00\"\n}" },
+            "url": { "raw": "{{base_url}}/api/v1/history/andarbahar", "host": ["{{base_url}}"], "path": ["api","v1","history","andarbahar"] },
+            "description": "**winner:** `andar` | `bahar`\n**bet_position:** `andar` | `bahar` | `super_andar` | `super_bahar`\n**joker_card:** single card string"
+          }
+        },
+        {
+          "name": "Store Round — Dragon Tiger",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"shoe_no\": 3,\n  \"table_id\": 3,\n  \"tab_id\": \"TAB003\",\n  \"dragon_card\": \"Ks\",\n  \"tiger_card\": \"4h\",\n  \"winner\": \"dragon\",\n  \"side_win\": null,\n  \"bet_position\": \"dragon\",\n  \"bet_amount\": 1000.00,\n  \"win_amount\": 1000.00,\n  \"current_credit\": 11000.00,\n  \"date_time\": \"2026-09-06 14:40:00\"\n}" },
+            "url": { "raw": "{{base_url}}/api/v1/history/dragontiger", "host": ["{{base_url}}"], "path": ["api","v1","history","dragontiger"] },
+            "description": "**winner:** `dragon` | `tiger` | `tie`\n**bet_position:** `dragon` | `tiger` | `tie`\n**dragon_card / tiger_card:** single card string each"
+          }
+        },
+        {
+          "name": "Store Round — Three Card Poker",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"table_id\": 4,\n  \"tab_id\": \"TAB004\",\n  \"player_cards\": [\"Ah\", \"Kh\", \"Qh\"],\n  \"dealer_cards\": [\"2c\", \"7d\", \"9s\"],\n  \"winner\": \"player\",\n  \"side_win\": \"six_card_bonus\",\n  \"bet_position\": \"ante\",\n  \"bet_amount\": 300.00,\n  \"win_amount\": 600.00,\n  \"current_credit\": 8600.00,\n  \"date_time\": \"2026-09-06 14:45:00\"\n}" },
+            "url": { "raw": "{{base_url}}/api/v1/history/threecardpoker", "host": ["{{base_url}}"], "path": ["api","v1","history","threecardpoker"] },
+            "description": "**winner:** `player` | `dealer` | `tie`\n**bet_position:** `ante` | `pair_plus` | `six_card_bonus`\n**player_cards / dealer_cards:** exactly 3 cards each"
+          }
+        },
+        {
+          "name": "Store Round — Blackjack (No Split)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"table_id\": 5,\n  \"tab_id\": \"TAB005\",\n  \"player_cards\": [\"Ah\", \"Kd\"],\n  \"dealer_cards\": [\"7c\", \"9s\", \"5h\"],\n  \"double_amount\": 0,\n  \"insurance_amount\": 0,\n  \"split_hands\": null,\n  \"winner\": \"blackjack\",\n  \"side_win\": null,\n  \"bet_position\": \"main\",\n  \"bet_amount\": 500.00,\n  \"win_amount\": 1250.00,\n  \"current_credit\": 12250.00,\n  \"date_time\": \"2026-09-06 14:50:00\"\n}" },
+            "url": { "raw": "{{base_url}}/api/v1/history/blackjack", "host": ["{{base_url}}"], "path": ["api","v1","history","blackjack"] },
+            "description": "**winner:** `player` | `dealer` | `tie` | `blackjack` | `bust`\n**bet_position:** `main` | `pair` | `777_charlie`"
+          }
+        },
+        {
+          "name": "Store Round — Blackjack (Double Down)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"table_id\": 5,\n  \"tab_id\": \"TAB005\",\n  \"player_cards\": [\"6h\", \"5d\", \"Kc\"],\n  \"dealer_cards\": [\"7c\", \"9s\"],\n  \"double_amount\": 500.00,\n  \"insurance_amount\": 0,\n  \"split_hands\": null,\n  \"winner\": \"player\",\n  \"side_win\": null,\n  \"bet_position\": \"main\",\n  \"bet_amount\": 500.00,\n  \"win_amount\": 2000.00,\n  \"current_credit\": 14000.00,\n  \"date_time\": \"2026-09-06 14:52:00\"\n}" },
+            "url": { "raw": "{{base_url}}/api/v1/history/blackjack", "host": ["{{base_url}}"], "path": ["api","v1","history","blackjack"] },
+            "description": "`double_amount` = additional stake placed on double-down."
+          }
+        },
+        {
+          "name": "Store Round — Blackjack (Insurance)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"table_id\": 5,\n  \"tab_id\": \"TAB005\",\n  \"player_cards\": [\"Kh\", \"8d\"],\n  \"dealer_cards\": [\"Ah\", \"Kc\"],\n  \"double_amount\": 0,\n  \"insurance_amount\": 250.00,\n  \"split_hands\": null,\n  \"winner\": \"dealer\",\n  \"side_win\": null,\n  \"bet_position\": \"main\",\n  \"bet_amount\": 500.00,\n  \"win_amount\": 500.00,\n  \"current_credit\": 13500.00,\n  \"date_time\": \"2026-09-06 14:54:00\"\n}" },
+            "url": { "raw": "{{base_url}}/api/v1/history/blackjack", "host": ["{{base_url}}"], "path": ["api","v1","history","blackjack"] },
+            "description": "`insurance_amount` = side bet placed when dealer shows an Ace."
+          }
+        },
+        {
+          "name": "Store Round — Blackjack (Split)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"table_id\": 5,\n  \"tab_id\": \"TAB005\",\n  \"player_cards\": [\"8h\", \"8d\"],\n  \"dealer_cards\": [\"7c\", \"Ks\"],\n  \"double_amount\": 0,\n  \"insurance_amount\": 0,\n  \"split_hands\": [\n    {\n      \"split_no\": 1,\n      \"cards\": [\"8h\", \"3d\", \"Jc\"],\n      \"double_amount\": 0,\n      \"insurance_amount\": 0,\n      \"bet_amount\": 500.00,\n      \"winner\": \"player\",\n      \"win_amount\": 1000.00\n    },\n    {\n      \"split_no\": 2,\n      \"cards\": [\"8d\", \"Ac\"],\n      \"double_amount\": 0,\n      \"insurance_amount\": 0,\n      \"bet_amount\": 500.00,\n      \"winner\": \"player\",\n      \"win_amount\": 1000.00\n    }\n  ],\n  \"winner\": \"player\",\n  \"side_win\": null,\n  \"bet_position\": \"main\",\n  \"bet_amount\": 500.00,\n  \"win_amount\": 2000.00,\n  \"current_credit\": 15500.00,\n  \"date_time\": \"2026-09-06 14:56:00\"\n}" },
+            "url": { "raw": "{{base_url}}/api/v1/history/blackjack", "host": ["{{base_url}}"], "path": ["api","v1","history","blackjack"] },
+            "description": "`split_hands` array — each object has `split_no`, `cards`, `double_amount`, `insurance_amount`, `bet_amount`, `winner`, `win_amount`. Parent row summarises the overall hand."
+          }
+        },
+        {
+          "name": "Store Round — Mini Flush",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"table_id\": 6,\n  \"tab_id\": \"TAB006\",\n  \"player_cards\": [\"Ah\", \"2h\", \"3h\"],\n  \"dealer_cards\": [\"Kc\", \"Qd\", \"Js\"],\n  \"winner\": \"player\",\n  \"side_win\": \"hl\",\n  \"bet_position\": \"main\",\n  \"bet_amount\": 400.00,\n  \"win_amount\": 800.00,\n  \"current_credit\": 7800.00,\n  \"date_time\": \"2026-09-06 15:00:00\"\n}" },
+            "url": { "raw": "{{base_url}}/api/v1/history/miniflush", "host": ["{{base_url}}"], "path": ["api","v1","history","miniflush"] },
+            "description": "**winner:** `player` | `dealer` | `tie`\n**bet_position:** `main` | `hl`\n**side_win:** `hl` | `null`"
+          }
+        },
+        {
+          "name": "Store Round — Casino War",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"table_id\": 7,\n  \"tab_id\": \"TAB007\",\n  \"player_cards\": [\"Kh\", \"9d\"],\n  \"dealer_cards\": [\"7c\", \"9d\"],\n  \"winner\": \"war\",\n  \"side_win\": \"tie\",\n  \"bet_position\": \"main\",\n  \"bet_amount\": 600.00,\n  \"win_amount\": 600.00,\n  \"current_credit\": 9600.00,\n  \"date_time\": \"2026-09-06 15:05:00\"\n}" },
+            "url": { "raw": "{{base_url}}/api/v1/history/casinowar", "host": ["{{base_url}}"], "path": ["api","v1","history","casinowar"] },
+            "description": "**winner:** `player` | `dealer` | `tie` | `war`\n**bet_position:** `main` | `tie`\n**player_cards[0]** = initial card, **player_cards[1]** = war card (if went to war)\n**side_win:** `tie` if tie bet won, `null` otherwise"
+          }
+        },
+        {
+          "name": "Get History by Table",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/history/baccarat/table/{{table_id}}?date=2026-09-06&winner=banker&tab_id=TAB001&game_no=",
+              "host": ["{{base_url}}"],
+              "path": ["api","v1","history","baccarat","table","{{table_id}}"],
+              "query": [
+                { "key": "date",     "value": "2026-09-06", "description": "Filter by single day (optional)" },
+                { "key": "winner",   "value": "banker",     "description": "Filter by winner value — game-specific (optional)" },
+                { "key": "tab_id",   "value": "TAB001",     "description": "Filter by player tab (optional)" },
+                { "key": "game_no",  "value": "",           "description": "Jump to specific game/shoe number. Omit for latest." }
+              ]
+            },
+            "description": "Records grouped by `game_no` (shoe/round). Supports navigation: `prev_game_no`, `next_game_no`, `all_game_nos`. Replace `baccarat` with any valid game segment."
+          }
+        },
+        {
+          "name": "Get History by Tab (Player)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/history/blackjack/tab/TAB005?table_id={{table_id}}&per_page=25",
+              "host": ["{{base_url}}"],
+              "path": ["api","v1","history","blackjack","tab","TAB005"],
+              "query": [
+                { "key": "table_id", "value": "{{table_id}}", "description": "Filter by table (optional)" },
+                { "key": "per_page", "value": "25",            "description": "Pagination size (default 50)" }
+              ]
+            },
+            "description": "Returns paginated history for a specific player tab. Replace `blackjack` with any game segment."
+          }
+        },
+        {
+          "name": "Get Single History Record",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/v1/history/blackjack/42", "host": ["{{base_url}}"], "path": ["api","v1","history","blackjack","42"] },
+            "description": "Returns a single round record by ID. Replace `blackjack` with any game segment."
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Payout Rules",
+      "item": [
+        {
+          "name": "Get Active Payout Rules by Game Type",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/v1/payout-rules/game-type/1", "host": ["{{base_url}}"], "path": ["api","v1","payout-rules","game-type","1"] },
+            "description": "Returns all active payout rules for a game type ID, ordered by bet_position."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK", "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"success\": true,\n  \"count\": 5,\n  \"data\": [\n    { \"payout_id\": 1, \"game_type_id\": 1, \"bet_name\": \"Player\",    \"bet_position\": \"P\",  \"payout_multiplier\": \"1.00\", \"is_active\": 1, \"is_jackpot\": 0 },\n    { \"payout_id\": 2, \"game_type_id\": 1, \"bet_name\": \"Banker\",    \"bet_position\": \"B\",  \"payout_multiplier\": \"0.95\", \"is_active\": 1, \"is_jackpot\": 0 },\n    { \"payout_id\": 3, \"game_type_id\": 1, \"bet_name\": \"Tie\",       \"bet_position\": \"T\",  \"payout_multiplier\": \"8.00\", \"is_active\": 1, \"is_jackpot\": 0 },\n    { \"payout_id\": 4, \"game_type_id\": 1, \"bet_name\": \"Player Pair\",\"bet_position\": \"PP\", \"payout_multiplier\": \"11.00\",\"is_active\": 1, \"is_jackpot\": 0 },\n    { \"payout_id\": 5, \"game_type_id\": 1, \"bet_name\": \"Banker Pair\",\"bet_position\": \"BP\", \"payout_multiplier\": \"11.00\",\"is_active\": 1, \"is_jackpot\": 0 }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get All Payout Rules by Game Type (Inline)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/v1/payout-rules/1", "host": ["{{base_url}}"], "path": ["api","v1","payout-rules","1"] },
+            "description": "Returns ALL payout rules (no `is_active` filter) for a game type ID. Used by the admin form JS."
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Game Types",
+      "item": [
+        {
+          "name": "List All Active Game Types",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/v1/game-types", "host": ["{{base_url}}"], "path": ["api","v1","game-types"] },
+            "description": "Returns all active game types."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK", "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"success\": true,\n  \"count\": 7,\n  \"data\": [\n    { \"id\": 1, \"name\": \"Baccarat\",         \"code\": \"BAC\", \"status\": 1 },\n    { \"id\": 2, \"name\": \"Andar Bahar\",      \"code\": \"AB\",  \"status\": 1 },\n    { \"id\": 3, \"name\": \"Dragon Tiger\",     \"code\": \"DT\",  \"status\": 1 },\n    { \"id\": 4, \"name\": \"Three Card Poker\", \"code\": \"3CP\", \"status\": 1 },\n    { \"id\": 5, \"name\": \"Blackjack\",        \"code\": \"BJ\",  \"status\": 1 },\n    { \"id\": 6, \"name\": \"Mini Flush\",       \"code\": \"MF\",  \"status\": 1 },\n    { \"id\": 7, \"name\": \"Casino War\",       \"code\": \"CW\",  \"status\": 1 }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Single Game Type by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/v1/game-types/1", "host": ["{{base_url}}"], "path": ["api","v1","game-types","1"] },
+            "description": "Returns a single game type including config field metadata."
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Users",
+      "item": [
+        {
+          "name": "List All Users",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/v1/users", "host": ["{{base_url}}"], "path": ["api","v1","users"] },
+            "description": "Returns all users with nested roles and permissions."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK", "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"success\": true,\n  \"count\": 2,\n  \"data\": [\n    {\n      \"id\": 1,\n      \"name\": \"Admin User\",\n      \"username\": \"admin\",\n      \"card_id\": null,\n      \"status\": 1,\n      \"role_id\": 1,\n      \"roles\": [\n        {\n          \"id\": 1,\n          \"name\": \"Admin\",\n          \"permissions\": [\n            { \"id\": 1, \"name\": \"view-users\" },\n            { \"id\": 2, \"name\": \"manage-tables\" }\n          ]\n        }\n      ]\n    }\n  ]\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "9. Auth (Sanctum)",
+      "item": [
+        {
+          "name": "Get Authenticated User",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{sanctum_token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/api/user", "host": ["{{base_url}}"], "path": ["api","user"] },
+            "description": "Returns the currently authenticated user via Sanctum token. Requires `Authorization: Bearer <token>` header."
+          }
+        }
+      ]
+    }
+  ]
+}
